@@ -42,35 +42,3 @@ export interface BillData {
   restaurantName: string;
   billDate: string;
 }
-
-// Type for the raw data returned by the AI service
-export interface GeminiResponse {
-  items: Array<{
-      name: string;
-      price: number;
-      translatedName: string | null;
-  }>;
-  serviceCharge?: {
-      name: string;
-      translatedName: string | null;
-      amount: number;
-  };
-  vat?: {
-      name: string;
-      translatedName: string | null;
-      amount: number;
-  };
-  otherTax?: {
-      name: string;
-      translatedName: string | null;
-      amount: number;
-  };
-  discount?: {
-      amount: number;
-  };
-  grandTotal?: number;
-  baseCurrency?: string; // e.g., "THB"
-  restaurantName?: string;
-  restaurantCountry?: string; // e.g., "Thailand"
-  date?: string; // e.g., "2024-05-15"
-}

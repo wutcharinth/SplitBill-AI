@@ -1,29 +1,10 @@
-import { GeminiResponse } from '../types';
+import { extractReceiptData, ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 
-const API_ENDPOINT = 'https://us-central1-gapps-solutions-dev.cloudfunctions.net/bill-parser-v2';
-
-export const parseReceipt = async (base64Image: string, mimeType: string): Promise<GeminiResponse> => {
+export const parseReceipt = async (base64Image: string, mimeType: string): Promise<ExtractReceiptDataOutput> => {
     try {
-        const response = await fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                image: base64Image,
-                mime_type: mimeType,
-            }),
-        });
-        
-        if (!response.ok) {
-            const errorBody = await response.text();
-            console.error('Error response from API:', errorBody);
-            throw new Error(`API returned ${response.status}: ${response.statusText}`);
-        }
-        
-        const data: GeminiResponse = await response.json();
+        const photoDataUri = `data:${mimeType};base64,${base64Image}`;
+        const data = await extractReceiptData({ photoDataUri });
         return data;
-
     } catch (error) {
         console.error('Failed to parse receipt:', error);
         if (error instanceof Error) {

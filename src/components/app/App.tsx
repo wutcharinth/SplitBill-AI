@@ -3,12 +3,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Camera, Upload, PlusCircle, Crown, X } from 'lucide-react';
 import { parseReceipt } from '../services/geminiService';
-import { GeminiResponse, BillData, Person } from '../types';
+import { BillData, Person } from '../types';
 import { COUNTRY_CURRENCY_MAP, PERSON_COLORS } from '../constants';
 import MainApp from './MainApp';
 import Loader from './Loader';
 import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
+import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 
 const fileToBase64 = (file: File | Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -94,13 +95,8 @@ export default function App() {
         processParsedData(null);
     };
 
-    const processParsedData = (data: GeminiResponse | null) => {
+    const processParsedData = (data: ExtractReceiptDataOutput | null) => {
         let baseCurrency = 'USD';
-        if (data?.baseCurrency) {
-            baseCurrency = data.baseCurrency;
-        } else if (data?.restaurantCountry && COUNTRY_CURRENCY_MAP[data.restaurantCountry]) {
-            baseCurrency = COUNTRY_CURRENCY_MAP[data.restaurantCountry];
-        }
         
         const initialPeople: Person[] = [
             { id: `p${Date.now()}-1`, name: 'P1', color: PERSON_COLORS[0] },
@@ -108,16 +104,16 @@ export default function App() {
         ];
 
         const newBillData: BillData = {
-            items: data?.items.map(item => ({ ...item, isFree: false, shares: Array(initialPeople.length).fill(0) })) || [],
+            items: data?.items.map(item => ({ ...item, isFree: false, translatedName: null, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
             taxes: {
-                serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge', amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
-                vat: { id: 'vat', name: data?.vat?.translatedName || data?.vat?.name || 'VAT', amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
-                otherTax: { id: 'otherTax', name: data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax', amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
+                serviceCharge: { id: 'serviceCharge', name: 'Service Charge', amount: 0, isEnabled: false },
+                vat: { id: 'vat', name: 'VAT', amount: 0, isEnabled: false },
+                otherTax: { id: 'otherTax', name: 'Other Tax', amount: 0, isEnabled: false },
             },
-            discount: { value: data?.discount?.amount || 0, type: 'fixed', shares: [] },
+            discount: { value: 0, type: 'fixed', shares: [] },
             tip: 0,
-            billTotal: data?.grandTotal || 0,
+            billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
             restaurantName: data?.restaurantName || '',
             billDate: data?.date || new Date().toISOString().split('T')[0],
