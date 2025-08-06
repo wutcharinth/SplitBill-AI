@@ -63,6 +63,41 @@ const fireConfetti = () => {
     }
 };
 
+/**
+ * Preloads fonts used in the summary card to ensure they are available for canvas rendering.
+ * @see https://github.com/bubkoo/html-to-image/issues/197#issuecomment-946337672
+ */
+async function preloadFonts() {
+    try {
+        // The 'Manrope' font is the primary font used in the app.
+        // We check if it's already loaded to avoid redundant fetches.
+        if (document.fonts && !document.fonts.check('1em Manrope')) {
+            // Using the same URL as in layout.tsx to ensure consistency.
+            const fontCssUrl = 'https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap';
+            const response = await fetch(fontCssUrl);
+            const cssText = await response.text();
+            
+            // Extract font URLs from the CSS text.
+            const fontUrls = cssText.match(/url\(https?:\/\/[^)]+\)/g) || [];
+
+            // Create font face objects and load them.
+            const fontFaces = fontUrls.map(url => {
+                const fontUrl = url.replace(/url\(|\)/g, '');
+                // It's tricky to get the exact font family name programmatically here,
+                // but creating a FontFace object with the URL is the key part.
+                const font = new FontFace('Manrope', `url(${fontUrl})`);
+                return font.load();
+            });
+
+            await Promise.all(fontFaces);
+        }
+    } catch (error) {
+        console.error('Error preloading fonts for summary capture:', error);
+        // We don't block the capture process if font loading fails.
+        // The browser will likely fall back to a default font.
+    }
+}
+
 
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
@@ -119,35 +154,23 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             return;
         }
 
-        const originalParent = summaryEl.parentNode;
-        if (!originalParent) return;
+        // Preload fonts to ensure they render correctly in the captured image.
+        await preloadFonts();
 
-        // Temporarily move the element to a container at the top of the body
-        // This ensures it's rendered in the DOM for capture, but not necessarily visible,
-        // which helps with elements that are off-screen.
-        const captureContainer = document.createElement('div');
-        captureContainer.style.position = 'absolute';
-        captureContainer.style.top = '0';
-        captureContainer.style.left = '0';
-        captureContainer.style.zIndex = '-1'; // Hide it off-screen
-        
-        document.body.appendChild(captureContainer);
-        captureContainer.appendChild(summaryEl);
-
-        // Add a class to disable certain styles (like input borders) during capture
+        // Add a "capturing" class to apply special styles for the image output.
         summaryEl.classList.add('capturing');
 
         try {
             const dataUrl = await toPng(summaryEl, {
-                quality: 1,
-                pixelRatio: 2.5,
-                backgroundColor: '#f1f5f9', // slate-100
-                // Use the element's scroll dimensions for accurate height/width
-                width: summaryEl.scrollWidth,
-                height: summaryEl.scrollHeight,
+                quality: 1, // Use high quality
+                pixelRatio: 2.5, // Increase resolution for sharper images
+                backgroundColor: '#f1f5f9', // Use the app's slate-100 background color
+                // These options help ensure all content, including images, is loaded.
+                cacheBust: true,
+                skipAutoScale: true,
             });
 
-            // Trigger download
+            // Trigger the download
             const link = document.createElement('a');
             link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.png`;
             link.href = dataUrl;
@@ -156,11 +179,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
         } catch (err) {
             console.error('Failed to save summary image:', err);
+            // Inform the user if something goes wrong.
+            alert('Sorry, there was an error creating the summary image. Please try again.');
         } finally {
-            // Clean up: move element back and remove temporary container and class
+            // IMPORTANT: Always remove the capturing class after the operation.
             summaryEl.classList.remove('capturing');
-            originalParent.appendChild(summaryEl);
-            document.body.removeChild(captureContainer);
         }
     };
     
@@ -547,5 +570,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    
