@@ -185,19 +185,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     }, [items, discount, taxes, tip, billTotal, splitMode]);
 
 
-    const handleSaveSummary = async () => {
-        const blob = await generateImageBlob(summaryRef.current!);
-        if (blob) {
-            const dataUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.png`;
-            link.href = dataUrl;
-            link.click();
-            fireConfetti();
-            URL.revokeObjectURL(dataUrl); // Clean up the object URL
-        }
-    };
-
     const handleShareSummary = async () => {
         const blob = await generateImageBlob(summaryRef.current!);
         if (!blob) return;
@@ -219,9 +206,14 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 // The user may have cancelled the share, so we don't show an error.
             }
         } else {
-            // Fallback for browsers that don't support Web Share API
-            alert("Sharing is not supported on your browser. Please download the image and share it manually.");
-            handleSaveSummary();
+            // Fallback for browsers that don't support Web Share API, we trigger download
+             const dataUrl = URL.createObjectURL(blob);
+             const link = document.createElement('a');
+             link.download = filename;
+             link.href = dataUrl;
+             link.click();
+             fireConfetti();
+             URL.revokeObjectURL(dataUrl);
         }
     };
     
@@ -598,14 +590,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 </label>
             </div>
             
-             <div className="mt-4 grid grid-cols-2 gap-3">
+             <div className="mt-4 grid grid-cols-1 gap-3">
                 <button onClick={handleShareSummary} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
                     <Share2 size={18} />
                     <span>Share Summary</span>
-                </button>
-                <button onClick={handleSaveSummary} className="w-full bg-agoda-blue hover:bg-agoda-blue-dark text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
-                    <Download size={18} />
-                    <span>Save to Photos</span>
                 </button>
             </div>
         </div>
@@ -613,3 +601,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
