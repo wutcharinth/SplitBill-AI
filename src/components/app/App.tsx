@@ -143,8 +143,8 @@ export default function App() {
                 return (
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
-                            <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-56 mx-auto" />
-                            <p className="text-gray-700 mt-4 mb-8 text-xl font-medium">Snap. Split. Done.</p>
+                            <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-48 mx-auto" />
+                            <p className="text-gray-700 mt-2 mb-8 text-xl font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
                                 <label htmlFor="camera-upload" className="cursor-pointer group flex items-center justify-center space-x-3 w-full bg-agoda-blue text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:bg-agoda-blue-dark hover:shadow-lg hover:scale-105">
