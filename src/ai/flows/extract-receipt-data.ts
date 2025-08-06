@@ -47,8 +47,7 @@ Use the following as the primary source of information about the receipt.
 
 Photo: {{media url=photoDataUri}}
 
-Output the extracted data as a JSON object matching the following schema:
-\n{{json schema=ExtractReceiptDataOutputSchema}}
+Output the extracted data as a JSON object matching the output schema.
 `,
 });
 
