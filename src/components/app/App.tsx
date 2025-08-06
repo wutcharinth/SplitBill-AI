@@ -111,7 +111,7 @@ export default function App() {
                 vat: { id: 'vat', name: 'VAT', amount: 0, isEnabled: false },
                 otherTax: { id: 'otherTax', name: 'Other Tax', amount: 0, isEnabled: false },
             },
-            discount: { value: 0, type: 'fixed', shares: [] },
+            discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
