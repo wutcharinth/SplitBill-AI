@@ -2,9 +2,20 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ALLOWED_CURRENCIES } from '../constants';
-import { ArrowRightLeft, RotateCw, Star } from 'lucide-react';
+import { ArrowRightLeft, LogIn, LogOut, Star } from 'lucide-react';
 import { usePinnedCurrencies } from '../hooks/usePinnedCurrencies';
 import ManagePinnedCurrenciesModal from './ManagePinnedCurrenciesModal';
+import { useAuth } from '../contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { Button } from '../ui/button';
 
 interface HeaderProps {
     activePage: 'setup' | 'summary';
@@ -52,6 +63,8 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
     const [isScrolled, setIsScrolled] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { pinnedCurrencies, togglePin } = usePinnedCurrencies();
+    const { user, loading, signInWithGoogle, signOut } = useAuth();
+
 
     const { baseCurrency, displayCurrency, fxRate, fxRateDate, isFxLoading } = state;
 
@@ -85,23 +98,57 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
         }
         return `${baseClasses} text-gray-500 hover:bg-gray-300/50`;
     };
+    
+    const UserMenu = () => {
+        if (loading) {
+            return <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />;
+        }
+
+        if (user) {
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Avatar className="h-8 w-8 cursor-pointer">
+                            <AvatarImage src={user.photoURL!} alt={user.displayName || 'User'} />
+                            <AvatarFallback>{user.displayName?.[0] || 'U'}</AvatarFallback>
+                        </Avatar>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={signOut}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Sign Out</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            );
+        }
+
+        return (
+            <Button size="sm" onClick={signInWithGoogle}>
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+            </Button>
+        );
+    };
 
     return (
         <>
             <header className={`fixed top-0 left-0 right-0 z-40 bg-slate-100/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
                <div className="w-full max-w-xl mx-auto px-4 py-2">
-                    {/* Row 1: Branding */}
-                    <div className="flex items-center gap-3">
-                        <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-10" />
-                        <div>
-                            <h1 className="text-base font-bold text-gray-800">SplitBill AI</h1>
-                            <p className="text-xs text-gray-600">Snap. Split. Done.</p>
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-10" />
+                            <div>
+                                <h1 className="text-base font-bold text-gray-800">SplitBill AI</h1>
+                                <p className="text-xs text-gray-600">Snap. Split. Done.</p>
+                            </div>
                         </div>
+                        <UserMenu />
                     </div>
 
-                    {/* Row 2: Navigation & Currency */}
                     <div className="flex items-center justify-between mt-2">
-                        {/* Nav Tabs */}
                         <div className="flex items-center space-x-1 bg-gray-200 p-1 rounded-lg">
                             <button
                                 onClick={() => setActivePage('setup')}
@@ -117,7 +164,6 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                             </button>
                         </div>
                         
-                        {/* Currency Selectors */}
                         <div className="flex items-center gap-2 text-sm">
                             <CurrencySelector
                                 id="base-currency-select"
@@ -160,7 +206,9 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                             className="w-24 text-right bg-white border border-gray-300 rounded-md p-1 pr-6 font-mono text-xs text-gray-900 disabled:bg-gray-100"
                                             disabled={isFxLoading}
                                         />
-                                        {isFxLoading && <RotateCw size={14} className="absolute right-1 top-1/2 -translate-y-1/2 animate-spin text-agoda-blue pointer-events-none" />}
+                                        {isFxLoading && <div className="absolute right-1 top-1/2 -translate-y-1/2 animate-spin text-agoda-blue pointer-events-none" >
+                                            <div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
+                                        </div>}
                                     </div>
                                      <span className="ml-2 font-semibold text-gray-800">{displayCurrency}</span>
                                 </div>

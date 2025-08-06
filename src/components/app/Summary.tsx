@@ -8,28 +8,25 @@ import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti';
 
 const fireConfetti = () => {
-    // Create a canvas that will be used for the confetti animation.
-    // This approach is more robust than relying on the default canvas creation.
     const canvas = document.createElement('canvas');
     canvas.style.position = 'fixed';
     canvas.style.top = '0';
     canvas.style.left = '0';
     canvas.style.width = '100vw';
     canvas.style.height = '100vh';
-    canvas.style.pointerEvents = 'none'; // Make sure it doesn't block user interaction
-    canvas.style.zIndex = '1001'; // Ensure it's on top of other elements
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '1001';
     document.body.appendChild(canvas);
 
     try {
-        // Create a confetti instance attached to our canvas.
         const myConfetti = confetti.create(canvas, {
-            resize: true, // Automatically resize the canvas when the window resizes
-            useWorker: true, // Use a web worker for better performance
+            resize: true,
+            useWorker: true,
         });
 
         const count = 200;
         const defaults = {
-            origin: { x: 0.5, y: 1 }, // Start from bottom-center
+            origin: { x: 0.5, y: 1 },
             disableForReducedMotion: true,
             zIndex: 1001,
         };
@@ -45,7 +42,6 @@ const fireConfetti = () => {
             });
         }
 
-        // A more elegant, upward fountain effect
         fire(0.25, { spread: 50, startVelocity: 55, decay: 0.9, gravity: 0.8 });
         fire(0.2, { spread: 80, startVelocity: 45, decay: 0.9, gravity: 0.8 });
         fire(0.35, { spread: 120, startVelocity: 35, decay: 0.91, scalar: 0.8, gravity: 0.8 });
@@ -55,74 +51,42 @@ const fireConfetti = () => {
     } catch(e) {
         console.error('Confetti failed:', e);
     } finally {
-        // Clean up the canvas after the animation has had time to finish
         setTimeout(() => {
             if (canvas.parentNode) {
                 canvas.parentNode.removeChild(canvas);
             }
-        }, 5000); // 5 seconds should be plenty for the animation to fade
+        }, 5000);
     }
 };
 
-/**
- * Preloads fonts used in the summary card to ensure they are available for canvas rendering.
- * This is especially important for ensuring consistent output across different devices.
- * @see https://github.com/bubkoo/html-to-image/issues/197#issuecomment-946337672
- */
-async function preloadFonts() {
-    try {
-        // We check if the font is already in the document's font set.
-        // The 'Manrope' font is the primary font used in the app.
-        if (document.fonts && !document.fonts.check('1em Manrope')) {
-            // Using the same URL as in layout.tsx ensures we fetch the correct font file.
-            const fontCssUrl = 'https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap';
-            const response = await fetch(fontCssUrl);
-            const cssText = await response.text();
-            
-            // We find all `url(...)` declarations in the CSS text.
-            const fontUrls = cssText.match(/url\(https?:\/\/[^)]+\)/g) || [];
-
-            // For each URL, we create a new FontFace object and load it.
-            // This programmatically adds the font to the document's font list.
-            const fontFaces = fontUrls.map(url => {
-                const fontUrl = url.replace(/url\(|\)/g, '');
-                const font = new FontFace('Manrope', `url(${fontUrl})`);
-                return font.load();
-            });
-
-            // We wait for all font loading promises to resolve.
-            await Promise.all(fontFaces);
-        }
-    } catch (error) {
-        console.error('Error preloading fonts for summary capture:', error);
-        // We don't block the capture process if font loading fails.
-        // The browser will likely fall back to a default font in this case.
-    }
-}
-
-/**
- * Generates a PNG image from an HTML element and returns it as a Blob.
- * This is a shared function for both downloading and sharing.
- */
 async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
     if (!element) {
         console.error('Element for image generation not found');
         return null;
     }
 
-    // Ensure all assets like fonts and images are loaded before capture.
-    await preloadFonts();
+    const images = Array.from(element.getElementsByTagName('img'));
+    const imageLoadPromises = images.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve; // Resolve even on error to not block the process
+        });
+    });
 
-    // The 'capturing' class applies temporary styles to ensure the capture is clean.
+    await Promise.all(imageLoadPromises);
+    
+    // Add a small delay to ensure rendering completes after images load
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     element.classList.add('capturing');
 
     try {
-        // Use toPng for higher quality, suitable for detailed summaries.
         const dataUrl = await toPng(element, {
-            quality: 1.0, // PNG quality is lossless, this is more for other formats
-            pixelRatio: 2.5, // Increase resolution for sharper text on high-DPI screens
-            backgroundColor: '#f1f5f9', // Same as the page background (slate-100)
-            cacheBust: true, // Re-fetch images to avoid cache issues
+            quality: 1.0,
+            pixelRatio: 2.5,
+            backgroundColor: '#f1f5f9',
+            cacheBust: true,
         });
         const blob = await (await fetch(dataUrl)).blob();
         return blob;
@@ -131,7 +95,6 @@ async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
         alert('Sorry, there was an error creating the summary image. Please try again.');
         return null;
     } finally {
-        // Clean up by removing the temporary class.
         element.classList.remove('capturing');
     }
 }
@@ -154,18 +117,15 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         let subtotal, itemDiscountsTotal;
 
         if (splitMode === 'evenly') {
-            // For 'evenly' mode, calculations are based on the full list of items.
             subtotal = items.reduce((sum: number, item: any) => sum + item.price, 0);
-            itemDiscountsTotal = 0; // Item-specific discounts are not applicable.
-        } else { // 'item' mode
-            // Filter for items that have been assigned to at least one person.
+            itemDiscountsTotal = 0;
+        } else {
             const assignedItems = items.filter((item: any) => {
                 const totalShares = item.shares.reduce((a: number, b: number) => a + b, 0);
                 return totalShares > 0;
             });
-            // Calculate subtotal and discounts based only on assigned items.
             subtotal = assignedItems.reduce((sum: number, item: any) => sum + item.price, 0);
-            itemDiscountsTotal = 0; // Free items are handled in adjustments, not here
+            itemDiscountsTotal = 0;
         }
 
         const baseForCharges = subtotal - itemDiscountsTotal;
@@ -197,16 +157,23 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             text: `Here is the bill summary for ${restaurantName}.`,
         };
 
-        if (navigator.share && navigator.canShare(shareData)) {
+        const canShare = navigator.canShare && navigator.canShare(shareData);
+
+        if (canShare) {
             try {
                 await navigator.share(shareData);
                 fireConfetti();
             } catch (err) {
-                console.error('Failed to share summary:', err);
-                // The user may have cancelled the share, so we don't show an error.
+                console.error('Share failed:', err);
+                // Fallback to download if user cancels share dialog on some platforms
+                const dataUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = dataUrl;
+                link.click();
+                URL.revokeObjectURL(dataUrl);
             }
         } else {
-            // Fallback for browsers that don't support Web Share API, we trigger download
              const dataUrl = URL.createObjectURL(blob);
              const link = document.createElement('a');
              link.download = filename;
@@ -225,7 +192,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             dispatch({ type: 'SET_QR_CODE_IMAGE', payload: reader.result as string });
         };
         reader.readAsDataURL(file);
-        e.target.value = ''; // Reset file input
+        e.target.value = '';
     };
     
     const hasQrCode = !!qrCodeImage;
@@ -253,7 +220,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             );
         }
     
-        // inline mode
         return (
             <span className="font-mono text-xs">
                 <span className={className}>{sign}{currencySymbol}{convertedValue}</span>
@@ -265,7 +231,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const renderPerPersonResults = () => {
         const { globalDiscountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment } = calculations;
 
-        const totalPayableSubtotal = calculations.subtotal; // Use full subtotal for proportion calc
+        const totalPayableSubtotal = calculations.subtotal;
         let perPersonData: any[] = [];
 
         if (splitMode === 'item') {
@@ -549,7 +515,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
             <div className="mt-4 pt-4 border-t border-dashed border-gray-300/80 space-y-3">
                 <div className="flex items-center gap-3">
-                    {/* QR Code Uploader/Display */}
                     {qrCodeImage ? (
                         <div className="relative w-fit flex-shrink-0">
                             <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg h-10 w-10 object-cover border border-gray-200" />
@@ -564,7 +529,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </label>
                     )}
                     
-                    {/* Notes Input */}
                     <input
                         type="text"
                         value={notes}
@@ -601,5 +565,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    

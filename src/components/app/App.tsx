@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Camera, Upload, PlusCircle, Crown, X } from 'lucide-react';
+import { Camera, Upload, PlusCircle } from 'lucide-react';
 import { parseReceipt } from '../services/geminiService';
 import { BillData, Person } from '../types';
 import { ALLOWED_CURRENCIES, PERSON_COLORS } from '../constants';
@@ -10,6 +10,9 @@ import Loader from './Loader';
 import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
+import { useUsage } from '../hooks/useUsageTracker';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../ui/button';
 
 const fileToBase64 = (file: File | Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -34,6 +37,8 @@ export default function App() {
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
+    const { user, loading: authLoading, signInWithGoogle } = useAuth();
+    const { canUse, recordUsage, monthlyUses, resetUsage, USAGE_LIMIT } = useUsage();
 
     useEffect(() => {
         const embedGoogleFonts = async () => {
@@ -46,24 +51,25 @@ export default function App() {
                 }
                 const cssText = await response.text();
                 
-                // Create a <style> element and inject the fetched CSS.
-                // This makes the font rules available to the html-to-image library
-                // without triggering cross-origin security errors that occur when
-                // it tries to read from an external <link> stylesheet.
                 const style = document.createElement('style');
                 style.textContent = cssText;
                 document.head.appendChild(style);
             } catch (error) {
                 console.error('Could not embed Google Fonts:', error);
-                // The app can still function without the custom font, so we just log the error.
             }
         };
 
         embedGoogleFonts();
-    }, []); // Empty dependency array ensures this runs only once on mount.
+    }, []);
 
     const handleFileChange = async (file: File | null) => {
         if (!file) return;
+
+        if (!user && !canUse) {
+            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please sign in to continue.`);
+            setView('error');
+            return;
+        }
 
         setView('loading');
         setUploadedReceipt(null);
@@ -76,9 +82,13 @@ export default function App() {
             };
 
             const compressedFile = await imageCompression(file, options);
-            const mimeType = compressedFile.type || 'image/jpeg'; // Fallback to jpeg
+            const mimeType = compressedFile.type || 'image/jpeg';
             const base64 = await fileToBase64(compressedFile);
             setUploadedReceipt(base64);
+            
+            if (!user) {
+                recordUsage();
+            }
 
             const data = await parseReceipt(base64, mimeType);
             processParsedData(data);
@@ -91,6 +101,16 @@ export default function App() {
     };
 
     const handleStartManual = () => {
+        if (!user && !canUse) {
+            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please sign in to continue.`);
+            setView('error');
+            return;
+        }
+        
+        if (!user) {
+            recordUsage();
+        }
+
         setUploadedReceipt(null);
         processParsedData(null);
     };
@@ -164,6 +184,14 @@ export default function App() {
                                     <span>Start without Receipt</span>
                                 </button>
                             </div>
+                             {!user && !authLoading && (
+                                <div className="mt-6 text-center text-sm text-gray-500">
+                                    <p>You have {USAGE_LIMIT - monthlyUses} free scans remaining this month.</p>
+                                    <Button variant="link" onClick={signInWithGoogle} className="text-agoda-blue">
+                                        Sign in for unlimited scans
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 );

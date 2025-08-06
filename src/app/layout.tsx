@@ -2,6 +2,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { Inter, Space_Grotesk, Manrope } from 'next/font/google'
+import { AuthProvider } from '@/components/contexts/AuthContext';
+import { UsageProvider } from '@/components/hooks/useUsageTracker';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -39,8 +41,12 @@ export default function RootLayout({
       <head>
       </head>
       <body className="font-sans antialiased bg-slate-100">
-        {children}
-        <Toaster />
+        <AuthProvider>
+          <UsageProvider>
+            {children}
+            <Toaster />
+          </UsageProvider>
+        </AuthProvider>
       </body>
     </html>
   );

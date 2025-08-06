@@ -1,9 +1,9 @@
 
 'use client';
 
-import React, { useState, useReducer, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useReducer, useEffect } from 'react';
 import { BillData, BillItem, Person, Tax, Discount, SplitMode } from '../types';
-import { CURRENCIES, PERSON_COLORS } from '../constants';
+import { CURRENCIES } from '../constants';
 import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
 import Header from './Header';
@@ -206,8 +206,6 @@ const reducer = (state: AppState, action: Action): AppState => {
         return { ...state, billDate: action.payload };
     
     case 'SET_BASE_CURRENCY':
-      // When user corrects the base currency, we assume they want to reset the conversion.
-      // So, we set display currency to the same, and fxRate to 1.
       return {
           ...state,
           baseCurrency: action.payload,
@@ -300,7 +298,6 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
         if (fxData) {
             dispatch({ type: 'SET_FX_RATE', payload: { rate: fxData.rate, date: fxData.date, isLoading: false }});
         } else {
-             // fallback to 1 and no date if API fails
             dispatch({ type: 'SET_FX_RATE', payload: { rate: 1, date: null, isLoading: false }});
         }
     };
@@ -311,7 +308,6 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
   const displayCurrencySymbol = CURRENCIES[state.displayCurrency] || state.displayCurrency;
 
   const isFxVisible = baseCurrency !== displayCurrency;
-  // Adjust padding to account for the new, taller header layout.
   const mainContentPaddingTop = isFxVisible ? 'pt-[170px]' : 'pt-[120px]';
   
   return (
