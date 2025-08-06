@@ -64,6 +64,7 @@ type Action =
   | { type: 'UPDATE_BILL_TOTAL'; payload: number }
   | { type: 'UPDATE_RESTAURANT_NAME'; payload: string }
   | { type: 'UPDATE_BILL_DATE'; payload: string }
+  | { type: 'SET_BASE_CURRENCY'; payload: string }
   | { type: 'SET_DISPLAY_CURRENCY'; payload: string }
   | { type: 'SET_FX_RATE'; payload: { rate: number; date?: string | null; isLoading?: boolean } }
   | { type: 'SET_QR_CODE_IMAGE'; payload: string | null }
@@ -201,6 +202,9 @@ const reducer = (state: AppState, action: Action): AppState => {
     
     case 'UPDATE_BILL_DATE':
         return { ...state, billDate: action.payload };
+    
+    case 'SET_BASE_CURRENCY':
+        return { ...state, baseCurrency: action.payload };
 
     case 'SET_DISPLAY_CURRENCY':
         return { ...state, displayCurrency: action.payload };

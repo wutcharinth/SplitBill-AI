@@ -19,6 +19,35 @@ interface HeaderProps {
     dispatch: React.Dispatch<any>;
 }
 
+const CurrencySelector: React.FC<{
+    id: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    sortedCurrencies: { pinned: [string, string][]; others: [string, string][] };
+}> = ({ id, value, onChange, sortedCurrencies }) => (
+    <select
+        id={id}
+        value={value}
+        onChange={onChange}
+        className="font-semibold bg-white pl-2 pr-7 py-1 rounded-md text-gray-800 border border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue text-xs w-20"
+        aria-label="Select currency"
+    >
+        {sortedCurrencies.pinned.length > 0 && (
+            <optgroup label="Pinned Currencies">
+                {sortedCurrencies.pinned.map(([code, name]) => (
+                    <option key={code as string} value={code as string}>{`${code}`}</option>
+                ))}
+            </optgroup>
+        )}
+        <optgroup label="All Currencies">
+            {sortedCurrencies.others.map(([code, name]) => (
+                <option key={code} value={code}>{`${code}`}</option>
+            ))}
+        </optgroup>
+    </select>
+);
+
+
 const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispatch }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,32 +119,23 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                         
                         {/* Currency Selectors */}
                         <div className="flex items-center gap-2 text-sm">
+                            <CurrencySelector
+                                id="base-currency-select"
+                                value={baseCurrency}
+                                onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
+                                sortedCurrencies={sortedCurrencies}
+                            />
                             {isFxVisible && (
                                 <>
-                                    <span className="font-semibold bg-gray-200 px-2 py-1 rounded-md text-gray-800 text-xs">{baseCurrency}</span>
                                     <ArrowRightLeft size={14} className="text-gray-400 flex-shrink-0"/>
+                                    <CurrencySelector
+                                        id="display-currency-select"
+                                        value={displayCurrency}
+                                        onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
+                                        sortedCurrencies={sortedCurrencies}
+                                    />
                                 </>
                             )}
-                            <select
-                                id="display-currency-select"
-                                value={displayCurrency}
-                                onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
-                                className="font-semibold bg-white pl-2 pr-7 py-1 rounded-md text-gray-800 border border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue text-xs w-20"
-                                aria-label="Select display currency"
-                            >
-                                {sortedCurrencies.pinned.length > 0 && (
-                                    <optgroup label="Pinned Currencies">
-                                        {sortedCurrencies.pinned.map(([code, name]) => (
-                                            <option key={code as string} value={code as string}>{`${code}`}</option>
-                                        ))}
-                                    </optgroup>
-                                )}
-                                <optgroup label="All Currencies">
-                                    {sortedCurrencies.others.map(([code, name]) => (
-                                        <option key={code} value={code}>{`${code}`}</option>
-                                    ))}
-                                </optgroup>
-                            </select>
                             <button 
                                 onClick={() => setIsModalOpen(true)}
                                 className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
