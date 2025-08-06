@@ -114,12 +114,23 @@
 .capturing .name-input,
 .capturing .summary-date-input,
 .capturing input[type=text],
-.capturing input[type=date] {
+.capturing input[type=date],
+.capturing input[type=number] {
     background-color: transparent !important;
     border: none !important;
     padding-left: 0;
     padding-right: 0;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
 }
+
+/* Hide spinners on number inputs for cleaner capture */
+.capturing input[type=number]::-webkit-inner-spin-button,
+.capturing input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 
 .shadow-card {
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);

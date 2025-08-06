@@ -113,50 +113,54 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
 
     const handleSaveSummary = async () => {
-        if (!summaryRef.current) return;
+        const summaryEl = summaryRef.current;
+        if (!summaryEl) {
+            console.error('Summary element not found');
+            return;
+        }
+
+        const originalParent = summaryEl.parentNode;
+        if (!originalParent) return;
+
+        // Temporarily move the element to a container at the top of the body
+        // This ensures it's rendered in the DOM for capture, but not necessarily visible,
+        // which helps with elements that are off-screen.
+        const captureContainer = document.createElement('div');
+        captureContainer.style.position = 'absolute';
+        captureContainer.style.top = '0';
+        captureContainer.style.left = '0';
+        captureContainer.style.zIndex = '-1'; // Hide it off-screen
         
-        const summaryElement = summaryRef.current;
-        const parent = summaryElement.parentElement;
-        if (!parent) return;
+        document.body.appendChild(captureContainer);
+        captureContainer.appendChild(summaryEl);
 
-        // Temporarily move the element to the top of the body to ensure it's fully in the viewport
-        const originalParent = parent;
-        const originalStyles = {
-            position: summaryElement.style.position,
-            top: summaryElement.style.top,
-            left: summaryElement.style.left,
-            zIndex: summaryElement.style.zIndex,
-        };
-
-        document.body.appendChild(summaryElement);
-        summaryElement.style.position = 'absolute';
-        summaryElement.style.top = `${window.scrollY}px`;
-        summaryElement.style.left = '0px';
-        summaryElement.style.zIndex = '-1'; // Hide it from view while capturing
-
-        summaryElement.classList.add('capturing');
+        // Add a class to disable certain styles (like input borders) during capture
+        summaryEl.classList.add('capturing');
 
         try {
-            const dataUrl = await toPng(summaryElement, {
+            const dataUrl = await toPng(summaryEl, {
                 quality: 1,
-                pixelRatio: 2.5, // High resolution
+                pixelRatio: 2.5,
                 backgroundColor: '#f1f5f9', // slate-100
+                // Use the element's scroll dimensions for accurate height/width
+                width: summaryEl.scrollWidth,
+                height: summaryEl.scrollHeight,
             });
+
+            // Trigger download
             const link = document.createElement('a');
             link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.png`;
             link.href = dataUrl;
             link.click();
             fireConfetti();
+
         } catch (err) {
-            console.error('Oops, something went wrong!', err);
+            console.error('Failed to save summary image:', err);
         } finally {
-            // Restore original position and styles
-            summaryElement.classList.remove('capturing');
-            originalParent.appendChild(summaryElement);
-            summaryElement.style.position = originalStyles.position;
-            summaryElement.style.top = originalStyles.top;
-            summaryElement.style.left = originalStyles.left;
-            summaryElement.style.zIndex = originalStyles.zIndex;
+            // Clean up: move element back and remove temporary container and class
+            summaryEl.classList.remove('capturing');
+            originalParent.appendChild(summaryEl);
+            document.body.removeChild(captureContainer);
         }
     };
     
@@ -543,3 +547,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
