@@ -313,5 +313,3 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 };
 
 export default Adjustments;
-
-    
