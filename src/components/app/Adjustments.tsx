@@ -311,3 +311,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
     </div>
   );
 };
+
+export default Adjustments;
+
+    

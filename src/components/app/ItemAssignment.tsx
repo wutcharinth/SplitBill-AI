@@ -194,3 +194,7 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
     </div>
   );
 };
+
+export default ItemAssignment;
+
+    

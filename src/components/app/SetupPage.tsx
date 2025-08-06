@@ -60,8 +60,10 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
 
       <div className="bg-white rounded-xl shadow-card p-4 sm:p-6">
         <h2 className="text-lg font-bold mb-4 text-agoda-blue">{state.splitMode === 'item' ? '4' : '3'}. Adjustments &amp; Reconciliation</h2>
-        <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
+        <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
       </div>
     </div>
   );
 };
+
+export default SetupPage;

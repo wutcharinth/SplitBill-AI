@@ -541,3 +541,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         </div>
     );
 };
+
+export default Summary;

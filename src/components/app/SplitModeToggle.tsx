@@ -27,3 +27,7 @@ const SplitModeToggle: React.FC<SplitModeToggleProps> = ({ mode, setMode }) => {
     </div>
   );
 };
+
+export default SplitModeToggle;
+
+    

@@ -90,3 +90,7 @@ const ManagePeople: React.FC<ManagePeopleProps> = ({ people, dispatch }) => {
         </div>
     );
 };
+
+export default ManagePeople;
+
+    
