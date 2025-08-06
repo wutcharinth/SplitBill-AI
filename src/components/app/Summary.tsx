@@ -184,13 +184,13 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const originalValue = formatNumber(baseValue);
     
         if (baseCurrency === displayCurrency) {
-            return <span className={`font-mono text-sm ${className}`}>{sign}{currencySymbol}{convertedValue}</span>;
+            return <span className={`font-mono text-xs ${className}`}>{sign}{currencySymbol}{convertedValue}</span>;
         }
         
         if (displayMode === 'stacked') {
             return (
                 <div className="text-right">
-                    <span className={`font-mono text-sm ${className}`}>{sign}{currencySymbol}{convertedValue}</span>
+                    <span className={`font-mono text-xs ${className}`}>{sign}{currencySymbol}{convertedValue}</span>
                     <div className="text-gray-400 text-[10px] leading-tight font-mono">({sign}{baseCurrencySymbol}{originalValue})</div>
                 </div>
             );
@@ -198,7 +198,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     
         // inline mode
         return (
-            <span className="font-mono text-sm">
+            <span className="font-mono text-xs">
                 <span className={className}>{sign}{currencySymbol}{convertedValue}</span>
                 <span className="text-gray-400 text-[10px] ml-1">({sign}{baseCurrencySymbol}{originalValue})</span>
             </span>
@@ -298,10 +298,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     return (
                         <div key={person.id} className="bg-white rounded-lg shadow overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                             <div className="p-3">
-                                <div className="flex justify-between items-center text-base">
-                                    <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-gray-800 font-bold" disabled={splitMode === 'evenly'}/>
+                                <div className="flex justify-between items-center">
+                                    <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-gray-800 font-bold text-sm" disabled={splitMode === 'evenly'}/>
                                     <div className="text-right">
-                                        <span className="font-bold text-agoda-blue">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
+                                        <span className="font-bold text-agoda-blue text-sm">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
                                         {baseCurrency !== displayCurrency && (
                                             <div className="text-xs text-gray-500 font-normal">
                                                 ({baseCurrencySymbol}{formatNumber(person.total)})
@@ -353,7 +353,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 <div ref={summaryRef} className="bg-slate-100 p-4 rounded-lg">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <input type="text" value={restaurantName} onChange={e => dispatch({type: 'UPDATE_RESTAURANT_NAME', payload: e.target.value})} className="text-lg font-bold p-1 -ml-1 rounded-lg bg-transparent w-full text-gray-900" placeholder="Restaurant Name" />
+                            <input type="text" value={restaurantName} onChange={e => dispatch({type: 'UPDATE_RESTAURANT_NAME', payload: e.target.value})} className="text-base font-bold p-1 -ml-1 rounded-lg bg-transparent w-full text-gray-900" placeholder="Restaurant Name" />
                             <div className="flex items-center">
                                 <label htmlFor="summary-bill-date" className="text-xs text-gray-600 font-medium whitespace-nowrap">Date:</label>
                                 <input 
@@ -384,7 +384,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     )}
 
                     <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-base font-bold text-gray-800">Split Summary</h3>
+                        <h3 className="text-sm font-bold text-gray-800">Split Summary</h3>
                         {splitMode === 'item' && (
                             <div className="flex items-center justify-center space-x-1 bg-gray-200 p-1 rounded-lg text-xs border">
                                 <button onClick={() => setSummaryViewMode('detailed')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-white shadow text-gray-800' : 'text-gray-500'}`}>Detailed</button>
@@ -396,8 +396,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     {renderPerPersonResults()}
 
                     <div className="mt-4 pt-4 border-t border-gray-200">
-                        <h3 className="text-base font-bold text-gray-800 mb-2">Reconciliation Summary</h3>
-                        <div className="space-y-1 text-sm bg-gray-50 p-3 rounded-lg text-gray-800 border border-gray-200">
+                        <h3 className="text-sm font-bold text-gray-800 mb-2">Reconciliation Summary</h3>
+                        <div className="space-y-1 text-xs bg-gray-50 p-3 rounded-lg text-gray-800 border border-gray-200">
                              {splitMode === 'item' ? (
                                 <div className="flex justify-between items-center">
                                     <span>Subtotal After Item Discounts:</span>
@@ -451,7 +451,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t-2 border-gray-300 flex justify-between font-bold text-xl text-gray-900">
+                    <div className="mt-4 pt-3 border-t-2 border-gray-300 flex justify-between font-bold text-lg text-gray-900">
                         <span>Grand Total:</span>
                         <div className="text-right">
                             <span>{currencySymbol}{formatNumber(calculations.grandTotalWithTip * fxRate)}</span>
@@ -465,7 +465,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     
                     {includeReceiptInSummary && uploadedReceipt && (
                         <div className="mt-4 pt-4 border-t-2 border-dashed border-gray-200">
-                            <h4 className="text-sm font-semibold text-gray-700 text-center mb-2">Attached Receipt</h4>
+                            <h4 className="text-xs font-semibold text-gray-700 text-center mb-2">Attached Receipt</h4>
                             <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" />
                         </div>
                     )}
@@ -474,16 +474,16 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         <div className={`mt-4 pt-4 border-t border-dashed border-gray-300/80 grid grid-cols-1 ${hasQrCode && hasNotes ? 'sm:grid-cols-2' : ''} gap-4`}>
                             {hasQrCode && (
                                 <div className={`space-y-2 ${!hasNotes ? 'flex flex-col items-center' : ''}`}>
-                                    <h4 className="text-sm font-semibold text-gray-700 text-center">Payment QR Code</h4>
+                                    <h4 className="text-xs font-semibold text-gray-700 text-center">Payment QR Code</h4>
                                     <div className="relative w-fit mx-auto">
-                                        <img src={qrCodeImage} alt="Payment QR Code" className={`rounded-lg object-contain ${!hasNotes ? 'max-w-[240px] max-h-[240px]' : 'max-w-[120px] max-h-[120px]'}`} />
+                                        <img src={qrCodeImage} alt="Payment QR Code" className={`rounded-lg object-contain ${!hasNotes ? 'max-w-[200px] max-h-[200px]' : 'max-w-[100px] max-h-[100px]'}`} />
                                     </div>
                                 </div>
                             )}
                             {hasNotes && (
                                 <div className="space-y-2">
-                                    <h4 className="text-sm font-semibold text-gray-700 text-center sm:text-left">Notes</h4>
-                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-white rounded-md border border-gray-200 min-h-[128px] text-gray-800">{notes}</p>
+                                    <h4 className="text-xs font-semibold text-gray-700 text-center sm:text-left">Notes</h4>
+                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-white rounded-md border border-gray-200 min-h-[100px] text-gray-800">{notes}</p>
                                 </div>
                             )}
                         </div>
@@ -496,14 +496,14 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     {/* QR Code Uploader/Display */}
                     {qrCodeImage ? (
                         <div className="relative w-fit flex-shrink-0">
-                            <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg h-12 w-12 object-cover border border-gray-200" />
+                            <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg h-10 w-10 object-cover border border-gray-200" />
                             <button onClick={() => dispatch({type: 'SET_QR_CODE_IMAGE', payload: null})} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow-md border-2 border-white">
-                                <X size={12} strokeWidth={3} />
+                                <X size={10} strokeWidth={3} />
                             </button>
                         </div>
                     ) : (
-                        <label htmlFor="qr-upload" className="flex-shrink-0 flex items-center justify-center h-12 w-12 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-100 hover:bg-gray-200 transition">
-                            <QrCode className="w-6 h-6 text-gray-500" />
+                        <label htmlFor="qr-upload" className="flex-shrink-0 flex items-center justify-center h-10 w-10 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-100 hover:bg-gray-200 transition">
+                            <QrCode className="w-5 h-5 text-gray-500" />
                             <input id="qr-upload" type="file" accept="image/*" className="hidden" onChange={handleQrUpload} />
                         </label>
                     )}
@@ -514,7 +514,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         value={notes}
                         onChange={e => dispatch({type: 'SET_NOTES', payload: e.target.value})}
                         placeholder="Add QR payment info or other notes..."
-                        className="w-full p-2 h-12 border rounded-md text-sm bg-white text-gray-900 border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue transition"
+                        className="w-full p-2 h-10 border rounded-md text-xs bg-white text-gray-900 border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue transition"
                     />
                 </div>
             </div>
@@ -528,7 +528,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     className="h-4 w-4 rounded text-agoda-blue focus:ring-agoda-blue border-gray-300 disabled:opacity-50"
                     disabled={!uploadedReceipt}
                     />
-                    <span className={`text-sm ${!uploadedReceipt ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <span className={`text-xs ${!uploadedReceipt ? 'text-gray-400' : 'text-gray-700'}`}>
                         Attach receipt image to summary
                     </span>
                 </label>
@@ -543,5 +543,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    

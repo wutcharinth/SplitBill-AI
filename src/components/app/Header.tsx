@@ -63,9 +63,9 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                <div className="w-full max-w-xl mx-auto px-4 py-2">
                     {/* Row 1: Branding */}
                     <div className="flex items-center gap-3">
-                        <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-14" />
+                        <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-12" />
                         <div>
-                            <h1 className="text-xl font-bold text-gray-800">SplitBill AI</h1>
+                            <h1 className="text-lg font-bold text-gray-800">SplitBill AI</h1>
                             <p className="text-xs text-gray-600">Snap. Split. Done.</p>
                         </div>
                     </div>
@@ -92,15 +92,15 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                         <div className="flex items-center gap-2 text-sm">
                             {isFxVisible && (
                                 <>
-                                    <span className="font-semibold bg-gray-200 px-2 py-1 rounded-md text-gray-800">{baseCurrency}</span>
-                                    <ArrowRightLeft size={16} className="text-gray-400 flex-shrink-0"/>
+                                    <span className="font-semibold bg-gray-200 px-2 py-1 rounded-md text-gray-800 text-xs">{baseCurrency}</span>
+                                    <ArrowRightLeft size={14} className="text-gray-400 flex-shrink-0"/>
                                 </>
                             )}
                             <select
                                 id="display-currency-select"
                                 value={displayCurrency}
                                 onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
-                                className="font-semibold bg-white pl-2 pr-7 py-1 rounded-md text-gray-800 border border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue text-sm w-24"
+                                className="font-semibold bg-white pl-2 pr-7 py-1 rounded-md text-gray-800 border border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue text-xs w-20"
                                 aria-label="Select display currency"
                             >
                                 {sortedCurrencies.pinned.length > 0 && (
@@ -122,14 +122,14 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                 aria-label="Manage pinned currencies"
                                 title="Manage pinned currencies"
                             >
-                                <Star size={16} />
+                                <Star size={14} />
                             </button>
                         </div>
                     </div>
 
                     {isFxVisible && (
                         <div className="w-full mt-2 pt-2 border-t border-gray-200/80">
-                             <div className="flex items-center justify-end gap-2 text-sm">
+                             <div className="flex items-center justify-end gap-2 text-xs">
                                  <label htmlFor="fx-rate" className="font-medium text-gray-600 whitespace-nowrap">
                                     1 {baseCurrency} =
                                  </label>
@@ -141,10 +141,10 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                             step="0.0001"
                                             value={fxRate}
                                             onChange={(e) => dispatch({ type: 'SET_FX_RATE', payload: { rate: Number(e.target.value) || 1, date: null, isLoading: false } })}
-                                            className="w-28 text-right bg-white border border-gray-300 rounded-md p-1 pr-6 font-mono text-sm text-gray-900 disabled:bg-gray-100"
+                                            className="w-24 text-right bg-white border border-gray-300 rounded-md p-1 pr-6 font-mono text-xs text-gray-900 disabled:bg-gray-100"
                                             disabled={isFxLoading}
                                         />
-                                        {isFxLoading && <RotateCw size={16} className="absolute right-1 top-1/2 -translate-y-1/2 animate-spin text-agoda-blue pointer-events-none" />}
+                                        {isFxLoading && <RotateCw size={14} className="absolute right-1 top-1/2 -translate-y-1/2 animate-spin text-agoda-blue pointer-events-none" />}
                                     </div>
                                      <span className="ml-2 font-semibold text-gray-800">{displayCurrency}</span>
                                 </div>

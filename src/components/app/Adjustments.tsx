@@ -7,7 +7,7 @@ import { Person } from '../types';
 
 const AdjustmentRow: React.FC<{ label: React.ReactNode; children: React.ReactNode }> = ({ label, children }) => (
     <div className="flex justify-between items-center py-2">
-        <label className="font-semibold text-gray-700 text-sm">{label}</label>
+        <label className="font-semibold text-gray-700 text-xs">{label}</label>
         {children}
     </div>
 );
@@ -28,17 +28,17 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
                 placeholder={tax.name}
                 value={tax.name}
                 onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, name: e.target.value }})}
-                className="ml-2 tax-name-input flex-grow text-sm text-gray-900"
+                className="ml-2 tax-name-input flex-grow text-xs text-gray-900"
             />
         </div>
         <div className="flex items-center">
-            <span className="mr-2 text-gray-500">{currencySymbol}</span>
+            <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
             <input
                 type="number"
                 id={`${tax.id}-amount`}
                 value={tax.amount ? (tax.amount * fxRate).toFixed(2) : '0'}
                 onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, amount: Number(e.target.value) / fxRate }})}
-                className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-sm text-gray-900"
+                className="w-20 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-xs text-gray-900"
             />
         </div>
     </div>
@@ -102,26 +102,26 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
     <div className="space-y-4">
         {/* Review & Adjust Section */}
         <div>
-            <h3 className="text-base font-bold mb-2 border-b pb-2 border-gray-200 text-gray-700">Review & Adjust</h3>
+            <h3 className="text-sm font-bold mb-2 border-b pb-2 border-gray-200 text-gray-700">Review & Adjust</h3>
             <div className="space-y-1 pt-2">
                 <AdjustmentRow label="Original Receipt Subtotal">
                     <div className="flex items-center">
-                        <span className="mr-2 text-gray-500">{currencySymbol}</span>
-                        <input type="text" value={(originalSubtotal * fxRate).toFixed(2)} readOnly className="w-28 text-right bg-gray-200 rounded-md p-1 font-mono text-sm border-none text-gray-900" />
+                        <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
+                        <input type="text" value={(originalSubtotal * fxRate).toFixed(2)} readOnly className="w-24 text-right bg-gray-200 rounded-md p-1 font-mono text-xs border-none text-gray-900" />
                     </div>
                 </AdjustmentRow>
                 {splitMode === 'item' && (
                     <>
                          <AdjustmentRow label="Assigned Items Subtotal">
                             <div className="flex items-center">
-                                <span className="mr-2 text-gray-500">{currencySymbol}</span>
-                                <input type="text" value={(assignedSubtotal * fxRate).toFixed(2)} readOnly className="w-28 text-right bg-gray-200 rounded-md p-1 font-mono text-sm border-none text-gray-900" />
+                                <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
+                                <input type="text" value={(assignedSubtotal * fxRate).toFixed(2)} readOnly className="w-24 text-right bg-gray-200 rounded-md p-1 font-mono text-xs border-none text-gray-900" />
                             </div>
                         </AdjustmentRow>
                          <AdjustmentRow label="Item Discounts (Free & Assigned)">
                             <div className="flex items-center">
-                                <span className="mr-2 text-gray-500">{currencySymbol}</span>
-                                <input type="text" value={(itemDiscountsTotal * fxRate).toFixed(2)} readOnly className="w-28 text-right bg-gray-200 rounded-md p-1 font-mono text-sm border-none text-gray-900" />
+                                <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
+                                <input type="text" value={(itemDiscountsTotal * fxRate).toFixed(2)} readOnly className="w-24 text-right bg-gray-200 rounded-md p-1 font-mono text-xs border-none text-gray-900" />
                             </div>
                         </AdjustmentRow>
                     </>
@@ -131,9 +131,9 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                 {showDiscountInput ? (
                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <div className="flex justify-between items-center mb-1">
-                            <h4 className="font-semibold text-sm text-gray-800">Global Discount</h4>
+                            <h4 className="font-semibold text-xs text-gray-800">Global Discount</h4>
                             <button onClick={() => { setShowDiscountInput(false); dispatch({ type: 'UPDATE_DISCOUNT', payload: { value: 0 } }); }} className="text-gray-500 hover:text-gray-700" aria-label="Remove discount">
-                                <X size={18} />
+                                <X size={16} />
                             </button>
                         </div>
                         <AdjustmentRow label="Amount">
@@ -146,12 +146,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                                         const newDiscountValue = discount.type === 'fixed' ? val / fxRate : val;
                                         dispatch({type: 'UPDATE_DISCOUNT', payload: {value: newDiscountValue}})
                                     }} 
-                                    className="w-20 text-right bg-transparent border border-gray-300 rounded-md p-1 font-mono text-sm text-gray-900" 
+                                    className="w-20 text-right bg-transparent border border-gray-300 rounded-md p-1 font-mono text-xs text-gray-900" 
                                 />
                                 <select 
                                     value={discount.type} 
                                     onChange={e => dispatch({type: 'UPDATE_DISCOUNT', payload: {type: e.target.value}})} 
-                                    className="bg-white rounded-md p-1 text-sm border border-gray-300 text-gray-900"
+                                    className="bg-white rounded-md p-1 text-xs border border-gray-300 text-gray-900"
                                 >
                                     <option value="percentage">%</option>
                                     <option value="fixed">{currencySymbol}</option>
@@ -159,7 +159,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                             </div>
                         </AdjustmentRow>
                         <div className="mt-3 pt-3 border-t border-gray-200">
-                            <label className="font-semibold text-gray-700 text-sm mb-2 block">
+                            <label className="font-semibold text-gray-700 text-xs mb-2 block">
                                 Shared By
                             </label>
                             <p className="text-xs text-gray-500 mb-2">Select who shares this discount. If no one is selected, it's shared by everyone.</p>
@@ -189,8 +189,8 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                         onClick={() => setShowDiscountInput(true)}
                         className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center space-x-2 transition-colors"
                     >
-                        <Plus size={16} />
-                        <span className="text-sm font-medium">Add Global Discount</span>
+                        <Plus size={14} />
+                        <span className="text-xs font-medium">Add Global Discount</span>
                     </button>
                 )}
                 
@@ -204,8 +204,8 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                         onClick={() => dispatch({ type: 'UPDATE_TAX', payload: { id: 'otherTax', isEnabled: true }})}
                         className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center space-x-2 transition-colors"
                     >
-                        <Plus size={16} />
-                        <span className="text-sm font-medium">Add Other Tax / Fee</span>
+                        <Plus size={14} />
+                        <span className="text-xs font-medium">Add Other Tax / Fee</span>
                     </button>
                 )}
             </div>
@@ -213,8 +213,8 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 
         {/* Reconciliation Section */}
         <div className="border-t pt-4 mt-4 border-gray-200">
-             <h3 className="text-base font-bold mb-2 border-b pb-2 border-gray-200 text-gray-700">Reconciliation</h3>
-             <div className="space-y-1 text-sm bg-gray-50 p-3 rounded-lg text-gray-800 mt-4">
+             <h3 className="text-sm font-bold mb-2 border-b pb-2 border-gray-200 text-gray-700">Reconciliation</h3>
+             <div className="space-y-1 text-xs bg-gray-50 p-3 rounded-lg text-gray-800 mt-4">
                 {splitMode === 'item' ? (
                      <div className="flex justify-between"><span>Subtotal After Item Discounts:</span><span className="font-mono">{currencySymbol}{formatNumber((assignedSubtotal - itemDiscountsTotal) * fxRate)}</span></div>
                 ) : (
@@ -228,8 +228,8 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
              </div>
              <AdjustmentRow label="Bill Total (from receipt)">
                 <div className="flex items-center">
-                    <span className="mr-2 text-gray-500">{currencySymbol}</span>
-                    <input type="number" value={(billTotal * fxRate).toFixed(2)} onChange={e => dispatch({ type: 'UPDATE_BILL_TOTAL', payload: Number(e.target.value) / fxRate })} className="w-28 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900" />
+                    <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
+                    <input type="number" value={(billTotal * fxRate).toFixed(2)} onChange={e => dispatch({ type: 'UPDATE_BILL_TOTAL', payload: Number(e.target.value) / fxRate })} className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs" />
                 </div>
             </AdjustmentRow>
              <div className="mt-4">
@@ -239,12 +239,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     
                     if (isReconciled) {
                         return (
-                            <div className="flex items-start gap-4 p-4 rounded-lg bg-green-50 border border-green-200">
-                                <CheckCircle2 className="h-6 w-6 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                            <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
+                                <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                                 <div>
-                                    <h4 className="font-bold text-green-800">Perfect Match!</h4>
-                                    <p className="text-sm text-green-700 mt-1">
-                                        The calculated total matches the bill total from the receipt. Everything adds up perfectly.
+                                    <h4 className="font-bold text-green-800 text-sm">Perfect Match!</h4>
+                                    <p className="text-xs text-green-700 mt-1">
+                                        The calculated total matches the bill total from the receipt.
                                     </p>
                                 </div>
                             </div>
@@ -253,12 +253,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     
                     if (adjustment > 0) { // Shortfall
                         return (
-                            <div className="flex items-start gap-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200">
-                                <AlertCircle className="h-6 w-6 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                            <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+                                <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                                 <div>
-                                    <h4 className="font-bold text-yellow-800">Shortfall Detected</h4>
-                                    <p className="text-sm text-yellow-700 mt-1">
-                                        There's a difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment)}</strong>. This will be automatically added and split among everyone to match the bill total.
+                                    <h4 className="font-bold text-yellow-800 text-sm">Shortfall Detected</h4>
+                                    <p className="text-xs text-yellow-700 mt-1">
+                                        Difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment)}</strong> will be split among everyone.
                                     </p>
                                 </div>
                             </div>
@@ -267,12 +267,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     
                     // Surplus
                     return (
-                        <div className="flex items-start gap-4 p-4 rounded-lg bg-indigo-50 border border-indigo-200">
-                            <PartyPopper className="h-6 w-6 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                        <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 border border-indigo-200">
+                            <PartyPopper className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                             <div>
-                                <h4 className="font-bold text-indigo-800">You Have a Surplus!</h4>
-                                <p className="text-sm text-indigo-700 mt-1">
-                                    There's an extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment)}</strong>. This will be automatically distributed back, reducing what everyone owes.
+                                <h4 className="font-bold text-indigo-800 text-sm">Surplus Found!</h4>
+                                <p className="text-xs text-indigo-700 mt-1">
+                                    Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment)}</strong> will be distributed back.
                                 </p>
                             </div>
                         </div>
@@ -286,15 +286,15 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
             {showTipInput ? (
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex justify-between items-center mb-1">
-                        <h4 className="font-semibold text-sm text-gray-800">Tip Amount</h4>
+                        <h4 className="font-semibold text-xs text-gray-800">Tip Amount</h4>
                          <button onClick={() => { setShowTipInput(false); dispatch({ type: 'UPDATE_TIP', payload: 0 }); }} className="text-gray-500 hover:text-gray-700" aria-label="Cancel tip">
-                            <X size={18} />
+                            <X size={16} />
                         </button>
                     </div>
                     <AdjustmentRow label="Add a tip">
                          <div className="flex items-center">
-                            <span className="mr-2 text-gray-500">{currencySymbol}</span>
-                            <input type="number" value={(tip * fxRate).toFixed(2)} onChange={e => dispatch({ type: 'UPDATE_TIP', payload: Number(e.target.value) / fxRate })} className="w-28 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900" />
+                            <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
+                            <input type="number" value={(tip * fxRate).toFixed(2)} onChange={e => dispatch({ type: 'UPDATE_TIP', payload: Number(e.target.value) / fxRate })} className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs" />
                         </div>
                     </AdjustmentRow>
                 </div>
@@ -303,8 +303,8 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     onClick={() => setShowTipInput(true)}
                     className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center space-x-2 transition-colors"
                 >
-                    <Plus size={16} />
-                    <span className="text-sm font-medium">Add a Tip</span>
+                    <Plus size={14} />
+                    <span className="text-xs font-medium">Add a Tip</span>
                 </button>
             )}
         </div>
