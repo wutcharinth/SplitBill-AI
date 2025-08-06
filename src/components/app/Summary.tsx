@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { Download, X, QrCode } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import confetti from 'canvas-confetti';
 
 const fireConfetti = () => {
@@ -154,35 +154,28 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             return;
         }
 
-        // Preload fonts to ensure they render correctly in the captured image.
         await preloadFonts();
-
-        // Add a "capturing" class to apply special styles for the image output.
         summaryEl.classList.add('capturing');
 
         try {
-            const dataUrl = await toPng(summaryEl, {
-                quality: 1, // Use high quality
-                pixelRatio: 2.5, // Increase resolution for sharper images
-                backgroundColor: '#f1f5f9', // Use the app's slate-100 background color
-                // These options help ensure all content, including images, is loaded.
+            const dataUrl = await toJpeg(summaryEl, {
+                quality: 0.95, // Use high quality for JPEG
+                pixelRatio: 2.5,
+                backgroundColor: '#f1f5f9',
                 cacheBust: true,
                 skipAutoScale: true,
             });
 
-            // Trigger the download
             const link = document.createElement('a');
-            link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.png`;
+            link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.jpg`;
             link.href = dataUrl;
             link.click();
             fireConfetti();
 
         } catch (err) {
             console.error('Failed to save summary image:', err);
-            // Inform the user if something goes wrong.
             alert('Sorry, there was an error creating the summary image. Please try again.');
         } finally {
-            // IMPORTANT: Always remove the capturing class after the operation.
             summaryEl.classList.remove('capturing');
         }
     };
