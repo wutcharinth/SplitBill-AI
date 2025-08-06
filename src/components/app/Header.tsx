@@ -2,18 +2,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ALLOWED_CURRENCIES } from '../constants';
-import { ArrowRightLeft, LogIn, LogOut, Star } from 'lucide-react';
+import { ArrowRightLeft, Star } from 'lucide-react';
 import { usePinnedCurrencies } from '../hooks/usePinnedCurrencies';
 import ManagePinnedCurrenciesModal from './ManagePinnedCurrenciesModal';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 
 interface HeaderProps {
@@ -95,15 +86,6 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
         }
         return `${baseClasses} text-gray-500 hover:bg-gray-300/50`;
     };
-    
-    const UserMenu = () => {
-        return (
-            <Button size="sm">
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
-            </Button>
-        );
-    };
 
     return (
         <>
@@ -117,7 +99,6 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                 <p className="text-xs text-gray-600">Snap. Split. Done.</p>
                             </div>
                         </div>
-                        <UserMenu />
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
