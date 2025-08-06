@@ -125,17 +125,13 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                 onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
                                 sortedCurrencies={sortedCurrencies}
                             />
-                            {isFxVisible && (
-                                <>
-                                    <ArrowRightLeft size={14} className="text-gray-400 flex-shrink-0"/>
-                                    <CurrencySelector
-                                        id="display-currency-select"
-                                        value={displayCurrency}
-                                        onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
-                                        sortedCurrencies={sortedCurrencies}
-                                    />
-                                </>
-                            )}
+                            <ArrowRightLeft size={14} className="text-gray-400 flex-shrink-0"/>
+                            <CurrencySelector
+                                id="display-currency-select"
+                                value={displayCurrency}
+                                onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
+                                sortedCurrencies={sortedCurrencies}
+                            />
                             <button 
                                 onClick={() => setIsModalOpen(true)}
                                 className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
