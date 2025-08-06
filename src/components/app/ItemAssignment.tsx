@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { BillItem, Person } from '../types';
-import { Plus, X } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 
 interface ItemAssignmentProps {
   items: BillItem[];
@@ -109,6 +109,9 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                             step="0.01"
                             placeholder="0.00"
                         />
+                         <button onClick={() => dispatch({ type: 'REMOVE_ITEM', payload: { itemIndex } })} className="ml-2 text-gray-400 hover:text-red-500 transition-colors" aria-label="Remove item">
+                            <Trash2 size={16} />
+                        </button>
                     </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between">

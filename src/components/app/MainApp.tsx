@@ -53,6 +53,7 @@ type Action =
   | { type: 'SET_PEOPLE_COUNT_EVENLY'; payload: number }
   | { type: 'UPDATE_PERSON_NAME'; payload: { index: number; name: string } }
   | { type: 'ADD_ITEM'; payload: { name: string; price: number } }
+  | { type: 'REMOVE_ITEM'; payload: { itemIndex: number } }
   | { type: 'UPDATE_ITEM_NAME'; payload: { itemIndex: number; name: string } }
   | { type: 'UPDATE_ITEM_PRICE'; payload: { itemIndex: number; price: number } }
   | { type: 'UPDATE_ITEM_SHARE'; payload: { itemIndex: number; personIndex: number; change: 1 | -1 } }
@@ -125,6 +126,13 @@ const reducer = (state: AppState, action: Action): AppState => {
         shares: Array(state.people.length).fill(0)
       };
       return { ...state, items: [...state.items, newItem] };
+
+    case 'REMOVE_ITEM': {
+        const { itemIndex } = action.payload;
+        const updatedItems = [...state.items];
+        updatedItems.splice(itemIndex, 1);
+        return { ...state, items: updatedItems };
+    }
 
     case 'UPDATE_ITEM_NAME': {
         const { itemIndex, name } = action.payload;
