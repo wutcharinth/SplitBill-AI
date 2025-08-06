@@ -204,7 +204,16 @@ const reducer = (state: AppState, action: Action): AppState => {
         return { ...state, billDate: action.payload };
     
     case 'SET_BASE_CURRENCY':
-        return { ...state, baseCurrency: action.payload };
+        // When user corrects the base currency, we assume they want to reset the conversion.
+        // So, we set display currency to the same, and fxRate to 1.
+        return {
+            ...state,
+            baseCurrency: action.payload,
+            displayCurrency: action.payload,
+            fxRate: 1,
+            fxRateDate: null,
+            isFxLoading: false,
+        };
 
     case 'SET_DISPLAY_CURRENCY':
         return { ...state, displayCurrency: action.payload };
