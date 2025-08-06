@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 type SplitMode = 'item' | 'evenly';
@@ -25,5 +27,3 @@ const SplitModeToggle: React.FC<SplitModeToggleProps> = ({ mode, setMode }) => {
     </div>
   );
 };
-
-export default SplitModeToggle;

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useReducer, useMemo, useCallback, useEffect } from 'react';
 import { BillData, BillItem, Person, Tax, Discount, SplitMode } from '../types';
 import { CURRENCIES, PERSON_COLORS } from '../constants';

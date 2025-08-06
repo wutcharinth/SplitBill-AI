@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo, useState } from 'react';
 import { CURRENCIES } from '../constants';
 import { Plus, X, CheckCircle2, AlertCircle, PartyPopper } from 'lucide-react';
@@ -309,5 +311,3 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
     </div>
   );
 };
-
-export default Adjustments;

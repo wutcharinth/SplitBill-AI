@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Person } from '../types';
 import { PERSON_COLORS } from '../constants';
@@ -88,5 +90,3 @@ const ManagePeople: React.FC<ManagePeopleProps> = ({ people, dispatch }) => {
         </div>
     );
 };
-
-export default ManagePeople;

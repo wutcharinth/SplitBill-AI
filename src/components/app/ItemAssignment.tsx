@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useRef } from 'react';
 import { BillItem, Person } from '../types';
 import { Plus, X } from 'lucide-react';
@@ -192,5 +194,3 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
     </div>
   );
 };
-
-export default ItemAssignment;

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { ALLOWED_CURRENCIES } from '../constants';
 import { ArrowRightLeft, RotateCw, Star } from 'lucide-react';
@@ -165,5 +167,3 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
         </>
     );
 };
-
-export default Header;

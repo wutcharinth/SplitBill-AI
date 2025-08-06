@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useCallback, useEffect } from 'react';
 
 const PINNED_CURRENCIES_KEY = 'splitbill_pinned_currencies';

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ALLOWED_CURRENCIES } from '../constants';
 import { Star, X } from 'lucide-react';

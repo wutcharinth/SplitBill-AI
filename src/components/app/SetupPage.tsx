@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import SplitModeToggle from './SplitModeToggle';
 import ManagePeople from './ManagePeople';
@@ -63,5 +65,3 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
     </div>
   );
 };
-
-export default SetupPage;

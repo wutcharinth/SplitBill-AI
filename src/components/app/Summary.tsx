@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo, useState, useRef } from 'react';
 import { Download, X, QrCode } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
@@ -539,5 +541,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         </div>
     );
 };
-
-export default Summary;
