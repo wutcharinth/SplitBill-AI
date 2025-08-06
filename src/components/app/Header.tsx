@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
     const isFxVisible = baseCurrency !== displayCurrency;
 
     const getTabClassName = (page: 'setup' | 'summary') => {
-        const baseClasses = 'py-1.5 px-3 rounded-md text-sm font-semibold transition-all duration-200 min-w-[100px] text-center';
+        const baseClasses = 'py-1.5 px-3 rounded-md text-xs font-semibold transition-all duration-200 min-w-[100px] text-center';
         if (activePage === page) {
             return `${baseClasses} bg-agoda-blue text-white shadow`;
         }
@@ -92,9 +92,9 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                <div className="w-full max-w-xl mx-auto px-4 py-2">
                     {/* Row 1: Branding */}
                     <div className="flex items-center gap-3">
-                        <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-12" />
+                        <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-10" />
                         <div>
-                            <h1 className="text-lg font-bold text-gray-800">SplitBill AI</h1>
+                            <h1 className="text-base font-bold text-gray-800">SplitBill AI</h1>
                             <p className="text-xs text-gray-600">Snap. Split. Done.</p>
                         </div>
                     </div>
