@@ -105,12 +105,12 @@ export default function App() {
         ];
 
         const newBillData: BillData = {
-            items: data?.items.map(item => ({ ...item, isFree: false, translatedName: null, shares: Array(initialPeople.length).fill(0) })) || [],
+            items: data?.items.map(item => ({ ...item, isFree: false, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
             taxes: {
-                serviceCharge: { id: 'serviceCharge', name: 'Service Charge', amount: 0, isEnabled: false },
-                vat: { id: 'vat', name: 'VAT', amount: 0, isEnabled: false },
-                otherTax: { id: 'otherTax', name: 'Other Tax', amount: 0, isEnabled: false },
+                serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge', amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
+                vat: { id: 'vat', name: data?.vat?.translatedName || data?.vat?.name || 'VAT', amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
+                otherTax: { id: 'otherTax', name: data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax', amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
             },
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,

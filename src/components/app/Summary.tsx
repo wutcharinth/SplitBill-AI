@@ -319,7 +319,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                 <div className="text-xs mt-2 pt-2 border-t border-gray-200 space-y-1 text-gray-700 bg-slate-50 p-3">
                                     {person.items.map((item:any, i:number) => {
                                         const displayName = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase() 
-                                            ? `${item.translatedName} / ${item.name}` 
+                                            ? `${item.translatedName} (${item.name})` 
                                             : item.name;
                                         return (
                                             <div key={i} className="flex justify-between" title={displayName}>
