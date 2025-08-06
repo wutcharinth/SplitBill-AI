@@ -1,3 +1,4 @@
+
 export type SplitMode = 'item' | 'evenly';
 
 export interface Person {

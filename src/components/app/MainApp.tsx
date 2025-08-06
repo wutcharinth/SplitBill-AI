@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useReducer, useMemo, useCallback, useEffect } from 'react';
@@ -332,8 +333,8 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 />
             )}
             {activePage === 'summary' && (
-                <div className="bg-white rounded-xl shadow-card p-4 sm:p-6">
-                    <h2 className="text-lg font-bold mb-4 text-agoda-blue">Final Summary</h2>
+                <div className="bg-white rounded-xl shadow-card p-4 sm:p-5">
+                    <h2 className="text-sm font-bold mb-4 text-agoda-blue">Final Summary</h2>
                     <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
                 </div>
             )}

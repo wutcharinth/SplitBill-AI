@@ -1,9 +1,10 @@
+
 'use client';
 
 import React, { useMemo, useState, useRef } from 'react';
 import { Download, X, QrCode, Share2 } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
-import { toJpeg } from 'html-to-image';
+import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti';
 
 const fireConfetti = () => {
@@ -100,7 +101,7 @@ async function preloadFonts() {
 }
 
 /**
- * Generates a JPEG image from an HTML element and returns it as a Blob.
+ * Generates a PNG image from an HTML element and returns it as a Blob.
  * This is a shared function for both downloading and sharing.
  */
 async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
@@ -116,14 +117,14 @@ async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
     element.classList.add('capturing');
 
     try {
-        // Use toJpeg for smaller file size, suitable for sharing.
-        const blob = await toJpeg(element, {
-            quality: 0.95, // High quality JPEG
+        // Use toPng for higher quality, suitable for detailed summaries.
+        const dataUrl = await toPng(element, {
+            quality: 1.0, // PNG quality is lossless, this is more for other formats
             pixelRatio: 2.5, // Increase resolution for sharper text on high-DPI screens
-            backgroundColor: '#f1f5f9', // Same as the page background
-            cacheBust: true,
-            skipAutoScale: true, // Important for maintaining consistent scale
+            backgroundColor: '#f1f5f9', // Same as the page background (slate-100)
+            cacheBust: true, // Re-fetch images to avoid cache issues
         });
+        const blob = await (await fetch(dataUrl)).blob();
         return blob;
     } catch (err) {
         console.error('Failed to generate summary image:', err);
@@ -164,7 +165,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             });
             // Calculate subtotal and discounts based only on assigned items.
             subtotal = assignedItems.reduce((sum: number, item: any) => sum + item.price, 0);
-            itemDiscountsTotal = assignedItems.reduce((sum: number, item: any) => item.isFree ? sum + item.price : sum, 0);
+            itemDiscountsTotal = 0; // Free items are handled in adjustments, not here
         }
 
         const baseForCharges = subtotal - itemDiscountsTotal;
@@ -189,7 +190,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         if (blob) {
             const dataUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.jpg`;
+            link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.png`;
             link.href = dataUrl;
             link.click();
             fireConfetti();
@@ -201,8 +202,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const blob = await generateImageBlob(summaryRef.current!);
         if (!blob) return;
 
-        const filename = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.jpg`;
-        const file = new File([blob], filename, { type: 'image/jpeg' });
+        const filename = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.png`;
+        const file = new File([blob], filename, { type: 'image/png' });
         const shareData = {
             files: [file],
             title: 'Bill Summary',
@@ -272,13 +273,12 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const renderPerPersonResults = () => {
         const { globalDiscountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment } = calculations;
 
-        const totalPayableSubtotal = calculations.subtotal - calculations.itemDiscountsTotal;
+        const totalPayableSubtotal = calculations.subtotal; // Use full subtotal for proportion calc
         let perPersonData: any[] = [];
 
         if (splitMode === 'item') {
             const personSubtotals = people.map(() => ({ subtotal: 0, items: [] as any[] }));
             items.forEach((item: any) => {
-                if(item.isFree) return;
                 const totalShares = item.shares.reduce((a:number, b:number) => a + b, 0);
                 if(totalShares > 0) {
                     const pricePerShare = item.price / totalShares;
@@ -363,24 +363,24 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         <div key={person.id} className="bg-white rounded-lg shadow overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                             <div className="p-3">
                                 <div className="flex justify-between items-center">
-                                    <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-gray-800 font-bold text-sm" disabled={splitMode === 'evenly'}/>
+                                    <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-gray-800 font-bold text-xs" disabled={splitMode === 'evenly'}/>
                                     <div className="text-right">
-                                        <span className="font-bold text-agoda-blue text-sm">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
+                                        <span className="font-bold text-agoda-blue text-xs">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
                                         {baseCurrency !== displayCurrency && (
-                                            <div className="text-xs text-gray-500 font-normal">
+                                            <div className="text-[10px] text-gray-500 font-normal">
                                                 ({baseCurrencySymbol}{formatNumber(person.total)})
                                             </div>
                                         )}
                                     </div>
                                 </div>
                                 {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
-                                     <ul className="list-disc list-inside mt-2 text-xs text-gray-600">
+                                     <ul className="list-disc list-inside mt-2 text-[10px] text-gray-600">
                                         {person.items.map((item: any, i: number) => <li key={i}>{item.name} {item.count > 1 ? `(x${item.count})` : ''}</li>)}
                                     </ul>
                                  )}
                             </div>
                             {splitMode === 'item' && summaryViewMode === 'detailed' && breakdown && (
-                                <div className="text-xs mt-2 pt-2 border-t border-gray-200 space-y-1 text-gray-700 bg-slate-50 p-3">
+                                <div className="text-[10px] mt-2 pt-2 border-t border-gray-200 space-y-1 text-gray-700 bg-slate-50 p-3">
                                     {person.items.map((item:any, i:number) => {
                                         const displayName = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase() 
                                             ? `${item.translatedName} (${item.name})` 
@@ -464,8 +464,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         <div className="space-y-1 text-xs bg-gray-50 p-3 rounded-lg text-gray-800 border border-gray-200">
                              {splitMode === 'item' ? (
                                 <div className="flex justify-between items-center">
-                                    <span>Subtotal After Item Discounts:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.subtotal - calculations.itemDiscountsTotal} displayMode="stacked" />
+                                    <span>Assigned Items Subtotal:</span>
+                                    <DualCurrencyDisplay baseValue={calculations.subtotal} displayMode="stacked" />
                                 </div>
                              ) : (
                                 <div className="flex justify-between items-center">
@@ -515,12 +515,12 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t-2 border-gray-300 flex justify-between font-bold text-lg text-gray-900">
+                    <div className="mt-4 pt-3 border-t-2 border-gray-300 flex justify-between font-bold text-base text-gray-900">
                         <span>Grand Total:</span>
                         <div className="text-right">
                             <span>{currencySymbol}{formatNumber(calculations.grandTotalWithTip * fxRate)}</span>
                             {baseCurrency !== displayCurrency && (
-                                <div className="text-sm font-normal text-gray-500">
+                                <div className="text-xs font-normal text-gray-500">
                                     ({baseCurrencySymbol}{formatNumber(calculations.grandTotalWithTip)})
                                 </div>
                             )}
@@ -613,5 +613,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    
