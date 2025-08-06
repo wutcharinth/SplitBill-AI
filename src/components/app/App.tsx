@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Camera, Upload, PlusCircle, Crown, X } from 'lucide-react';
 import { parseReceipt } from '../services/geminiService';
 import { BillData, Person } from '../types';
-import { COUNTRY_CURRENCY_MAP, PERSON_COLORS } from '../constants';
+import { ALLOWED_CURRENCIES, PERSON_COLORS } from '../constants';
 import MainApp from './MainApp';
 import Loader from './Loader';
 import ErrorMessage from './ErrorMessage';
@@ -96,7 +96,8 @@ export default function App() {
     };
 
     const processParsedData = (data: ExtractReceiptDataOutput | null) => {
-        let baseCurrency = 'USD';
+        const detectedCurrency = data?.currency?.toUpperCase();
+        const baseCurrency = (detectedCurrency && ALLOWED_CURRENCIES[detectedCurrency]) ? detectedCurrency : 'USD';
         
         const initialPeople: Person[] = [
             { id: `p${Date.now()}-1`, name: 'P1', color: PERSON_COLORS[0] },

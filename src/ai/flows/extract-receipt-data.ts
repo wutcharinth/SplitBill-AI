@@ -31,6 +31,7 @@ const ExtractReceiptDataOutputSchema = z.object({
   restaurantName: z.string().optional().describe('The name of the restaurant.'),
   date: z.string().optional().describe('The date of the receipt (e.g., YYYY-MM-DD).'),
   discount: z.number().optional().describe('The total discount amount on the receipt. This should be a positive number.'),
+  currency: z.string().optional().describe('The currency of the receipt (e.g., USD, EUR, THB).'),
 });
 export type ExtractReceiptDataOutput = z.infer<typeof ExtractReceiptDataOutputSchema>;
 
@@ -44,7 +45,7 @@ const prompt = ai.definePrompt({
   output: {schema: ExtractReceiptDataOutputSchema},
   prompt: `You are an expert financial assistant specializing in extracting data from receipts.
 
-You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name and the date of the transaction. If there is a discount, extract the total discount amount.
+You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name, the date of the transaction, and the currency. If there is a discount, extract the total discount amount.
 
 Use the following as the primary source of information about the receipt.
 

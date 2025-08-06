@@ -1,14 +1,14 @@
 export const PERSON_COLORS = [
-    '#ef4444', // red-500
-    '#3b82f6', // blue-500
-    '#8b5cf6', // violet-500
-    '#22c55e', // green-500
-    '#6366f1', // indigo-500
-    '#ec4899', // pink-500
-    '#f97316', // orange-500
-    '#14b8a6', // teal-500
-    '#f59e0b', // amber-500
-    '#6b7280', // gray-500
+    '#38bdf8', // sky-400
+    '#818cf8', // indigo-400
+    '#a78bfa', // violet-400
+    '#f472b6', // pink-400
+    '#fb923c', // orange-400
+    '#facc15', // yellow-400
+    '#4ade80', // green-400
+    '#2dd4bf', // teal-400
+    '#e879f9', // fuchsia-400
+    '#9ca3af', // gray-400
 ];
 
 export const ALLOWED_CURRENCIES: { [key: string]: string } = {
