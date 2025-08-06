@@ -21,7 +21,10 @@ import {
   PiggyBank,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
+  QrCode,
+  List,
+  Grip
 } from "lucide-react";
 
 import type { BillItem, Person, BillState } from "@/lib/types";
@@ -39,6 +42,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Logo from "./logo";
 import Image from "next/image";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Textarea } from "@/components/ui/textarea";
 
 const initialBillState: BillState = {
   items: [],
@@ -49,20 +54,29 @@ const initialBillState: BillState = {
   originalBillTotal: null,
   receiptImage: null,
   currency: "USD",
+  restaurantName: "Restaurant Name",
+  billDate: new Date().toLocaleDateString(),
 };
 
 const personColors = [
-  "bg-red-400", "bg-pink-400", "bg-purple-400", "bg-blue-400", 
-  "bg-indigo-400", "bg-green-400", "bg-yellow-400", "bg-orange-400"
+  "border-red-500", "border-blue-500", "border-purple-500", "border-green-500", 
+  "border-indigo-500", "border-pink-500", "border-yellow-500", "border-orange-500"
+];
+const personTextColors = [
+  "text-red-500", "text-blue-500", "text-purple-500", "text-green-500", 
+  "text-indigo-500", "text-pink-500", "text-yellow-500", "text-orange-500"
 ];
 
-const SectionCard = ({ number, title, description, children }: { number: number, title: string, description?: string, children: React.ReactNode }) => (
-    <Card className="w-full shadow-lg">
+const SectionCard = ({ number, title, description, children, action, className }: { number?: number, title: string, description?: string, children: React.ReactNode, action?: React.ReactNode, className?: string }) => (
+    <Card className={cn("w-full shadow-lg", className)}>
         <CardHeader>
-            <CardTitle className="text-xl font-bold text-primary flex items-center">
-                <span className="bg-primary text-primary-foreground rounded-full h-6 w-6 flex items-center justify-center text-sm mr-3">{number}</span>
-                {title}
-            </CardTitle>
+            <div className="flex justify-between items-center">
+                <CardTitle className="text-xl font-bold text-primary flex items-center">
+                    {number && <span className="bg-primary text-primary-foreground rounded-full h-6 w-6 flex items-center justify-center text-sm mr-3">{number}</span>}
+                    {title}
+                </CardTitle>
+                {action}
+            </div>
             {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
         <CardContent>{children}</CardContent>
@@ -77,6 +91,8 @@ export default function BillEditor() {
   const [newPersonName, setNewPersonName] = useState("");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [summaryView, setSummaryView] = useState<'detailed' | 'compact'>('detailed');
+
 
   const handleImageUpload = async (file: File) => {
     setIsLoading(true);
@@ -107,6 +123,8 @@ export default function BillEditor() {
             originalBillTotal: result.total,
             receiptImage: photoDataUri,
             people: people,
+            restaurantName: result.restaurantName || "Restaurant Name",
+            billDate: result.date || new Date().toLocaleDateString(),
           });
         } catch (e) {
           console.error(e);
@@ -216,21 +234,27 @@ export default function BillEditor() {
     setBillState(prev => ({ ...prev, [key]: value }));
   };
 
-  const { grandTotal, subtotal, reconciliation } = useMemo(() => {
+  const { grandTotal, subtotal, reconciliation, peopleTotals } = useMemo(() => {
     const subtotal = billState.items.reduce((acc, item) => acc + item.price, 0);
     const totalFromItems = subtotal - billState.discount + billState.tax + billState.tip;
     const billDifference = billState.originalBillTotal ? billState.originalBillTotal - totalFromItems : 0;
     const finalGrandTotal = billState.originalBillTotal ?? totalFromItems;
 
-    const peopleTotalsMap = new Map<string, { total: number, items: BillItem[] }>(billState.people.map(p => [p.id, { total: 0, items: [] }]));
+    const peopleTotalsMap = new Map<string, { total: number, items: {name: string, price: number}[], tax: number, tip: number, discount: number, shared: number }>(billState.people.map(p => [p.id, { total: 0, items: [], tax: 0, tip: 0, discount: 0, shared: 0 }]));
     const numberOfPeople = billState.people.length;
 
     if (numberOfPeople > 0) {
       if (splitMode === 'evenly') {
         const perPersonTotal = finalGrandTotal / numberOfPeople;
         billState.people.forEach(p => {
-            const personTotal = peopleTotalsMap.get(p.id);
-            if(personTotal) personTotal.total = perPersonTotal
+            const personData = peopleTotalsMap.get(p.id);
+            if(personData) {
+              personData.total = perPersonTotal;
+              personData.items = billState.items.map(i => ({name: i.name, price: i.price / numberOfPeople}));
+              personData.tax = billState.tax / numberOfPeople;
+              personData.tip = billState.tip / numberOfPeople;
+              personData.discount = billState.discount / numberOfPeople;
+            }
         });
       } else {
         billState.items.forEach(item => {
@@ -238,18 +262,25 @@ export default function BillEditor() {
           if (assignees.length > 0) {
             const pricePerPerson = item.price / assignees.length;
             assignees.forEach(personId => {
-              const personTotal = peopleTotalsMap.get(personId);
-              if(personTotal) {
-                  personTotal.total += pricePerPerson;
-                  personTotal.items.push(item);
+              const personData = peopleTotalsMap.get(personId);
+              if(personData) {
+                  personData.total += pricePerPerson;
+                  personData.items.push({name: item.name, price: pricePerPerson});
               }
             });
           }
         });
 
-        const sharedCosts = (billState.tax + billState.tip - billState.discount + billDifference) / numberOfPeople;
-        peopleTotalsMap.forEach((value) => {
-          value.total += sharedCosts;
+        peopleTotalsMap.forEach((personData) => {
+          const personSubtotal = personData.total;
+          const proportionOfSubtotal = subtotal > 0 ? personSubtotal / subtotal : 1 / numberOfPeople;
+          
+          personData.tax = billState.tax * proportionOfSubtotal;
+          personData.tip = billState.tip * proportionOfSubtotal;
+          personData.discount = billState.discount * proportionOfSubtotal;
+          personData.shared = billDifference * proportionOfSubtotal;
+
+          personData.total += personData.tax + personData.tip - personData.discount + personData.shared;
         });
       }
     }
@@ -260,12 +291,16 @@ export default function BillEditor() {
             ...p,
             total: personData?.total || 0,
             items: personData?.items || [],
+            tax: personData?.tax || 0,
+            tip: personData?.tip || 0,
+            discount: personData?.discount || 0,
+            shared: personData?.shared || 0,
         }
     });
 
     const calculatedSum = finalPeopleTotals.reduce((acc, p) => acc + p.total, 0);
     const roundingDifference = finalGrandTotal - calculatedSum;
-    if (finalPeopleTotals.length > 0) {
+    if (finalPeopleTotals.length > 0 && Math.abs(roundingDifference) > 0.001) {
       finalPeopleTotals[finalPeopleTotals.length - 1].total += roundingDifference;
     }
 
@@ -275,7 +310,8 @@ export default function BillEditor() {
         reconciliation: {
             subtotalAfterDiscount: subtotal - billState.discount,
             tax: billState.tax,
-            calculatedTotal: subtotal - billState.discount + billState.tax,
+            tip: billState.tip,
+            calculatedTotal: subtotal - billState.discount + billState.tax + billState.tip,
             billTotal: billState.originalBillTotal,
             shortfall: billDifference
         },
@@ -360,7 +396,7 @@ export default function BillEditor() {
             <SectionCard number={2} title="Manage People" description="Add or remove people to split the bill with.">
                 <div className="flex flex-wrap gap-2 mb-4">
                     {billState.people.map((p, i) => (
-                        <div key={p.id} className={cn("flex items-center gap-2 text-white font-semibold pl-3 pr-1 py-1 rounded-full text-sm", personColors[i % personColors.length])}>
+                        <div key={p.id} className={cn("flex items-center gap-2 text-white font-semibold pl-3 pr-1 py-1 rounded-full text-sm", personColors[i % personColors.length].replace('border-','bg-'))}>
                             {p.name}
                             <button onClick={() => removePerson(p.id)} className="bg-black/20 hover:bg-black/40 rounded-full p-0.5"><X className="w-3 h-3"/></button>
                         </div>
@@ -388,7 +424,7 @@ export default function BillEditor() {
                                 {billState.people.map((p, personIndex) => {
                                     const isAssigned = item.assignedTo.includes(p.id);
                                     return (
-                                        <button key={p.id} onClick={() => toggleItemAssignment(item.id, p.id)} className={cn("w-8 h-8 rounded-full text-sm font-bold flex items-center justify-center text-white relative transition-all", personColors[personIndex % personColors.length], isAssigned ? "ring-2 ring-offset-2 ring-primary" : "opacity-50 hover:opacity-100")}>
+                                        <button key={p.id} onClick={() => toggleItemAssignment(item.id, p.id)} className={cn("w-8 h-8 rounded-full text-sm font-bold flex items-center justify-center text-white relative transition-all", personColors[personIndex % personColors.length].replace('border-', 'bg-'), isAssigned ? "ring-2 ring-offset-2 ring-primary" : "opacity-50 hover:opacity-100")}>
                                             {p.name.substring(0, 2)}
                                             {isAssigned && (
                                                 <div className="absolute -top-1 -right-1 bg-primary rounded-full h-4 w-4 flex items-center justify-center">
@@ -420,35 +456,32 @@ export default function BillEditor() {
             </SectionCard>
 
             <SectionCard number={4} title="Adjustments & Reconciliation">
-                <h3 className="font-semibold mb-2">Review & Adjust</h3>
-                <div className="space-y-2">
-                     <div className="flex justify-between items-center">
-                        <Label>Original Receipt Subtotal</Label>
-                        <Input type="number" value={subtotal.toFixed(2)} readOnly className="w-28 text-right bg-secondary" />
-                     </div>
-                     <div className="flex justify-between items-center">
-                        <Label>Assigned Items Subtotal</Label>
-                        <Input type="number" value={subtotal.toFixed(2)} readOnly className="w-28 text-right bg-secondary" />
-                     </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Subtotal</Label>
+                    <Input type="number" value={subtotal.toFixed(2)} readOnly className="w-28 text-right bg-secondary" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="discount">Discount</Label>
+                    <Input id="discount" type="number" value={billState.discount} onChange={e => setAdjustment('discount', parseFloat(e.target.value) || 0)} className="w-28 text-right" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="tax">Tax</Label>
+                    <Input id="tax" type="number" value={billState.tax} onChange={e => setAdjustment('tax', parseFloat(e.target.value) || 0)} className="w-28 text-right" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="tip">Tip</Label>
+                    <Input id="tip" type="number" value={billState.tip} onChange={e => setAdjustment('tip', parseFloat(e.target.value) || 0)} className="w-28 text-right" />
+                  </div>
                 </div>
-                <Button variant="outline" className="w-full my-4"><Plus className="mr-2"/> Add Global Discount</Button>
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Checkbox id="tax" checked={billState.tax > 0} onCheckedChange={(checked) => setAdjustment('tax', checked ? (subtotal * 0.07) : 0)} />
-                            <Label htmlFor="tax">Tax 7%</Label>
-                        </div>
-                        <Input type="number" value={billState.tax.toFixed(2)} onChange={e => setAdjustment('tax', parseFloat(e.target.value) || 0)} className="w-28 text-right" />
-                    </div>
-                </div>
-                 <Button variant="outline" className="w-full my-4"><Plus className="mr-2"/> Add Other Tax / Fees</Button>
-                
+
                 <Separator className="my-4"/>
 
                 <h3 className="font-semibold mb-2">Reconciliation</h3>
                 <div className="space-y-1 text-sm">
                     <div className="flex justify-between"><span className="text-muted-foreground">Subtotal After Discounts</span> <span>{formatCurrency(reconciliation.subtotalAfterDiscount)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Tax 7%</span> <span>{formatCurrency(reconciliation.tax)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Tax</span> <span>{formatCurrency(reconciliation.tax)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Tip</span> <span>{formatCurrency(reconciliation.tip)}</span></div>
                     <div className="flex justify-between font-bold"><span className="text-muted-foreground">Calculated Total</span> <span>{formatCurrency(reconciliation.calculatedTotal)}</span></div>
                 </div>
 
@@ -457,17 +490,16 @@ export default function BillEditor() {
                         <div className="flex justify-between font-bold text-base"><span className="text-muted-foreground">Bill Total (from receipt)</span> <span>{formatCurrency(reconciliation.billTotal)}</span></div>
                         
                         {Math.abs(reconciliation.shortfall) > 0.01 && (
-                             <Alert variant={reconciliation.shortfall < 0 ? "default" : "destructive"} className="bg-yellow-100 border-yellow-300 text-yellow-800">
-                                <AlertTriangle className="h-4 w-4 !text-yellow-600" />
-                                <AlertTitle>Shortfall Detected</AlertTitle>
+                             <Alert variant={reconciliation.shortfall > 0 ? "default" : "destructive"} className={cn(reconciliation.shortfall > 0 ? "bg-blue-50 border-blue-200 text-blue-800" : "bg-yellow-100 border-yellow-300 text-yellow-800")}>
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Adjustment Needed</AlertTitle>
                                 <AlertDescription>
-                                    There's a difference of {formatCurrency(reconciliation.shortfall)}. This will be automatically added to split among everyone to match the bill total.
+                                    There's a difference of {formatCurrency(reconciliation.shortfall)}. This will be automatically split among everyone to match the bill total.
                                 </AlertDescription>
                             </Alert>
                         )}
                     </div>
                 )}
-                 <Button variant="outline" className="w-full my-4"><Plus className="mr-2"/> Add a tip</Button>
             </SectionCard>
 
             <div className="flex flex-col items-center gap-4 py-4">
@@ -479,43 +511,104 @@ export default function BillEditor() {
 
       {activeTab === 'summary' && (
            <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                <CardTitle className="font-headline text-2xl">Final Summary</CardTitle>
-                <CardDescription>Each person's share of the bill.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                {billState.people.map(person => (
-                    <Card key={person.id} className="bg-secondary/30">
-                    <CardHeader className="flex flex-row justify-between items-center p-4">
-                        <CardTitle className="text-xl font-headline">{person.name}</CardTitle>
-                        <div className="text-2xl font-bold text-primary">{formatCurrency(grandTotal / billState.people.length)}</div>
+                <h2 className="text-xl font-semibold text-primary text-center">Final Summary</h2>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{billState.restaurantName}</CardTitle>
+                        <CardDescription>{billState.billDate}</CardDescription>
                     </CardHeader>
-                    </Card>
-                ))}
-                <Separator />
-                <div className="text-right font-bold text-2xl">
-                    Grand Total: <span className="text-primary">{formatCurrency(grandTotal)}</span>
+                    <CardContent>
+                        <SectionCard 
+                            title="Split Summary"
+                            action={
+                                <div className="flex items-center gap-2">
+                                    <Button variant={summaryView === 'detailed' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSummaryView('detailed')}><List/></Button>
+                                    <Button variant={summaryView === 'compact' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSummaryView('compact')}><Grip/></Button>
+                                </div>
+                            }
+                        >
+                            <Accordion type="multiple" defaultValue={peopleTotals.map(p => p.id)}>
+                                {peopleTotals.map((person, index) => (
+                                    <AccordionItem value={person.id} key={person.id} className={cn("border-b-0")}>
+                                        <Card className={cn("mb-2 border-t-4", personColors[index % personColors.length])}>
+                                            <AccordionTrigger className="p-4 hover:no-underline">
+                                                <div className="flex justify-between items-center w-full">
+                                                    <span className="font-bold text-lg">{person.name}</span>
+                                                    <span className={cn("font-bold text-lg", personTextColors[index % personTextColors.length])}>{formatCurrency(person.total)}</span>
+                                                </div>
+                                            </AccordionTrigger>
+                                            <AccordionContent className="px-4 pb-4">
+                                                {summaryView === 'detailed' && (
+                                                    <div className="space-y-1 text-muted-foreground">
+                                                        {person.items.map((item, itemIdx) => (
+                                                            <div key={itemIdx} className="flex justify-between text-sm">
+                                                                <span>{item.name}</span>
+                                                                <span>{formatCurrency(item.price)}</span>
+                                                            </div>
+                                                        ))}
+                                                        <Separator className="my-2"/>
+                                                        {person.tax > 0 && <div className="flex justify-between text-sm"><span>Tax</span><span>{formatCurrency(person.tax)}</span></div>}
+                                                        {person.tip > 0 && <div className="flex justify-between text-sm"><span>Tip</span><span>{formatCurrency(person.tip)}</span></div>}
+                                                        {person.discount > 0 && <div className="flex justify-between text-sm"><span>Discount</span><span>-{formatCurrency(person.discount)}</span></div>}
+                                                        {Math.abs(person.shared) > 0.01 && <div className="flex justify-between text-sm"><span>Adjustment</span><span>{formatCurrency(person.shared)}</span></div>}
+                                                    </div>
+                                                )}
+                                                {summaryView === 'compact' && <p className="text-sm text-muted-foreground">This is the compact view.</p>}
+                                            </AccordionContent>
+                                        </Card>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </SectionCard>
+
+                        <SectionCard title="Reconciliation Summary" className="mt-4">
+                            <div className="space-y-1 text-sm">
+                                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal After tax and other services</span> <span>{formatCurrency(reconciliation.calculatedTotal)}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">Calculated Total</span> <span>{formatCurrency(reconciliation.calculatedTotal)}</span></div>
+                                {Math.abs(reconciliation.shortfall) > 0.01 && <div className="flex justify-between"><span className="text-muted-foreground">Adjustment (to match receipt)</span> <span className={reconciliation.shortfall > 0 ? "text-green-600" : "text-red-600"}>{formatCurrency(reconciliation.shortfall)}</span></div>}
+                           </div>
+                        </SectionCard>
+                        
+                        <div className="flex justify-between items-center font-bold text-2xl mt-4 p-4 bg-muted rounded-lg">
+                            <span>Grand Total:</span>
+                            <span className="text-primary">{formatCurrency(grandTotal)}</span>
+                        </div>
+
+                        {billState.receiptImage && (
+                          <div className="mt-4">
+                            <h3 className="font-semibold mb-2">Attached Receipt</h3>
+                            <Image src={billState.receiptImage} alt="Receipt" width={400} height={600} className="rounded-lg border shadow-sm w-full object-contain" />
+                          </div>
+                        )}
+                        
+                        <div className="mt-4 space-y-4">
+                            <div>
+                                <h3 className="font-semibold mb-2">Payment QR Code</h3>
+                                <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg">
+                                    <div className="text-center text-muted-foreground">
+                                        <QrCode className="mx-auto h-12 w-12 mb-2"/>
+                                        <p>QR Code Placeholder</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <Textarea placeholder="Add QR payment info or other notes" />
+                            <div className="flex items-center gap-2">
+                                <Checkbox id="attach-receipt" defaultChecked />
+                                <Label htmlFor="attach-receipt">Attach receipt image to summary</Label>
+                            </div>
+                        </div>
+
+                    </CardContent>
+                    <CardFooter className="flex-col gap-2">
+                        <Button className="w-full h-12 text-lg"><ImageDown className="mr-2"/> Save Summary as Image</Button>
+                        <Button variant="ghost" onClick={() => setBillState(initialBillState)}><RefreshCw className="mr-2"/> Start Over</Button>
+                    </CardFooter>
+                </Card>
+
+                <div className="flex flex-col items-center gap-4 py-4">
+                     <Button className="w-full h-12 text-lg" onClick={() => setActiveTab('split')}>Back to Edit</Button>
                 </div>
-                {billState.receiptImage && (
-                    <>
-                    <Separator />
-                    <div>
-                    <h3 className="text-lg font-medium mb-2">Attached Receipt</h3>
-                    <Image src={billState.receiptImage} alt="Receipt" width={400} height={600} className="rounded-lg border shadow-sm w-full object-contain" />
-                    </div>
-                    </>
-                )}
-                </CardContent>
-                <CardFooter className="gap-2">
-                    <Button className="w-full"><ImageDown className="mr-2"/> Save as Image</Button>
-                    <Button className="w-full" variant="secondary"><Share2 className="mr-2" /> Share Link</Button>
-                </CardFooter>
-            </Card>
-            <div className="flex flex-col items-center gap-4 py-4">
-                 <Button className="w-full h-12 text-lg" onClick={() => setActiveTab('split')}>Back to Edit</Button>
-                 <Button variant="ghost" onClick={() => setBillState(initialBillState)}><RefreshCw className="mr-2"/> Start Over</Button>
-            </div>
            </div>
       )}
     </div>

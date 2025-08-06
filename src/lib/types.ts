@@ -19,4 +19,6 @@ export interface BillState {
   originalBillTotal: number | null;
   receiptImage: string | null;
   currency: string;
+  restaurantName?: string;
+  billDate?: string;
 }
