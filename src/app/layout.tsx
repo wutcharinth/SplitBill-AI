@@ -16,7 +16,7 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'BillzAI - Split Bills with AI',
+  title: 'SplitBill AI - The Smartest Way to Split the Bill',
   description: 'Easily split bills and expenses with the power of AI. Snap a receipt and let us do the rest.',
 };
 
@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <head>
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased bg-background">
         {children}
         <Toaster />
       </body>

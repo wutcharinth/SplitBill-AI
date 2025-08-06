@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef, ChangeEvent } from "react";
+import React, { useState, useMemo, useRef, ChangeEvent, useEffect } from "react";
 import {
   Camera,
   Upload,
@@ -24,13 +24,18 @@ import {
   AlertTriangle,
   QrCode,
   List,
-  Grip
+  Grip,
+  Sparkles,
+  PartyPopper
 } from "lucide-react";
 
 import type { BillItem, Person, BillState } from "@/lib/types";
 import { extractReceiptData } from "@/ai/flows/extract-receipt-data";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import ReactConfetti from 'react-confetti';
+import { toPng } from 'html-to-image';
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -71,7 +76,7 @@ const SectionCard = ({ number, title, description, children, action, className }
     <Card className={cn("w-full shadow-lg", className)}>
         <CardHeader>
             <div className="flex justify-between items-center">
-                <CardTitle className="text-xl font-bold text-primary flex items-center">
+                <CardTitle className="text-lg font-bold text-primary flex items-center">
                     {number && <span className="bg-primary text-primary-foreground rounded-full h-6 w-6 flex items-center justify-center text-sm mr-3">{number}</span>}
                     {title}
                 </CardTitle>
@@ -83,15 +88,37 @@ const SectionCard = ({ number, title, description, children, action, className }
     </Card>
 );
 
+const loadingMessages = [
+    "Scanning receipt edges...",
+    "Finding items and prices...",
+    "Calculating totals...",
+    "Almost there...",
+];
+
 export default function BillEditor() {
   const [billState, setBillState] = useState<BillState>(initialBillState);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [activeTab, setActiveTab] = useState("split");
   const [splitMode, setSplitMode] = useState<"item" | "evenly">("item");
   const [newPersonName, setNewPersonName] = useState("");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [summaryView, setSummaryView] = useState<'detailed' | 'compact'>('detailed');
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isLoading) {
+      setLoadingStep(0);
+      timer = setInterval(() => {
+        setLoadingStep((prevStep) => (prevStep + 1) % loadingMessages.length);
+      }, 2000);
+    }
+    return () => clearInterval(timer);
+  }, [isLoading]);
 
 
   const handleImageUpload = async (file: File) => {
@@ -126,6 +153,7 @@ export default function BillEditor() {
             restaurantName: result.restaurantName || "Restaurant Name",
             billDate: result.date || new Date().toLocaleDateString(),
           });
+          setActiveTab('summary');
         } catch (e) {
           console.error(e);
           toast({
@@ -162,6 +190,7 @@ export default function BillEditor() {
       people: [{ id: crypto.randomUUID(), name: "P1" }],
       items: [{id: crypto.randomUUID(), name: "First Item", price: 10, assignedTo:[]}]
     });
+    setActiveTab('split');
   };
 
   const updateItem = (id: string, updates: Partial<BillItem>) => {
@@ -232,6 +261,29 @@ export default function BillEditor() {
   
   const setAdjustment = (key: 'tax' | 'discount' | 'tip', value: number) => {
     setBillState(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSaveAsImage = () => {
+    if (summaryRef.current === null) {
+      return;
+    }
+
+    toPng(summaryRef.current, { cacheBust: true, pixelRatio: 2 })
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.download = 'bill-summary.png';
+        link.href = dataUrl;
+        link.click();
+        setShowConfetti(true);
+      })
+      .catch((err) => {
+        console.log(err);
+        toast({
+          variant: 'destructive',
+          title: 'Oops!',
+          description: 'Could not save summary as image.',
+        });
+      });
   };
 
   const { grandTotal, subtotal, reconciliation, peopleTotals } = useMemo(() => {
@@ -326,9 +378,14 @@ export default function BillEditor() {
   if (isLoading) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4 bg-background">
-            <Loader2 className="h-16 w-16 animate-spin text-primary mb-6" />
-            <h2 className="text-2xl font-headline font-semibold text-primary">Analyzing Receipt...</h2>
-            <p className="text-muted-foreground mt-2">Our AI is hard at work extracting items and prices.</p>
+            <div className="relative mb-6">
+                <Loader2 className="h-24 w-24 text-primary opacity-20" />
+                <Sparkles className="h-16 w-16 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-headline font-semibold text-primary transition-all duration-500">{loadingMessages[loadingStep]}</h2>
+            <div className="w-full max-w-xs mt-4 bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                <div className="bg-primary h-2.5 rounded-full transition-all duration-2000 ease-linear" style={{ width: `${(loadingStep + 1) * 25}%` }}></div>
+            </div>
         </div>
     )
   }
@@ -360,11 +417,12 @@ export default function BillEditor() {
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6 font-body">
+      {showConfetti && <ReactConfetti width={window.innerWidth} height={window.innerHeight} onConfettiComplete={() => setShowConfetti(false)} recycle={false} numberOfPieces={400} />}
       <header className="flex justify-between items-center mb-6">
         <Logo showSubtitle />
         <div className="flex items-center gap-2">
            <Select defaultValue={billState.currency} onValueChange={(value) => setBillState(s => ({...s, currency: value}))}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-28">
                     <SelectValue placeholder="Currency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -379,9 +437,9 @@ export default function BillEditor() {
         </div>
       </header>
 
-      <div className="flex items-center gap-2 mb-6">
-          <Button onClick={() => setActiveTab('split')} variant={activeTab === 'split' ? 'default' : 'secondary'} className="w-full h-12 text-lg">Split</Button>
-          <Button onClick={() => setActiveTab('summary')} variant={activeTab === 'summary' ? 'default' : 'secondary'} className="w-full h-12 text-lg">Summary</Button>
+      <div className="flex items-center gap-2 mb-6 p-1 bg-primary/10 rounded-lg">
+          <Button onClick={() => setActiveTab('split')} variant={activeTab === 'split' ? 'default' : 'ghost'} className="w-full h-12 text-lg">Split</Button>
+          <Button onClick={() => setActiveTab('summary')} variant={activeTab === 'summary' ? 'default' : 'ghost'} className="w-full h-12 text-lg">Summary</Button>
       </div>
 
       {activeTab === 'split' && (
@@ -511,100 +569,104 @@ export default function BillEditor() {
 
       {activeTab === 'summary' && (
            <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-primary text-center">Final Summary</h2>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{billState.restaurantName}</CardTitle>
-                        <CardDescription>{billState.billDate}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <SectionCard 
-                            title="Split Summary"
-                            action={
-                                <div className="flex items-center gap-2">
-                                    <Button variant={summaryView === 'detailed' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSummaryView('detailed')}><List/></Button>
-                                    <Button variant={summaryView === 'compact' ? 'secondary' : 'ghost'} size="icon" onClick={() => setSummaryView('compact')}><Grip/></Button>
-                                </div>
-                            }
-                        >
-                            <Accordion type="multiple" defaultValue={peopleTotals.map(p => p.id)}>
-                                {peopleTotals.map((person, index) => (
-                                    <AccordionItem value={person.id} key={person.id} className={cn("border-b-0")}>
-                                        <Card className={cn("mb-2 border-t-4", personColors[index % personColors.length])}>
-                                            <AccordionTrigger className="p-4 hover:no-underline">
-                                                <div className="flex justify-between items-center w-full">
-                                                    <span className="font-bold text-lg">{person.name}</span>
-                                                    <span className={cn("font-bold text-lg", personTextColors[index % personTextColors.length])}>{formatCurrency(person.total)}</span>
-                                                </div>
-                                            </AccordionTrigger>
-                                            <AccordionContent className="px-4 pb-4">
-                                                {summaryView === 'detailed' && (
-                                                    <div className="space-y-1 text-muted-foreground">
-                                                        {person.items.map((item, itemIdx) => (
-                                                            <div key={itemIdx} className="flex justify-between text-sm">
-                                                                <span>{item.name}</span>
-                                                                <span>{formatCurrency(item.price)}</span>
-                                                            </div>
-                                                        ))}
-                                                        <Separator className="my-2"/>
-                                                        {person.tax > 0 && <div className="flex justify-between text-sm"><span>Tax</span><span>{formatCurrency(person.tax)}</span></div>}
-                                                        {person.tip > 0 && <div className="flex justify-between text-sm"><span>Tip</span><span>{formatCurrency(person.tip)}</span></div>}
-                                                        {person.discount > 0 && <div className="flex justify-between text-sm"><span>Discount</span><span>-{formatCurrency(person.discount)}</span></div>}
-                                                        {Math.abs(person.shared) > 0.01 && <div className="flex justify-between text-sm"><span>Adjustment</span><span>{formatCurrency(person.shared)}</span></div>}
-                                                    </div>
-                                                )}
-                                                {summaryView === 'compact' && <p className="text-sm text-muted-foreground">This is the compact view.</p>}
-                                            </AccordionContent>
-                                        </Card>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        </SectionCard>
-
-                        <SectionCard title="Reconciliation Summary" className="mt-4">
-                            <div className="space-y-1 text-sm">
-                                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal After tax and other services</span> <span>{formatCurrency(reconciliation.calculatedTotal)}</span></div>
-                                <div className="flex justify-between"><span className="text-muted-foreground">Calculated Total</span> <span>{formatCurrency(reconciliation.calculatedTotal)}</span></div>
-                                {Math.abs(reconciliation.shortfall) > 0.01 && <div className="flex justify-between"><span className="text-muted-foreground">Adjustment (to match receipt)</span> <span className={reconciliation.shortfall > 0 ? "text-green-600" : "text-red-600"}>{formatCurrency(reconciliation.shortfall)}</span></div>}
-                           </div>
-                        </SectionCard>
-                        
-                        <div className="flex justify-between items-center font-bold text-2xl mt-4 p-4 bg-muted rounded-lg">
-                            <span>Grand Total:</span>
-                            <span className="text-primary">{formatCurrency(grandTotal)}</span>
-                        </div>
-
-                        {billState.receiptImage && (
-                          <div className="mt-4">
-                            <h3 className="font-semibold mb-2">Attached Receipt</h3>
-                            <Image src={billState.receiptImage} alt="Receipt" width={400} height={600} className="rounded-lg border shadow-sm w-full object-contain" />
+                <Card ref={summaryRef} className="p-6 bg-white">
+                  <div className="text-center mb-4">
+                    <h2 className="text-lg font-semibold text-primary">Final Summary</h2>
+                  </div>
+                  
+                  <Card>
+                      <CardHeader className="flex-row items-center justify-between">
+                          <div>
+                              <CardTitle>{billState.restaurantName}</CardTitle>
+                              <CardDescription>{billState.billDate}</CardDescription>
                           </div>
-                        )}
-                        
-                        <div className="mt-4 space-y-4">
-                            <div>
-                                <h3 className="font-semibold mb-2">Payment QR Code</h3>
-                                <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg">
-                                    <div className="text-center text-muted-foreground">
-                                        <QrCode className="mx-auto h-12 w-12 mb-2"/>
-                                        <p>QR Code Placeholder</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <Textarea placeholder="Add QR payment info or other notes" />
-                            <div className="flex items-center gap-2">
-                                <Checkbox id="attach-receipt" defaultChecked />
-                                <Label htmlFor="attach-receipt">Attach receipt image to summary</Label>
-                            </div>
-                        </div>
+                           <Button variant="ghost" size="sm"><Receipt className="mr-2"/>Change Split Options</Button>
+                      </CardHeader>
+                  </Card>
 
-                    </CardContent>
-                    <CardFooter className="flex-col gap-2">
-                        <Button className="w-full h-12 text-lg"><ImageDown className="mr-2"/> Save Summary as Image</Button>
-                        <Button variant="ghost" onClick={() => setBillState(initialBillState)}><RefreshCw className="mr-2"/> Start Over</Button>
-                    </CardFooter>
+                  <div className="my-4">
+                    <h3 className="font-semibold text-primary mb-2">Split Summary</h3>
+                    <Accordion type="multiple" defaultValue={peopleTotals.map(p => p.id)}>
+                        {peopleTotals.map((person, index) => (
+                            <AccordionItem value={person.id} key={person.id} className="border-b-0 mb-2">
+                                <Card className={cn("border-l-4", personColors[index % personColors.length])}>
+                                    <AccordionTrigger className="p-4 hover:no-underline">
+                                        <div className="flex justify-between items-center w-full">
+                                            <span className="font-bold text-lg">{person.name}</span>
+                                            <span className={cn("font-bold text-lg", personTextColors[index % personTextColors.length])}>{formatCurrency(person.total)}</span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="px-4 pb-4">
+                                        <div className="space-y-1 text-muted-foreground">
+                                            {person.items.map((item, itemIdx) => (
+                                                <div key={itemIdx} className="flex justify-between text-sm">
+                                                    <span>{item.name}</span>
+                                                    <span>{formatCurrency(item.price)}</span>
+                                                </div>
+                                            ))}
+                                            <Separator className="my-2"/>
+                                            {person.tax > 0 && <div className="flex justify-between text-sm"><span>Tax</span><span>{formatCurrency(person.tax)}</span></div>}
+                                            {person.tip > 0 && <div className="flex justify-between text-sm"><span>Tip</span><span>{formatCurrency(person.tip)}</span></div>}
+                                            {person.discount > 0 && <div className="flex justify-between text-sm"><span>Discount</span><span>-{formatCurrency(person.discount)}</span></div>}
+                                            {Math.abs(person.shared) > 0.01 && <div className="flex justify-between text-sm"><span>Adjustment</span><span>{formatCurrency(person.shared)}</span></div>}
+                                        </div>
+                                    </AccordionContent>
+                                </Card>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                  </div>
+                  
+                  <div className="my-4">
+                      <h3 className="font-semibold text-primary mb-2">Reconciliation Summary</h3>
+                      <Card className="p-4">
+                          <div className="space-y-2 text-sm">
+                              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal After Item Splits</span> <span>{formatCurrency(subtotal)}</span></div>
+                              <div className="flex justify-between"><span className="text-muted-foreground">Tax and Other Fees</span> <span>{formatCurrency(reconciliation.tax + reconciliation.tip - reconciliation.discount)}</span></div>
+                              <Separator className="my-1"/>
+                              <div className="flex justify-between font-bold"><span className="text-muted-foreground">Calculated Total</span> <span>{formatCurrency(reconciliation.calculatedTotal)}</span></div>
+                              {Math.abs(reconciliation.shortfall) > 0.01 && <div className="flex justify-between"><span className="text-blue-600">Adjustment (to match receipt)</span> <span className="text-blue-600 font-bold">{formatCurrency(reconciliation.shortfall)}</span></div>}
+                          </div>
+                      </Card>
+                  </div>
+
+                  <div className="flex justify-between items-center font-bold text-2xl mt-4 p-4 bg-muted rounded-lg">
+                      <span>Grand Total:</span>
+                      <span className="text-primary">{formatCurrency(grandTotal)}</span>
+                  </div>
+
+                  {billState.receiptImage && (
+                    <div className="mt-4">
+                      <h3 className="font-semibold text-primary mb-2">Attached Receipt</h3>
+                      <Image src={billState.receiptImage} alt="Receipt" width={400} height={600} className="rounded-lg border shadow-sm w-full object-contain" />
+                    </div>
+                  )}
+                  
+                  <div className="mt-6 space-y-4">
+                      <div>
+                          <h3 className="font-semibold text-primary mb-2 text-center">Payment QR Code</h3>
+                          <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg">
+                              <div className="text-center text-muted-foreground">
+                                  <Image src="https://placehold.co/150x150.png" alt="QR Code" width={150} height={150} data-ai-hint="qr code" />
+                                  <p className="text-xs mt-2">Scan QR code to pay</p>
+                              </div>
+                          </div>
+                      </div>
+                      <div className="relative">
+                          <PartyPopper className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <Input className="pl-10" placeholder="Add QR payment info or other notes" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                          <Checkbox id="attach-receipt" defaultChecked />
+                          <Label htmlFor="attach-receipt">Attach receipt image to summary</Label>
+                      </div>
+                  </div>
                 </Card>
+
+                <div className="flex flex-col items-center gap-2 mt-6">
+                    <Button className="w-full h-12 text-lg" onClick={handleSaveAsImage}><ImageDown className="mr-2"/> Save Summary as Image</Button>
+                    <Button variant="ghost" onClick={() => setBillState(initialBillState)}><RefreshCw className="mr-2"/> Start Over</Button>
+                </div>
 
                 <div className="flex flex-col items-center gap-4 py-4">
                      <Button className="w-full h-12 text-lg" onClick={() => setActiveTab('split')}>Back to Edit</Button>
