@@ -11,16 +11,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app: FirebaseApp;
+const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
   throw new Error("Firebase API key is not set. Please check your .env file.");
-}
-
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
 }
 
 export { app };
