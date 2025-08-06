@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef } from 'react';
-import { Download, X, QrCode } from 'lucide-react';
+import { Download, X, QrCode, Share2 } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toJpeg } from 'html-to-image';
 import confetti from 'canvas-confetti';
@@ -65,36 +65,73 @@ const fireConfetti = () => {
 
 /**
  * Preloads fonts used in the summary card to ensure they are available for canvas rendering.
+ * This is especially important for ensuring consistent output across different devices.
  * @see https://github.com/bubkoo/html-to-image/issues/197#issuecomment-946337672
  */
 async function preloadFonts() {
     try {
+        // We check if the font is already in the document's font set.
         // The 'Manrope' font is the primary font used in the app.
-        // We check if it's already loaded to avoid redundant fetches.
         if (document.fonts && !document.fonts.check('1em Manrope')) {
-            // Using the same URL as in layout.tsx to ensure consistency.
+            // Using the same URL as in layout.tsx ensures we fetch the correct font file.
             const fontCssUrl = 'https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap';
             const response = await fetch(fontCssUrl);
             const cssText = await response.text();
             
-            // Extract font URLs from the CSS text.
+            // We find all `url(...)` declarations in the CSS text.
             const fontUrls = cssText.match(/url\(https?:\/\/[^)]+\)/g) || [];
 
-            // Create font face objects and load them.
+            // For each URL, we create a new FontFace object and load it.
+            // This programmatically adds the font to the document's font list.
             const fontFaces = fontUrls.map(url => {
                 const fontUrl = url.replace(/url\(|\)/g, '');
-                // It's tricky to get the exact font family name programmatically here,
-                // but creating a FontFace object with the URL is the key part.
                 const font = new FontFace('Manrope', `url(${fontUrl})`);
                 return font.load();
             });
 
+            // We wait for all font loading promises to resolve.
             await Promise.all(fontFaces);
         }
     } catch (error) {
         console.error('Error preloading fonts for summary capture:', error);
         // We don't block the capture process if font loading fails.
-        // The browser will likely fall back to a default font.
+        // The browser will likely fall back to a default font in this case.
+    }
+}
+
+/**
+ * Generates a JPEG image from an HTML element and returns it as a Blob.
+ * This is a shared function for both downloading and sharing.
+ */
+async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
+    if (!element) {
+        console.error('Element for image generation not found');
+        return null;
+    }
+
+    // Ensure all assets like fonts and images are loaded before capture.
+    await preloadFonts();
+
+    // The 'capturing' class applies temporary styles to ensure the capture is clean.
+    element.classList.add('capturing');
+
+    try {
+        // Use toJpeg for smaller file size, suitable for sharing.
+        const blob = await toJpeg(element, {
+            quality: 0.95, // High quality JPEG
+            pixelRatio: 2.5, // Increase resolution for sharper text on high-DPI screens
+            backgroundColor: '#f1f5f9', // Same as the page background
+            cacheBust: true,
+            skipAutoScale: true, // Important for maintaining consistent scale
+        });
+        return blob;
+    } catch (err) {
+        console.error('Failed to generate summary image:', err);
+        alert('Sorry, there was an error creating the summary image. Please try again.');
+        return null;
+    } finally {
+        // Clean up by removing the temporary class.
+        element.classList.remove('capturing');
     }
 }
 
@@ -148,35 +185,42 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
 
     const handleSaveSummary = async () => {
-        const summaryEl = summaryRef.current;
-        if (!summaryEl) {
-            console.error('Summary element not found');
-            return;
-        }
-
-        await preloadFonts();
-        summaryEl.classList.add('capturing');
-
-        try {
-            const dataUrl = await toJpeg(summaryEl, {
-                quality: 0.95, // Use high quality for JPEG
-                pixelRatio: 2.5,
-                backgroundColor: '#f1f5f9',
-                cacheBust: true,
-                skipAutoScale: true,
-            });
-
+        const blob = await generateImageBlob(summaryRef.current!);
+        if (blob) {
+            const dataUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.download = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.jpg`;
             link.href = dataUrl;
             link.click();
             fireConfetti();
+            URL.revokeObjectURL(dataUrl); // Clean up the object URL
+        }
+    };
 
-        } catch (err) {
-            console.error('Failed to save summary image:', err);
-            alert('Sorry, there was an error creating the summary image. Please try again.');
-        } finally {
-            summaryEl.classList.remove('capturing');
+    const handleShareSummary = async () => {
+        const blob = await generateImageBlob(summaryRef.current!);
+        if (!blob) return;
+
+        const filename = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.jpg`;
+        const file = new File([blob], filename, { type: 'image/jpeg' });
+        const shareData = {
+            files: [file],
+            title: 'Bill Summary',
+            text: `Here is the bill summary for ${restaurantName}.`,
+        };
+
+        if (navigator.share && navigator.canShare(shareData)) {
+            try {
+                await navigator.share(shareData);
+                fireConfetti();
+            } catch (err) {
+                console.error('Failed to share summary:', err);
+                // The user may have cancelled the share, so we don't show an error.
+            }
+        } else {
+            // Fallback for browsers that don't support Web Share API
+            alert("Sharing is not supported on your browser. Please download the image and share it manually.");
+            handleSaveSummary();
         }
     };
     
@@ -554,12 +598,20 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 </label>
             </div>
             
-             <button onClick={handleSaveSummary} className="mt-4 w-full bg-agoda-blue hover:bg-agoda-blue-dark text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
-                <Download size={18} />
-                <span>Save Summary as Image</span>
-            </button>
+             <div className="mt-4 grid grid-cols-2 gap-3">
+                <button onClick={handleShareSummary} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
+                    <Share2 size={18} />
+                    <span>Share Summary</span>
+                </button>
+                <button onClick={handleSaveSummary} className="w-full bg-agoda-blue hover:bg-agoda-blue-dark text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
+                    <Download size={18} />
+                    <span>Save to Photos</span>
+                </button>
+            </div>
         </div>
     );
 };
 
 export default Summary;
+
+    
