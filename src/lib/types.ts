@@ -9,7 +9,6 @@ export interface Person {
 export interface BillItem {
   name: string;
   price: number;
-  isFree: boolean;
   translatedName: string | null;
   shares: number[];
 }

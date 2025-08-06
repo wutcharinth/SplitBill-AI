@@ -57,7 +57,6 @@ type Action =
   | { type: 'UPDATE_ITEM_NAME'; payload: { itemIndex: number; name: string } }
   | { type: 'UPDATE_ITEM_PRICE'; payload: { itemIndex: number; price: number } }
   | { type: 'UPDATE_ITEM_SHARE'; payload: { itemIndex: number; personIndex: number; change: 1 | -1 } }
-  | { type: 'TOGGLE_ITEM_FREE'; payload: number }
   | { type: 'UPDATE_TAX'; payload: Partial<Tax> & { id: 'serviceCharge' | 'vat' | 'otherTax' } }
   | { type: 'UPDATE_DISCOUNT'; payload: Partial<Discount> }
   | { type: 'TOGGLE_DISCOUNT_SHARE'; payload: { personId: string } }
@@ -121,7 +120,6 @@ const reducer = (state: AppState, action: Action): AppState => {
       const newItem: BillItem = {
         name: action.payload.name,
         price: action.payload.price,
-        isFree: false,
         translatedName: null,
         shares: Array(state.people.length).fill(0)
       };
@@ -169,11 +167,6 @@ const reducer = (state: AppState, action: Action): AppState => {
       return { ...state, items: updatedItems };
     }
       
-    case 'TOGGLE_ITEM_FREE':
-        const toggledItems = [...state.items];
-        toggledItems[action.payload].isFree = !toggledItems[action.payload].isFree;
-        return {...state, items: toggledItems};
-
     case 'UPDATE_TAX':
         const { id, ...taxData } = action.payload;
         return {
@@ -212,16 +205,16 @@ const reducer = (state: AppState, action: Action): AppState => {
         return { ...state, billDate: action.payload };
     
     case 'SET_BASE_CURRENCY':
-        // When user corrects the base currency, we assume they want to reset the conversion.
-        // So, we set display currency to the same, and fxRate to 1.
-        return {
-            ...state,
-            baseCurrency: action.payload,
-            displayCurrency: action.payload,
-            fxRate: 1,
-            fxRateDate: null,
-            isFxLoading: false,
-        };
+      // When user corrects the base currency, we assume they want to reset the conversion.
+      // So, we set display currency to the same, and fxRate to 1.
+      return {
+          ...state,
+          baseCurrency: action.payload,
+          displayCurrency: action.payload,
+          fxRate: 1,
+          fxRateDate: null,
+          isFxLoading: false,
+      };
 
     case 'SET_DISPLAY_CURRENCY':
         return { ...state, displayCurrency: action.payload };

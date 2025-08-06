@@ -127,7 +127,7 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                                         onTouchEnd={handlePressEnd}
                                         onClick={() => handleClick(itemIndex, personIndex)}
                                         onContextMenu={(e) => handleContextMenu(e, itemIndex, personIndex)}
-                                        className="h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-xs transition-transform transform hover:scale-110"
+                                        className="h-9 w-9 rounded-full flex items-center justify-center text-white font-bold text-xs transition-transform transform hover:scale-110"
                                         style={{ backgroundColor: person.color }}
                                         title={person.name}
                                     >
@@ -142,15 +142,6 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                             )
                         })}
                     </div>
-                    <label className="flex items-center space-x-1.5 cursor-pointer text-xs text-green-600 font-semibold pl-2">
-                        <input
-                            type="checkbox"
-                            className="item-free-cb free-checkbox h-3.5 w-3.5 rounded focus:ring-green-500 border-gray-300"
-                            checked={item.isFree}
-                            onChange={() => dispatch({type: 'TOGGLE_ITEM_FREE', payload: itemIndex})}
-                        />
-                        <span>Free</span>
-                    </label>
                 </div>
             </div>
            )

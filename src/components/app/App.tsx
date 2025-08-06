@@ -105,7 +105,7 @@ export default function App() {
         ];
 
         const newBillData: BillData = {
-            items: data?.items.map(item => ({ ...item, isFree: false, shares: Array(initialPeople.length).fill(0) })) || [],
+            items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
             taxes: {
                 serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge', amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
