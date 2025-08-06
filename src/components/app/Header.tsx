@@ -1,0 +1,169 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { ALLOWED_CURRENCIES } from '../constants';
+import { ArrowRightLeft, RotateCw, Star } from 'lucide-react';
+import { usePinnedCurrencies } from '../hooks/usePinnedCurrencies';
+import ManagePinnedCurrenciesModal from './ManagePinnedCurrenciesModal';
+
+interface HeaderProps {
+    activePage: 'setup' | 'summary';
+    setActivePage: (page: 'setup' | 'summary') => void;
+    state: {
+        baseCurrency: string;
+        displayCurrency: string;
+        fxRate: number;
+        fxRateDate: string | null;
+        isFxLoading: boolean;
+    };
+    dispatch: React.Dispatch<any>;
+}
+
+const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispatch }) => {
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { pinnedCurrencies, togglePin } = usePinnedCurrencies();
+
+    const { baseCurrency, displayCurrency, fxRate, fxRateDate, isFxLoading } = state;
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const sortedCurrencies = useMemo(() => {
+        const pinned = pinnedCurrencies
+            .map(code => ([code, ALLOWED_CURRENCIES[code]]))
+            .filter(entry => entry[1]); // Ensure the currency exists in our list
+
+        const others = Object.entries(ALLOWED_CURRENCIES)
+            .filter(([code]) => !pinnedCurrencies.includes(code))
+            // Sort by currency code (e.g., AUD, BRL, CAD) instead of name.
+            .sort(([codeA], [codeB]) => codeA.localeCompare(codeB));
+
+        return { pinned, others };
+    }, [pinnedCurrencies]);
+    
+    const isFxVisible = baseCurrency !== displayCurrency;
+
+    const getTabClassName = (page: 'setup' | 'summary') => {
+        const baseClasses = 'py-1.5 px-3 rounded-md text-sm font-semibold transition-all duration-200 min-w-[100px] text-center';
+        if (activePage === page) {
+            return `${baseClasses} bg-agoda-blue text-white shadow`;
+        }
+        return `${baseClasses} text-gray-500 hover:bg-gray-300/50`;
+    };
+
+    return (
+        <>
+            <header className={`fixed top-0 left-0 right-0 z-40 bg-slate-100/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
+               <div className="w-full max-w-xl mx-auto px-4 py-2">
+                    {/* Row 1: Branding */}
+                    <div className="flex items-center gap-3">
+                        <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-14" />
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-800">SplitBill AI</h1>
+                            <p className="text-xs text-gray-600">Snap. Split. Done.</p>
+                        </div>
+                    </div>
+
+                    {/* Row 2: Navigation & Currency */}
+                    <div className="flex items-center justify-between mt-2">
+                        {/* Nav Tabs */}
+                        <div className="flex items-center space-x-1 bg-gray-200 p-1 rounded-lg">
+                            <button
+                                onClick={() => setActivePage('setup')}
+                                className={getTabClassName('setup')}
+                            >
+                                Split
+                            </button>
+                            <button
+                                onClick={() => setActivePage('summary')}
+                                className={getTabClassName('summary')}
+                            >
+                                Summary
+                            </button>
+                        </div>
+                        
+                        {/* Currency Selectors */}
+                        <div className="flex items-center gap-2 text-sm">
+                            {isFxVisible && (
+                                <>
+                                    <span className="font-semibold bg-gray-200 px-2 py-1 rounded-md text-gray-800">{baseCurrency}</span>
+                                    <ArrowRightLeft size={16} className="text-gray-400 flex-shrink-0"/>
+                                </>
+                            )}
+                            <select
+                                id="display-currency-select"
+                                value={displayCurrency}
+                                onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
+                                className="font-semibold bg-white pl-2 pr-7 py-1 rounded-md text-gray-800 border border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue text-sm w-24"
+                                aria-label="Select display currency"
+                            >
+                                {sortedCurrencies.pinned.length > 0 && (
+                                    <optgroup label="Pinned Currencies">
+                                        {sortedCurrencies.pinned.map(([code, name]) => (
+                                            <option key={code as string} value={code as string}>{`${code}`}</option>
+                                        ))}
+                                    </optgroup>
+                                )}
+                                <optgroup label="All Currencies">
+                                    {sortedCurrencies.others.map(([code, name]) => (
+                                        <option key={code} value={code}>{`${code}`}</option>
+                                    ))}
+                                </optgroup>
+                            </select>
+                            <button 
+                                onClick={() => setIsModalOpen(true)}
+                                className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+                                aria-label="Manage pinned currencies"
+                                title="Manage pinned currencies"
+                            >
+                                <Star size={16} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {isFxVisible && (
+                        <div className="w-full mt-2 pt-2 border-t border-gray-200/80">
+                             <div className="flex items-center justify-end gap-2 text-sm">
+                                 <label htmlFor="fx-rate" className="font-medium text-gray-600 whitespace-nowrap">
+                                    1 {baseCurrency} =
+                                 </label>
+                                <div className="flex items-center">
+                                    <div className="relative">
+                                         <input
+                                            id="fx-rate"
+                                            type="number"
+                                            step="0.0001"
+                                            value={fxRate}
+                                            onChange={(e) => dispatch({ type: 'SET_FX_RATE', payload: { rate: Number(e.target.value) || 1, date: null, isLoading: false } })}
+                                            className="w-28 text-right bg-white border border-gray-300 rounded-md p-1 pr-6 font-mono text-sm text-gray-900 disabled:bg-gray-100"
+                                            disabled={isFxLoading}
+                                        />
+                                        {isFxLoading && <RotateCw size={16} className="absolute right-1 top-1/2 -translate-y-1/2 animate-spin text-agoda-blue pointer-events-none" />}
+                                    </div>
+                                     <span className="ml-2 font-semibold text-gray-800">{displayCurrency}</span>
+                                </div>
+                            </div>
+                            {fxRateDate && !isFxLoading && (
+                                <p className="text-right text-[10px] text-gray-500 mt-1">
+                                    (Source: Currency API, as of {fxRateDate})
+                                </p>
+                            )}
+                        </div>
+                    )}
+               </div>
+            </header>
+            <ManagePinnedCurrenciesModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                pinnedCurrencies={pinnedCurrencies}
+                togglePin={togglePin}
+            />
+        </>
+    );
+};
+
+export default Header;

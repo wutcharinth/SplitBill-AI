@@ -19,8 +19,11 @@ export default {
       fontFamily: {
         body: ['var(--font-inter)', 'sans-serif'],
         headline: ['var(--font-space-grotesk)', 'sans-serif'],
+        sans: ['Manrope', 'sans-serif'],
       },
       colors: {
+        'agoda-blue': '#0d6efd',
+        'agoda-blue-dark': '#0b5ed7',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
