@@ -5,7 +5,6 @@ import { ALLOWED_CURRENCIES } from '../constants';
 import { ArrowRightLeft, LogIn, LogOut, Star } from 'lucide-react';
 import { usePinnedCurrencies } from '../hooks/usePinnedCurrencies';
 import ManagePinnedCurrenciesModal from './ManagePinnedCurrenciesModal';
-import { useAuth } from '../contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import {
   DropdownMenu,
@@ -63,8 +62,6 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
     const [isScrolled, setIsScrolled] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { pinnedCurrencies, togglePin } = usePinnedCurrencies();
-    const { user, loading, signInWithGoogle, signOut } = useAuth();
-
 
     const { baseCurrency, displayCurrency, fxRate, fxRateDate, isFxLoading } = state;
 
@@ -100,33 +97,8 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
     };
     
     const UserMenu = () => {
-        if (loading) {
-            return <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />;
-        }
-
-        if (user) {
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Avatar className="h-8 w-8 cursor-pointer">
-                            <AvatarImage src={user.photoURL!} alt={user.displayName || 'User'} />
-                            <AvatarFallback>{user.displayName?.[0] || 'U'}</AvatarFallback>
-                        </Avatar>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>{user.displayName}</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={signOut}>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            <span>Sign Out</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
-        }
-
         return (
-            <Button size="sm" onClick={signInWithGoogle}>
+            <Button size="sm">
                 <LogIn className="mr-2 h-4 w-4" />
                 Sign In
             </Button>

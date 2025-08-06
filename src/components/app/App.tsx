@@ -11,7 +11,6 @@ import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 import { useUsage } from '../hooks/useUsageTracker';
-import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../ui/button';
 
 const fileToBase64 = (file: File | Blob): Promise<string> => {
@@ -37,8 +36,7 @@ export default function App() {
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
-    const { user, loading: authLoading, signInWithGoogle } = useAuth();
-    const { canUse, recordUsage, monthlyUses, resetUsage, USAGE_LIMIT } = useUsage();
+    const { canUse, recordUsage, monthlyUses, USAGE_LIMIT } = useUsage();
 
     useEffect(() => {
         const embedGoogleFonts = async () => {
@@ -65,7 +63,7 @@ export default function App() {
     const handleFileChange = async (file: File | null) => {
         if (!file) return;
 
-        if (!user && !canUse) {
+        if (!canUse) {
             setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please sign in to continue.`);
             setView('error');
             return;
@@ -86,9 +84,7 @@ export default function App() {
             const base64 = await fileToBase64(compressedFile);
             setUploadedReceipt(base64);
             
-            if (!user) {
-                recordUsage();
-            }
+            recordUsage();
 
             const data = await parseReceipt(base64, mimeType);
             processParsedData(data);
@@ -101,15 +97,13 @@ export default function App() {
     };
 
     const handleStartManual = () => {
-        if (!user && !canUse) {
+        if (!canUse) {
             setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please sign in to continue.`);
             setView('error');
             return;
         }
         
-        if (!user) {
-            recordUsage();
-        }
+        recordUsage();
 
         setUploadedReceipt(null);
         processParsedData(null);
@@ -184,14 +178,12 @@ export default function App() {
                                     <span>Start without Receipt</span>
                                 </button>
                             </div>
-                             {!user && !authLoading && (
                                 <div className="mt-6 text-center text-sm text-gray-500">
                                     <p>You have {USAGE_LIMIT - monthlyUses} free scans remaining this month.</p>
-                                    <Button variant="link" onClick={signInWithGoogle} className="text-agoda-blue">
+                                    <Button variant="link" className="text-agoda-blue">
                                         Sign in for unlimited scans
                                     </Button>
                                 </div>
-                            )}
                         </div>
                     </div>
                 );
