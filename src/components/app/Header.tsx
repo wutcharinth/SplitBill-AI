@@ -19,6 +19,7 @@ interface HeaderProps {
         isFxLoading: boolean;
     };
     dispatch: React.Dispatch<any>;
+    onReset: () => void;
 }
 
 const CurrencySelector: React.FC<{
@@ -54,7 +55,7 @@ const CurrencySelector: React.FC<{
 );
 
 
-const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispatch }) => {
+const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispatch, onReset }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { pinnedCurrencies, togglePin } = usePinnedCurrencies();
@@ -97,7 +98,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
             <header className={`fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
                <div className="w-full max-w-xl mx-auto px-4 py-2">
                     <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-3" onClick={() => dispatch({ type: 'RESET', payload: null })}>
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={onReset}>
                             <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
                             <div>
                                 <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
@@ -131,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                     onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
                                     sortedCurrencies={sortedCurrencies}
                                 />
-                                <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 my-1.5 h-4 w-4 flex items-center justify-center text-muted-foreground/60 z-10 bg-background rounded-full">
+                                <div className="absolute top-1/2 -translate-y-1/2 my-1.5 h-4 w-4 flex items-center justify-center text-muted-foreground/60 z-10 bg-background rounded-full">
                                      <ArrowDown size={12} />
                                 </div>
                                 <CurrencySelector

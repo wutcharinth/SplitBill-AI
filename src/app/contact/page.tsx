@@ -108,6 +108,7 @@ export default function ContactPage() {
                             <SelectItem value="Bug/Issue Report">Bug/Issue Report</SelectItem>
                             <SelectItem value="Feature Suggestion">Feature Suggestion</SelectItem>
                             <SelectItem value="Review & Feedback">Review & Feedback</SelectItem>
+                             <SelectItem value="Partnership">Partnership</SelectItem>
                             <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                     </Select>
@@ -126,26 +127,6 @@ export default function ContactPage() {
                     />
                 </div>
                 
-                 <div className="space-y-2">
-                    <Label htmlFor="attachment" className="text-foreground font-semibold">Attachment (Optional)</Label>
-                    <Label htmlFor="attachment" className="relative flex items-center gap-3 w-full border border-dashed rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                         <div className="flex-shrink-0 bg-muted p-2 rounded-md">
-                             <Paperclip className="h-5 w-5 text-muted-foreground"/>
-                         </div>
-                         <div className="flex-grow">
-                             <p className="text-sm font-medium text-foreground">{fileName || 'Click to upload a file'}</p>
-                             <p className="text-xs text-muted-foreground">Max file size: 5MB</p>
-                         </div>
-                    </Label>
-                    <Input
-                        id="attachment"
-                        type="file"
-                        onChange={handleFileChange}
-                        className="hidden"
-                    />
-                     <p className="text-[11px] text-center text-muted-foreground pt-1">Note: The file will not be automatically attached. You must attach it manually in your email client after clicking the send button.</p>
-                </div>
-
                 <Button type="submit" className="w-full font-bold">
                     Send via Email Client
                 </Button>

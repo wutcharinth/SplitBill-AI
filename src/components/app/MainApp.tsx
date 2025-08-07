@@ -325,6 +325,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             setActivePage={setActivePage}
             state={state}
             dispatch={dispatch}
+            onReset={onReset}
         />
         <main className={`w-full max-w-xl mx-auto pb-8 px-4 md:px-0 ${mainContentPaddingTop}`}>
             {activePage === 'setup' && (
