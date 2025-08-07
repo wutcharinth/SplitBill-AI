@@ -33,7 +33,7 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
                     className="tax-name-input flex-grow text-xs text-gray-900 w-full"
                 />
                 {tax.translatedName && tax.translatedName.toLowerCase() !== tax.name.toLowerCase() && (
-                    <p className="text-[10px] text-accent mt-0.5 font-medium">{tax.translatedName}</p>
+                    <p className="text-[10px] text-accent mt-0.5 font-medium">Original: {tax.translatedName}</p>
                 )}
             </div>
         </div>
@@ -250,10 +250,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                             <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
                                 <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                                 <div>
-                                    <h4 className="font-bold text-green-800 text-sm">Perfect Match!</h4>
+                                    <h4 className="font-bold text-green-800 text-sm">
+                                        Perfect Match!
+                                        <span className="font-mono text-xs ml-2">({matchPercentage.toFixed(2)}% Match)</span>
+                                    </h4>
                                     <p className="text-xs text-green-700 mt-1">
                                         The calculated total matches the bill total from the receipt.
-                                        (<strong className="font-mono">{matchPercentage.toFixed(2)}% Match</strong>)
                                     </p>
                                 </div>
                             </div>
@@ -265,10 +267,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
                                 <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                                 <div>
-                                    <h4 className="font-bold text-green-800 text-sm">Almost There!</h4>
+                                    <h4 className="font-bold text-green-800 text-sm">
+                                        Almost There!
+                                        <span className="font-mono text-xs ml-2">({matchPercentage.toFixed(2)}% Match)</span>
+                                    </h4>
                                     <p className="text-xs text-green-700 mt-1">
                                         The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
-                                        (<strong className="font-mono">{matchPercentage.toFixed(2)}% Match</strong>)
                                     </p>
                                 </div>
                             </div>
@@ -280,10 +284,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                             <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
                                 <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                                 <div>
-                                    <h4 className="font-bold text-yellow-800 text-sm">Large Difference Detected</h4>
+                                    <h4 className="font-bold text-yellow-800 text-sm">
+                                        Large Difference Detected
+                                        <span className="font-mono text-xs ml-2 text-red-600">({matchPercentage.toFixed(2)}% Match)</span>
+                                    </h4>
                                     <p className="text-xs text-yellow-700 mt-1">
                                         The calculated total is off by <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. Please review items and adjustments carefully.
-                                        (<strong className="font-mono text-red-600">{matchPercentage.toFixed(2)}% Match</strong>)
                                     </p>
                                 </div>
                             </div>
@@ -297,10 +303,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                             <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
                                 <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                                 <div>
-                                    <h4 className="font-bold text-yellow-800 text-sm">Shortfall Detected</h4>
+                                    <h4 className="font-bold text-yellow-800 text-sm">
+                                        Shortfall Detected
+                                        <span className={`font-mono text-xs ml-2 ${matchClass}`}>({matchPercentage.toFixed(2)}% Match)</span>
+                                    </h4>
                                     <p className="text-xs text-yellow-700 mt-1">
                                         Difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be split among everyone.
-                                        (<strong className={`font-mono ${matchClass}`}>{matchPercentage.toFixed(2)}% Match</strong>)
                                     </p>
                                 </div>
                             </div>
@@ -332,10 +340,12 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                         <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 border border-indigo-200">
                             <PartyPopper className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                             <div>
-                                <h4 className="font-bold text-indigo-800 text-sm">Surplus Found!</h4>
+                                <h4 className="font-bold text-indigo-800 text-sm">
+                                    Surplus Found!
+                                    <span className={`font-mono text-xs ml-2 ${matchClass}`}>({matchPercentage.toFixed(2)}% Match)</span>
+                                </h4>
                                 <p className="text-xs text-indigo-700 mt-1">
                                     Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
-                                    (<strong className={`font-mono ${matchClass}`}>{matchPercentage.toFixed(2)}% Match</strong>)
                                 </p>
                             </div>
                         </div>
