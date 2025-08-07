@@ -29,7 +29,7 @@ const CurrencySelector: React.FC<{
         id={id}
         value={value}
         onChange={onChange}
-        className="font-semibold bg-card pl-2 pr-8 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-xs w-24 appearance-none"
+        className="font-semibold bg-card pl-3 pr-8 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-sm w-28 appearance-none"
         aria-label="Select currency"
     >
         {sortedCurrencies.pinned.length > 0 && (

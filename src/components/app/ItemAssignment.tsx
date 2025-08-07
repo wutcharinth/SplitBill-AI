@@ -3,7 +3,7 @@
 
 import React, { useState, useRef } from 'react';
 import { BillItem, Person } from '../types';
-import { Plus, Trash2, X, Check } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 
 interface ItemAssignmentProps {
   items: BillItem[];
@@ -135,8 +135,8 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                                         {person.name.substring(0, 2).toUpperCase()}
                                     </button>
                                     {shareCount > 0 && (
-                                        <div className="absolute -top-1 -right-1 bg-primary text-white rounded-full h-4 w-4 flex items-center justify-center border-2 border-slate-50 pointer-events-none">
-                                            <Check size={12} strokeWidth={3} />
+                                        <div className="absolute -top-1.5 -right-1.5 bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold border-2 border-slate-50 pointer-events-none">
+                                            {shareCount}
                                         </div>
                                     )}
                                 </div>
