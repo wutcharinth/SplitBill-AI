@@ -73,7 +73,7 @@ export default function AboutPage() {
             <div className="my-16">
                 <h2 className="text-2xl font-bold text-center font-headline mb-10 text-foreground">How It Works: A 3-Step Journey</h2>
                 <div className="relative grid md:grid-cols-3 gap-x-8 gap-y-12 text-center">
-                    <StepLine />
+                    
                     <div className="flex flex-col items-center">
                         <StepIcon icon={<Camera size={32} />} />
                         <h3 className="mt-4 text-xl font-bold font-headline">1. Snap or Upload</h3>
