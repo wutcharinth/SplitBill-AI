@@ -363,12 +363,13 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     {splitMode === 'item' && summaryViewMode === 'detailed' && breakdown && (
                                         <div className="text-xs mt-2 pt-2 border-t border-border space-y-1 text-foreground bg-muted/50 p-3">
                                             {person.items.map((item:any, i:number) => {
-                                                const displayName = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase() 
-                                                    ? `${item.translatedName} (${item.name})` 
-                                                    : item.name;
+                                                const isTranslated = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase();
                                                 return (
-                                                    <div key={i} className="flex justify-between" title={displayName}>
-                                                        <span className="truncate pr-2">{displayName} {item.count > 1 ? `(x${item.count})` : ''}</span>
+                                                    <div key={i} className="flex justify-between" title={item.name}>
+                                                        <span className="truncate pr-2">
+                                                            {item.name} {item.count > 1 ? `(x${item.count})` : ''}
+                                                            {isTranslated && <span className="text-accent ml-1">({item.translatedName})</span>}
+                                                        </span>
                                                         <span><DualCurrencyDisplay baseValue={item.value} /></span>
                                                     </div>
                                                 )

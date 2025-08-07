@@ -85,7 +85,7 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                             placeholder="Item Name"
                         />
                         {item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase() && (
-                            <p className="text-[10px] text-gray-500 mt-1 pl-1">{item.translatedName}</p>
+                            <p className="text-[10px] text-accent mt-1 pl-1 font-medium">{item.translatedName}</p>
                         )}
                     </div>
                     <div className="flex items-center flex-shrink-0">

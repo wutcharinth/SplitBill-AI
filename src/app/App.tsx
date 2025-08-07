@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -136,9 +137,9 @@ export default function App() {
             items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
             taxes: {
-                serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge', amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
-                vat: { id: 'vat', name: data?.vat?.translatedName || data?.vat?.name || 'VAT', amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
-                otherTax: { id: 'otherTax', name: data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax', amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
+                serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.name || 'Service Charge', translatedName: data?.serviceCharge?.translatedName, amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
+                vat: { id: 'vat', name: data?.vat?.name || 'VAT', translatedName: data?.vat?.translatedName, amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
+                otherTax: { id: 'otherTax', name: data?.otherTax?.name || 'Other Tax', translatedName: data?.otherTax?.translatedName, amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
             },
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
@@ -192,11 +193,7 @@ export default function App() {
                             <div className="flex justify-center items-center mb-4">
                                <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
-                            <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
-                            <p className="text-gray-600 mt-1 mb-2 text-base font-medium">Snap. Split. Done.</p>
-                            <div className="flex items-center justify-center mb-6">
-                                 <span className="text-xs font-semibold bg-accent text-accent-foreground px-2 py-0.5 rounded-full border border-accent/30">Beta</span>
-                            </div>
+                            <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
                                 <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
@@ -242,7 +239,7 @@ export default function App() {
                                         <label htmlFor="consent" className="text-[11px] text-gray-500 text-left">
                                             I have read and agree to the{' '}
                                             <Link href="/terms" target="_blank" className="underline text-primary hover:text-primary/80">
-                                                Terms of Service
+                                                Terms & Policies
                                             </Link>.
                                         </label>
                                     </div>
@@ -252,8 +249,7 @@ export default function App() {
                             <footer className="text-center pt-8 mt-8 text-xs text-muted-foreground">
                                 <div className="flex justify-center space-x-4">
                                     <Link href="/about" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
-                                    <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
-                                    <Link href="/contact" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Contact</Link>
+                                    <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms & Policies</Link>
                                 </div>
                             </footer>
                         </div>

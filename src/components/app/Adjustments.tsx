@@ -23,14 +23,19 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
                 checked={tax.isEnabled}
                 onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, isEnabled: e.target.checked }})}
             />
-            <input
-                type="text"
-                id={`${tax.id}-name`}
-                placeholder={tax.name}
-                value={tax.name}
-                onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, name: e.target.value }})}
-                className="ml-2 tax-name-input flex-grow text-xs text-gray-900"
-            />
+            <div className="ml-2 flex-grow">
+                 <input
+                    type="text"
+                    id={`${tax.id}-name`}
+                    placeholder={tax.name}
+                    value={tax.name}
+                    onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, name: e.target.value }})}
+                    className="tax-name-input flex-grow text-xs text-gray-900 w-full"
+                />
+                {tax.translatedName && tax.translatedName.toLowerCase() !== tax.name.toLowerCase() && (
+                    <p className="text-[10px] text-accent mt-0.5 font-medium">{tax.translatedName}</p>
+                )}
+            </div>
         </div>
         <div className="flex items-center">
             <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>

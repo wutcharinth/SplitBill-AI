@@ -18,6 +18,7 @@ export interface BillItem {
 export interface Tax {
     id: 'serviceCharge' | 'vat' | 'otherTax';
     name: string;
+    translatedName?: string | null;
     amount: number;
     isEnabled: boolean;
 }
