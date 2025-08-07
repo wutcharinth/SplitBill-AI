@@ -95,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
 
     return (
         <>
-            <header className={`fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
+            <header className={`fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? '' : ''}`}>
                <div className="w-full max-w-xl mx-auto px-4 py-2">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3 cursor-pointer" onClick={onReset}>
