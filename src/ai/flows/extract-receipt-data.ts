@@ -58,7 +58,9 @@ const prompt = ai.definePrompt({
 
 **Analysis Steps:**
 1.  **Extract Core Information:** You MUST identify the restaurant name and the transaction date from the receipt. You MUST format the date as YYYY-MM-DD.
-2.  **Determine Currency:** You MUST determine the currency from the receipt. If a symbol (e.g., $, £, ¥, ฿) is present, use it. If not, infer the currency from the language or location context on the receipt (e.g., Japanese text implies JPY, Thai text implies THB).
+2.  **Determine Currency:** This is a critical step. You MUST determine the currency from the receipt.
+    *   First, look for an explicit currency symbol (e.g., $, £, ¥, ฿) on the receipt.
+    *   If no symbol is present, infer the currency from the language of the text or location context on the receipt (e.g., Japanese text implies JPY, Thai text implies THB).
 3.  **Identify the FINAL TOTAL:** This is the most important step. Find the final, total amount due from the receipt. This is often labeled "Total", "Grand Total", or "合計" (Go-kei) in Japanese. This value is what you must use for the \`total\` field.
 4.  **Separate Items from Charges:**
     *   First, identify and list all purchased food and drink items in the 'items' array.

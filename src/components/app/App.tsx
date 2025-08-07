@@ -124,8 +124,9 @@ export default function App() {
 
     const processParsedData = (data: ExtractReceiptDataOutput | null) => {
         const detectedCurrency = data?.currency?.toUpperCase();
-        const baseCurrency = (detectedCurrency && ALLOWED_CURRENCIES[detectedCurrency]) 
-            ? detectedCurrency 
+        // **Critical Change**: Prioritize AI-detected currency. Only fall back to locale if detection fails completely.
+        const baseCurrency = (detectedCurrency && CURRENCIES[detectedCurrency])
+            ? detectedCurrency
             : getCurrencyFromLocale();
         
         const initialPeople: Person[] = [
@@ -137,9 +138,9 @@ export default function App() {
             items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
             taxes: {
-                serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge', amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
-                vat: { id: 'vat', name: data?.vat?.translatedName || data?.vat?.name || 'VAT', amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
-                otherTax: { id: 'otherTax', name: data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax', amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
+                serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge', translatedName: data?.serviceCharge?.name, amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
+                vat: { id: 'vat', name: data?.vat?.translatedName || data?.vat?.name || 'VAT', translatedName: data?.vat?.name, amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
+                otherTax: { id: 'otherTax', name: data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax', translatedName: data?.otherTax?.name, amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
             },
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
