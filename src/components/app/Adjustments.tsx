@@ -254,11 +254,11 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     
                     if (isNearlyReconciled) {
                         return (
-                             <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
-                                <CheckCircle2 className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                             <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
+                                <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                                 <div>
-                                    <h4 className="font-bold text-blue-800 text-sm">Almost There!</h4>
-                                    <p className="text-xs text-blue-700 mt-1">
+                                    <h4 className="font-bold text-green-800 text-sm">Almost There!</h4>
+                                    <p className="text-xs text-green-700 mt-1">
                                         The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
                                     </p>
                                 </div>
