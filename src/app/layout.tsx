@@ -17,12 +17,12 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'BillzAI - The Smartest Way to Split the Bill',
+  title: 'SplitBill AI - The Smartest Way to Split the Bill',
   description: 'Easily split bills and expenses with the power of AI. Snap a receipt and let us do the rest.',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icon.svg',
-    apple: 'https://placehold.co/180x180.png',
+    icon: 'https://i.postimg.cc/x1mkMHxS/image.png',
+    apple: 'https://i.postimg.cc/x1mkMHxS/image.png',
   }
 };
 

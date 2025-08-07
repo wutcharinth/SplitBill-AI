@@ -56,16 +56,9 @@ export default function App() {
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
-    const { canUse, recordUsage, monthlyUses, USAGE_LIMIT } = useUsage();
-
+    
     const handleFileChange = async (file: File | null) => {
         if (!file) return;
-
-        if (!canUse) {
-            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please try again next month.`);
-            setView('error');
-            return;
-        }
 
         setView('loading');
         setUploadedReceipt(null);
@@ -82,8 +75,6 @@ export default function App() {
             const base64 = await fileToBase64(compressedFile);
             setUploadedReceipt(base64);
             
-            recordUsage();
-
             const data = await parseReceipt(base64, mimeType);
             processParsedData(data);
 
@@ -95,14 +86,6 @@ export default function App() {
     };
 
     const handleStartManual = () => {
-        if (!canUse) {
-            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please try again next month.`);
-            setView('error');
-            return;
-        }
-        
-        recordUsage();
-
         setUploadedReceipt(null);
         processParsedData(null);
     };
@@ -158,9 +141,9 @@ export default function App() {
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
                             <div className="flex justify-center items-center mb-4">
-                               <img src="/icon.svg" alt="BillzAI Logo" className="h-16 w-16" />
+                               <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-16 w-16" />
                             </div>
-                            <h1 className="text-2xl font-headline font-bold text-gray-800">BillzAI</h1>
+                            <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
                             <p className="text-gray-600 mt-1 mb-6 text-base font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
@@ -181,9 +164,6 @@ export default function App() {
                                     <span>Start without Receipt</span>
                                 </button>
                             </div>
-                                <div className="mt-6 text-center text-sm text-muted-foreground">
-                                    <p>You have {USAGE_LIMIT - monthlyUses} free scans remaining this month.</p>
-                                </div>
                         </div>
                     </div>
                 );

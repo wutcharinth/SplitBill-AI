@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-const USAGE_LIMIT = 5;
+const USAGE_LIMIT = 9999; // Effectively unlimited
 const LOCAL_STORAGE_KEY = 'splitbill_usage';
 
 interface UsageState {

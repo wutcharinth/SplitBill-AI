@@ -92,9 +92,9 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                <div className="w-full max-w-xl mx-auto px-4 py-2">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <img src="/icon.svg" alt="BillzAI Logo" className="h-10" />
+                            <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
                             <div>
-                                <h1 className="text-base font-bold text-foreground font-headline">BillzAI</h1>
+                                <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
                                 <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
                             </div>
                         </div>
