@@ -5,8 +5,8 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Download, X, QrCode, Share2, CheckCircle2 } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import confetti from 'canvas-confetti';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
+
 
 const fireConfetti = () => {
     const canvas = document.createElement('canvas');
@@ -60,34 +60,41 @@ const fireConfetti = () => {
     }
 };
 
-async function generatePdf(element: HTMLElement, filename: string) {
+async function generateImage(element: HTMLElement, filename: string) {
     if (!element) {
-        console.error('Element for PDF generation not found');
+        console.error('Element for image generation not found');
         return;
     }
     
     element.classList.add('capturing');
     try {
-        const canvas = await html2canvas(element, {
-            scale: 2.5,
-            useCORS: true,
-            backgroundColor: '#f2f4f7',
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
+        const dataUrl = await toPng(element, {
+            quality: 0.95,
+            pixelRatio: 2.5,
+            style: {
+                // Ensure fonts are loaded
+                fontFamily: "'Inter', sans-serif",
+            },
+            // Filter out problematic elements if any
+             filter: (node: HTMLElement) => {
+                // Example: filter out script tags
+                if (node.tagName?.toLowerCase() === 'script') {
+                    return false;
+                }
+                return true;
+            }
         });
 
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(filename);
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+        
         fireConfetti();
 
     } catch (err) {
-        console.error('Failed to generate summary PDF:', err);
-        alert('Sorry, there was an error creating the summary PDF. Please try again.');
+        console.error('Failed to generate summary image:', err);
+        alert('Sorry, there was an error creating the summary image. Please try again.');
     } finally {
         element.classList.remove('capturing');
     }
@@ -148,8 +155,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
 
     const handleShareSummary = async () => {
-        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.pdf`;
-        await generatePdf(summaryRef.current!, filename);
+        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
+        await generateImage(summaryRef.current!, filename);
     };
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -481,20 +488,22 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     )}
 
                     <div className="grid grid-cols-1 gap-4 mt-4 pt-4 border-t border-dashed border-border/80">
-                        {hasQrCode && (
-                            <div className="space-y-2 text-center">
-                                <h4 className="text-xs font-semibold text-muted-foreground">Payment QR Code</h4>
-                                <div className="relative w-fit mx-auto">
-                                    <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain max-w-[200px] max-h-[200px]" />
+                         <div className="flex items-start gap-4">
+                            {hasQrCode && (
+                                <div className="space-y-2 text-center flex-shrink-0">
+                                    <h4 className="text-xs font-semibold text-muted-foreground">Payment QR Code</h4>
+                                    <div className="relative w-fit mx-auto">
+                                        <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-32 h-32" />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        {hasNotes && (
-                            <div className="space-y-2">
-                                <h4 className="text-xs font-semibold text-muted-foreground text-center">Notes</h4>
-                                <p className="w-full p-2 text-xs whitespace-pre-wrap bg-card rounded-md border border-border min-h-[100px] text-foreground">{notes}</p>
-                            </div>
-                        )}
+                            )}
+                            {hasNotes && (
+                                <div className="space-y-2 flex-grow">
+                                    <h4 className="text-xs font-semibold text-muted-foreground text-center">Notes</h4>
+                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-card rounded-md border border-border min-h-[128px] text-foreground">{notes}</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -543,7 +552,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
              <div className="mt-4 grid grid-cols-1 gap-3">
                 <button onClick={handleShareSummary} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
                     <Download size={18} />
-                    <span>Download as PDF</span>
+                    <span>Download as PNG</span>
                 </button>
             </div>
         </div>
@@ -553,3 +562,4 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 export default Summary;
 
     
+
