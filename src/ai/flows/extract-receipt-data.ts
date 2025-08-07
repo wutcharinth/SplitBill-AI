@@ -39,8 +39,8 @@ const ExtractReceiptDataOutputSchema = z.object({
   date: z.string().optional().describe('The date of the receipt in YYYY-MM-DD format. Find this date on the receipt.'),
   discount: z.number().optional().describe('The total discount amount on the receipt. This should be a positive number.'),
   currency: z.string().optional().describe('The currency of the receipt (e.g., USD, EUR, THB).'),
-  serviceCharge: taxSchema.optional().describe('The service charge, if present. Look for terms like "Service Charge", "S.C.", etc.'),
-  vat: taxSchema.optional().describe('The Value Added Tax (VAT), if present.'),
+  serviceCharge: taxSchema.optional().describe('The service charge, if present. Look for terms like "Service Charge", "S.C.", or the Japanese term "サービス料".'),
+  vat: taxSchema.optional().describe('The Value Added Tax (VAT), if present. Look for terms like "VAT" or the Japanese term "消費税".'),
   otherTax: taxSchema.optional().describe('Any other taxes or fees, if present.'),
 });
 export type ExtractReceiptDataOutput = z.infer<typeof ExtractReceiptDataOutputSchema>;
@@ -57,10 +57,10 @@ const prompt = ai.definePrompt({
 
 You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name and the date of the transaction. If a date is present, you MUST extract it.
 
-Crucially, you MUST determine the currency. If no currency symbol is present, infer it from the language on the receipt or other contextual clues (e.g., Thai text implies THB).
+Crucially, you MUST determine the currency. If no currency symbol is present, infer it from the language on the receipt or other contextual clues (e.g., Thai text implies THB, Japanese text implies JPY).
 
 If there is a discount, extract the total discount amount.
-If there are service charges (e.g., "S.C."), VAT, or other taxes, extract their names and amounts.
+If there are service charges (e.g., "Service Charge", "S.C.", or "サービス料" in Japanese), VAT (e.g., "VAT", "消費税" in Japanese), or other taxes, extract their names and amounts.
 
 For all extracted item names, service charges, and taxes that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
 
