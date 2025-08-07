@@ -252,7 +252,7 @@ export default function App() {
                             <footer className="text-center pt-8 mt-8 text-xs text-muted-foreground">
                                 <div className="flex justify-center space-x-4">
                                     <Link href="/about" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
-                                    <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Legal</Link>
+                                    <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
                                     <Link href="/contact" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Contact</Link>
                                 </div>
                             </footer>
