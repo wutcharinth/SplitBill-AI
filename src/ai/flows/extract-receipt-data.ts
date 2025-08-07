@@ -39,7 +39,7 @@ const ExtractReceiptDataOutputSchema = z.object({
   date: z.string().optional().describe('The date of the receipt (e.g., YYYY-MM-DD).'),
   discount: z.number().optional().describe('The total discount amount on the receipt. This should be a positive number.'),
   currency: z.string().optional().describe('The currency of the receipt (e.g., USD, EUR, THB).'),
-  serviceCharge: taxSchema.optional().describe('The service charge, if present.'),
+  serviceCharge: taxSchema.optional().describe('The service charge, if present. Look for terms like "Service Charge", "S.C.", etc.'),
   vat: taxSchema.optional().describe('The Value Added Tax (VAT), if present.'),
   otherTax: taxSchema.optional().describe('Any other taxes or fees, if present.'),
 });
@@ -55,10 +55,12 @@ const prompt = ai.definePrompt({
   output: {schema: ExtractReceiptDataOutputSchema},
   prompt: `You are an expert financial assistant specializing in extracting and translating data from receipts.
 
-You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name, the date of the transaction, and the currency.
+You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name and the date of the transaction.
+
+Crucially, you MUST determine the currency. If no currency symbol is present, infer it from the language on the receipt or other contextual clues (e.g., Thai text implies THB).
 
 If there is a discount, extract the total discount amount.
-If there are service charges, VAT, or other taxes, extract their names and amounts.
+If there are service charges (e.g., "S.C."), VAT, or other taxes, extract their names and amounts.
 
 For all extracted item names, service charges, and taxes that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
 
