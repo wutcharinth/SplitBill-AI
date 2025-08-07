@@ -53,19 +53,23 @@ const prompt = ai.definePrompt({
   name: 'extractReceiptDataPrompt',
   input: {schema: ExtractReceiptDataInputSchema},
   output: {schema: ExtractReceiptDataOutputSchema},
-  prompt: `You are an expert financial assistant specializing in extracting and translating data from receipts.
+  prompt: `You are an expert financial assistant specializing in extracting and translating data from receipts. Your task is to meticulously analyze the provided receipt image.
 
-You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name and the date of the transaction. If a date is present, you MUST extract it.
+**Analysis Steps:**
+1.  **Extract Core Information:** Identify the restaurant name, the transaction date (in YYYY-MM-DD format), and the final total amount due.
+2.  **Determine Currency:** You MUST determine the currency. If a symbol (e.g., $, £, ¥, ฿) is present, use it. If not, infer the currency from the language or location context on the receipt (e.g., Japanese text implies JPY, Thai text implies THB).
+3.  **Separate Items from Charges:** This is a critical step.
+    *   First, identify and list all purchased food and drink items in the 'items' array.
+    *   Next, scan the receipt for any line items that are NOT food or drink. These are additional charges. This includes, but is not limited to, "Service Charge," "S.C.," "サービス料" (Service Fee), "VAT," "Tax," "消費税" (Consumption Tax), or any other fees.
+4.  **Categorize Charges:**
+    *   If a charge is for service (e.g., "Service Charge", "サービス料"), place it in the \`serviceCharge\` field.
+    *   If a charge is for a value-added tax (e.g., "VAT", "消費税"), place it in the \`vat\` field.
+    *   Place any other miscellaneous charges into the \`otherTax\` field.
+    *   **IMPORTANT:** Items categorized as \`serviceCharge\`, \`vat\`, or \`otherTax\` MUST NOT appear in the main \`items\` array.
+5.  **Extract Discounts:** If a discount is listed, extract the total discount amount.
+6.  **Translate:** For all extracted item names, service charges, and taxes that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
 
-Crucially, you MUST determine the currency. If no currency symbol is present, infer it from the language on the receipt or other contextual clues (e.g., Thai text implies THB, Japanese text implies JPY).
-
-If there is a discount, extract the total discount amount.
-If there are service charges (e.g., "Service Charge", "S.C.", or "サービス料" in Japanese), VAT (e.g., "VAT", "消費税" in Japanese), or other taxes, extract their names and amounts.
-
-For all extracted item names, service charges, and taxes that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
-
-Use the following as the primary source of information about the receipt.
-
+**Source of Information:**
 Photo: {{media url=photoDataUri}}
 
 Output the extracted data as a JSON object matching the output schema.
