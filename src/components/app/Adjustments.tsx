@@ -18,7 +18,7 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
             <input
                 id={`${tax.id}-toggle`}
                 type="checkbox"
-                className="h-4 w-4 rounded text-agoda-blue focus:ring-agoda-blue border-gray-300"
+                className="h-4 w-4 rounded text-primary focus:ring-primary border-gray-300"
                 checked={tax.isEnabled}
                 onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, isEnabled: e.target.checked }})}
             />
@@ -234,8 +234,9 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
             </AdjustmentRow>
              <div className="mt-4">
                 {(() => {
-                    const isReconciled = Math.abs(adjustment) < 0.01;
-                    const absAdjustment = Math.abs(adjustment * fxRate);
+                    const absAdjustment = Math.abs(adjustment);
+                    const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
+                    const isReconciled = absAdjustment < 0.01;
                     
                     if (isReconciled) {
                         return (
@@ -251,6 +252,20 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                         );
                     }
                     
+                    if (isNearlyReconciled) {
+                        return (
+                             <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                                <CheckCircle2 className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                                <div>
+                                    <h4 className="font-bold text-blue-800 text-sm">Almost There!</h4>
+                                    <p className="text-xs text-blue-700 mt-1">
+                                        The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
+                                    </p>
+                                </div>
+                            </div>
+                        )
+                    }
+
                     if (adjustment > 0) { // Shortfall
                         return (
                             <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
@@ -258,7 +273,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                                 <div>
                                     <h4 className="font-bold text-yellow-800 text-sm">Shortfall Detected</h4>
                                     <p className="text-xs text-yellow-700 mt-1">
-                                        Difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment)}</strong> will be split among everyone.
+                                        Difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be split among everyone.
                                     </p>
                                 </div>
                             </div>
@@ -272,7 +287,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                             <div>
                                 <h4 className="font-bold text-indigo-800 text-sm">Surplus Found!</h4>
                                 <p className="text-xs text-indigo-700 mt-1">
-                                    Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment)}</strong> will be distributed back.
+                                    Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
                                 </p>
                             </div>
                         </div>

@@ -3,7 +3,7 @@
 
 import React, { useState, useRef } from 'react';
 import { BillItem, Person } from '../types';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, X, Check } from 'lucide-react';
 
 interface ItemAssignmentProps {
   items: BillItem[];
@@ -135,9 +135,9 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                                         {person.name.substring(0, 2).toUpperCase()}
                                     </button>
                                     {shareCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-agoda-blue text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center border-2 border-slate-50 pointer-events-none">
-                                            {shareCount}
-                                        </span>
+                                        <div className="absolute -top-1 -right-1 bg-primary text-white rounded-full h-4 w-4 flex items-center justify-center border-2 border-slate-50 pointer-events-none">
+                                            <Check size={12} strokeWidth={3} />
+                                        </div>
                                     )}
                                 </div>
                             )
@@ -172,7 +172,7 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
               className="w-full sm:w-24 p-2 border rounded-md text-xs bg-white text-gray-900 border-gray-300"
               placeholder="Price"
             />
-            <button onClick={handleAddItem} className="w-full sm:w-auto bg-agoda-blue hover:bg-agoda-blue-dark text-white font-bold p-2 sm:px-3 rounded-md flex items-center justify-center" aria-label="Add item">
+            <button onClick={handleAddItem} className="w-full sm:w-auto bg-primary text-primary-foreground font-bold p-2 sm:px-3 rounded-md flex items-center justify-center" aria-label="Add item">
               <Plus size={18} />
             </button>
           </div>

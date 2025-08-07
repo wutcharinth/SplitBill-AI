@@ -29,11 +29,11 @@ const CurrencySelector: React.FC<{
         id={id}
         value={value}
         onChange={onChange}
-        className="font-semibold bg-card pl-2 pr-7 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-xs w-20"
+        className="font-semibold bg-card pl-2 pr-8 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-xs w-24 appearance-none"
         aria-label="Select currency"
     >
         {sortedCurrencies.pinned.length > 0 && (
-            <optgroup label="Pinned Currencies">
+            <optgroup label="Pinned">
                 {sortedCurrencies.pinned.map(([code, name]) => (
                     <option key={code as string} value={code as string}>{`${code}`}</option>
                 ))}
