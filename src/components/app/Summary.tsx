@@ -64,29 +64,26 @@ async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
         console.error('Element for image generation not found');
         return null;
     }
-
-    const images = Array.from(element.getElementsByTagName('img'));
-    const imageLoadPromises = images.map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-            img.onload = resolve;
-            img.onerror = resolve; // Resolve even on error to not block the process
-        });
-    });
-
-    await Promise.all(imageLoadPromises);
     
-    // Add a small delay to ensure rendering completes after images load
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // The library doesn't handle font fetching well on mobile, so we need to embed it
+    const font = await fetch('/Inter.woff2').then(res => res.blob());
+    const fontCSS = `@font-face { font-family: 'Inter'; src: url('${URL.createObjectURL(font)}') format('woff2'); }`;
 
     element.classList.add('capturing');
-
     try {
         const dataUrl = await toPng(element, {
             quality: 1.0,
             pixelRatio: 2.5,
             backgroundColor: '#f2f4f7', // --background HSL
             cacheBust: true,
+            fontEmbedCSS: fontCSS,
+            // Fetch images and convert them to data URIs to embed them
+            fetchRequestInit: {
+                // This helps with CORS issues, especially for fonts or images from other domains
+                headers: new Headers({
+                    'Access-Control-Allow-Origin': '*'
+                }),
+            },
         });
         const blob = await (await fetch(dataUrl)).blob();
         return blob;
@@ -215,8 +212,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         if (displayMode === 'stacked') {
             return (
                 <div className="text-right">
-                    <span className={`font-mono text-xs ${className}`}>{sign}{currencySymbol}{convertedValue}</span>
-                    <div className="text-muted-foreground text-[10px] leading-tight font-mono">({sign}{baseCurrencySymbol}{originalValue})</div>
+                    <span className={`font-mono text-[11px] leading-none ${className}`}>{sign}{currencySymbol}{convertedValue}</span>
+                    <div className="text-muted-foreground text-[9px] leading-tight font-mono">({sign}{baseCurrencySymbol}{originalValue})</div>
                 </div>
             );
         }
@@ -374,7 +371,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     return (
         <div className="border-t pt-4 border-border">
             <div id="summary-container" className="relative">
-                <div ref={summaryRef} className="bg-background p-4 rounded-lg">
+                <div ref={summaryRef} className="bg-background p-4 rounded-lg font-sans">
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <input type="text" value={restaurantName} onChange={e => dispatch({type: 'UPDATE_RESTAURANT_NAME', payload: e.target.value})} className="text-base font-bold p-1 -ml-1 rounded-lg bg-transparent w-full text-foreground font-headline" placeholder="Restaurant Name" />

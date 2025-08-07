@@ -192,7 +192,10 @@ export default function App() {
                             <div className="flex justify-center items-center mb-4">
                                <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
-                            <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
+                            <div className="flex items-center justify-center gap-2">
+                                <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
+                                <span className="text-xs font-semibold bg-accent/20 text-accent-foreground/80 px-2 py-0.5 rounded-full border border-accent/30">Beta</span>
+                            </div>
                             <p className="text-gray-600 mt-1 mb-6 text-base font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
@@ -250,11 +253,12 @@ export default function App() {
                                 </div>
                             )}
                             
-                            <footer className="text-center pt-8 mt-4 text-xs text-muted-foreground">
+                            <footer className="text-center pt-8 mt-8 text-xs text-muted-foreground">
                                 <div className="flex justify-center space-x-4">
-                                    <Link href="/terms" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
-                                    <Link href="/privacy" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Privacy</Link>
-                                    <Link href="/cookies" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Cookies</Link>
+                                    <Link href="/about" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
+                                    <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
+                                    <Link href="/privacy" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Privacy</Link>
+                                    <Link href="/cookies" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Cookies</Link>
                                 </div>
                             </footer>
                         </div>

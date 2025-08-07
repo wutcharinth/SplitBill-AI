@@ -34,6 +34,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <head>
         <meta name="theme-color" content="#4681f4" />
+        <link rel="preload" href="/Inter.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
       <body className="font-sans antialiased bg-slate-100">
           {children}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -17,7 +18,7 @@ const loadingTexts = [
 
 const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
   const [dynamicText, setDynamicText] = useState(loadingTexts[0]);
-  const [countdown, setCountdown] = useState(20);
+  const [countdown, setCountdown] = useState(15);
 
   useEffect(() => {
     // Cycle through the loading texts
@@ -41,7 +42,7 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
     };
   }, []);
   
-  const progress = Math.min(100, ((20 - countdown) / 20) * 100);
+  const progress = Math.min(100, ((15 - countdown) / 15) * 100);
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col justify-center items-center z-50 text-center p-4">
