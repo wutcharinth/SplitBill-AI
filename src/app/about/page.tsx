@@ -51,7 +51,7 @@ const comparisonData = [
     ]},
     { category: 'Advanced Features', features: [
         { name: 'Receipt Scanning (OCR)', splitbill: <FeatureText className="text-green-600 font-medium">Free</FeatureText>, splitwise: <FeatureText className="text-orange-500 font-medium">$ (Pro)</FeatureText>, splid: <XMark />, tricount: <XMark />, tab: <FeatureText className="text-green-600 font-medium">Free</FeatureText> },
-        { name: 'Expense Itemization', splitbill: <FeatureText className="text-green-600 font-medium">Free</FeatureText>, splitwise: <FeatureText className="text-orange-500 font-medium">$ (Pro)</FeatureText>, splid: <XMark />, tricount: <XMark />, tab: <FeatureText className="text-green-600 font-medium">Free</Text> },
+        { name: 'Expense Itemization', splitbill: <FeatureText className="text-green-600 font-medium">Free</FeatureText>, splitwise: <FeatureText className="text-orange-500 font-medium">$ (Pro)</FeatureText>, splid: <XMark />, tricount: <XMark />, tab: <FeatureText className="text-green-600 font-medium">Free</FeatureText> },
         { name: 'Recurring Bills', splitbill: <XMark />, splitwise: <CheckMark />, splid: <XMark />, tricount: <XMark />, tab: <XMark /> },
         { name: 'Expense Categorization', splitbill: <CheckMark />, splitwise: <CheckMark />, splid: <XMark />, tricount: <XMark />, tab: <XMark /> },
         { name: 'Charts & Analytics', splitbill: <XMark />, splitwise: <FeatureText className="text-orange-500 font-medium">$ (Pro)</FeatureText>, splid: <XMark />, tricount: <XMark />, tab: <XMark /> },
