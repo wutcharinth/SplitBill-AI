@@ -7,30 +7,22 @@ import { CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
 const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, currencySymbol, fxRate, formatNumber }) => {
     const { items, discount, taxes, billTotal, splitMode } = state;
 
-    const { unassignedItemsCount, totalShares } = useMemo(() => {
+    const { unassignedItemsCount, totalShares, assignedSubtotal } = useMemo(() => {
         let unassignedCount = 0;
         let sharesTotal = 0;
+        let subtotal = 0;
         items.forEach((item: any) => {
             const currentItemShares = item.shares.reduce((a: number, b: number) => a + b, 0);
             if (currentItemShares === 0) {
                 unassignedCount++;
+            } else {
+                subtotal += item.price;
             }
             sharesTotal += currentItemShares;
         });
-        return { unassignedItemsCount: unassignedCount, totalShares: sharesTotal };
+        return { unassignedItemsCount: unassignedCount, totalShares: sharesTotal, assignedSubtotal: subtotal };
     }, [items]);
     
-    const assignedSubtotal = useMemo(() => {
-        if (splitMode !== 'item') return 0;
-        return items.reduce((sum: number, item: any) => {
-            const totalShares = item.shares.reduce((a: number, b: number) => a + b, 0);
-            if (totalShares > 0) {
-                return sum + item.price;
-            }
-            return sum;
-        }, 0);
-    }, [items, splitMode]);
-
     const { calculatedTotal, adjustment } = useMemo(() => {
         const baseForCharges = assignedSubtotal;
         const discountAmount = discount.type === 'percentage' ? baseForCharges * (discount.value / 100) : discount.value;
@@ -42,6 +34,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         const adj = billTotal > 0 ? billTotal - calcTotal : 0;
         return { calculatedTotal: calcTotal, adjustment: adj };
     }, [assignedSubtotal, discount, taxes, billTotal]);
+
+    const absAdjustment = Math.abs(adjustment);
+    const matchPercentage = billTotal > 0 ? Math.max(0, (1 - absAdjustment / billTotal) * 100) : (totalShares > 0 ? 0 : 100);
     
     const renderContent = () => {
         if (splitMode !== 'item') {
@@ -63,7 +58,10 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-sm">Let's Get Started!</h4>
+                        <h4 className="font-bold text-indigo-800 text-sm">
+                            Let's Get Started!
+                            <span className="font-mono text-xs ml-2 text-muted-foreground">({matchPercentage.toFixed(1)}% Match)</span>
+                        </h4>
                         <p className="text-xs text-indigo-700 mt-1">
                             Tap the person icons below each item to start assigning shares.
                         </p>
@@ -77,7 +75,10 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-sm">Keep Going!</h4>
+                        <h4 className="font-bold text-indigo-800 text-sm">
+                            Keep Going!
+                            <span className="font-mono text-xs ml-2 text-muted-foreground">({matchPercentage.toFixed(1)}% Match)</span>
+                        </h4>
                         <p className="text-xs text-indigo-700 mt-1">
                             You have {unassignedItemsCount} item(s) left to assign.
                         </p>
@@ -86,10 +87,8 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
             );
         }
 
-        const absAdjustment = Math.abs(adjustment);
         const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
         const isReconciled = absAdjustment < 0.01;
-        const matchPercentage = billTotal > 0 ? (1 - absAdjustment / billTotal) * 100 : 100;
         
         if (isReconciled) {
             return (

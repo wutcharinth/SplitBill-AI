@@ -20,59 +20,60 @@ interface SetupPageProps {
 
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   return (
-    <div className="space-y-6">
-      
-      <div className="sticky-reconciliation-container z-30">
+    <div>
+      <div className="sticky-reconciliation-container z-30 mb-4">
         <Reconciliation state={state} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
       </div>
 
-      <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-        <h2 className="text-base font-bold mb-4 text-primary font-headline">1. Split Mode</h2>
-        <SplitModeToggle mode={state.splitMode} setMode={(mode: SplitMode) => dispatch({ type: 'SET_SPLIT_MODE', payload: mode })} />
-      </div>
-
-      {state.splitMode === 'item' ? (
-        <>
-          <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-            <h2 className="text-base font-bold mb-4 text-primary font-headline">2. Manage People</h2>
-            <ManagePeople people={state.people} dispatch={dispatch} />
-          </div>
-          <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-            <h2 className="text-base font-bold mb-4 text-primary font-headline">3. Assign Items</h2>
-            <ItemAssignment
-              items={state.items}
-              people={state.people}
-              currencySymbol={currencySymbol}
-              fxRate={state.fxRate}
-              dispatch={dispatch}
-            />
-          </div>
-        </>
-      ) : (
+      <div className="space-y-6">
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-          <h2 className="text-base font-bold mb-4 text-primary font-headline">2. How many people?</h2>
-          <div className="flex items-center justify-between space-x-4 bg-muted p-4 rounded-lg">
-            <label htmlFor="people-count-evenly" className="font-semibold text-foreground text-sm">Split between:</label>
-            <input
-              type="number"
-              id="people-count-evenly"
-              value={state.peopleCountEvenly}
-              min="1"
-              onChange={(e) => dispatch({ type: 'SET_PEOPLE_COUNT_EVENLY', payload: Number(e.target.value) })}
-              className="w-20 text-center bg-card border border-border rounded-md p-2 text-base font-bold text-foreground"
-            />
-            <span className="font-semibold text-foreground text-sm">people</span>
-          </div>
+          <h2 className="text-base font-bold mb-4 text-primary font-headline">1. Split Mode</h2>
+          <SplitModeToggle mode={state.splitMode} setMode={(mode: SplitMode) => dispatch({ type: 'SET_SPLIT_MODE', payload: mode })} />
         </div>
-      )}
 
-      <div className="bg-card rounded-xl shadow-card p-4 sm:p-5" id="adjustments-section">
-        <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Review & Adjust</h2>
-        <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
-      </div>
+        {state.splitMode === 'item' ? (
+          <>
+            <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+              <h2 className="text-base font-bold mb-4 text-primary font-headline">2. Manage People</h2>
+              <ManagePeople people={state.people} dispatch={dispatch} />
+            </div>
+            <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+              <h2 className="text-base font-bold mb-4 text-primary font-headline">3. Assign Items</h2>
+              <ItemAssignment
+                items={state.items}
+                people={state.people}
+                currencySymbol={currencySymbol}
+                fxRate={state.fxRate}
+                dispatch={dispatch}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+            <h2 className="text-base font-bold mb-4 text-primary font-headline">2. How many people?</h2>
+            <div className="flex items-center justify-between space-x-4 bg-muted p-4 rounded-lg">
+              <label htmlFor="people-count-evenly" className="font-semibold text-foreground text-sm">Split between:</label>
+              <input
+                type="number"
+                id="people-count-evenly"
+                value={state.peopleCountEvenly}
+                min="1"
+                onChange={(e) => dispatch({ type: 'SET_PEOPLE_COUNT_EVENLY', payload: Number(e.target.value) })}
+                className="w-20 text-center bg-card border border-border rounded-md p-2 text-base font-bold text-foreground"
+              />
+              <span className="font-semibold text-foreground text-sm">people</span>
+            </div>
+          </div>
+        )}
 
-      <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-         <ReconciliationDetails state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
+        <div className="bg-card rounded-xl shadow-card p-4 sm:p-5" id="adjustments-section">
+          <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Review & Adjust</h2>
+          <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
+        </div>
+
+        <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+           <ReconciliationDetails state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
+        </div>
       </div>
     </div>
   );
