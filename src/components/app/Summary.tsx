@@ -389,8 +389,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             </div>
                         </div>
                         <div className="flex flex-col items-center text-center ml-2 flex-shrink-0">
-                            <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="Logo" className="h-10" />
-                            <p className="text-[10px] text-muted-foreground mt-1">SplitBill AI</p>
+                            <p className="text-sm text-muted-foreground mt-1 font-semibold">Snap.Split.Done.</p>
                         </div>
                     </div>
                     
