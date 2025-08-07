@@ -142,6 +142,7 @@ export default function App() {
             },
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
+            tipSplitMode: 'proportionally',
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
             restaurantName: data?.restaurantName || '',
@@ -192,7 +193,10 @@ export default function App() {
                                <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
                             <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
-                            <p className="text-gray-600 mt-1 mb-6 text-base font-medium">Snap. Split. Done.</p>
+                            <p className="text-gray-600 mt-1 mb-2 text-base font-medium">Snap. Split. Done.</p>
+                            <div className="flex items-center justify-center mb-6">
+                                 <span className="text-xs font-semibold bg-accent text-accent-foreground px-2 py-0.5 rounded-full border border-accent/30">Beta</span>
+                            </div>
                             
                             <div className="space-y-3">
                                 <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
@@ -239,21 +243,17 @@ export default function App() {
                                             I have read and agree to the{' '}
                                             <Link href="/terms" target="_blank" className="underline text-primary hover:text-primary/80">
                                                 Terms of Service
-                                            </Link>{' '}
-                                            and{' '}
-                                            <Link href="/privacy" target="_blank" className="underline text-primary hover:text-primary/80">
-                                                Privacy Policy
                                             </Link>.
                                         </label>
                                     </div>
                                 </div>
                             )}
                             
-                            <footer className="text-center pt-8 mt-4 text-xs text-muted-foreground">
+                            <footer className="text-center pt-8 mt-8 text-xs text-muted-foreground">
                                 <div className="flex justify-center space-x-4">
-                                    <Link href="/terms" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
-                                    <Link href="/privacy" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Privacy</Link>
-                                    <Link href="/cookies" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Cookies</Link>
+                                    <Link href="/about" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
+                                    <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
+                                    <Link href="/contact" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Contact</Link>
                                 </div>
                             </footer>
                         </div>

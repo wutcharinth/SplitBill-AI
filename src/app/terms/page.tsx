@@ -97,7 +97,7 @@ const CookiesContent = () => (
 
 export default function LegalPage() {
     return (
-        <PolicyPageLayout title="Legal Information">
+        <PolicyPageLayout title="Terms & Policies">
             <Tabs defaultValue="terms" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="terms">Terms of Service</TabsTrigger>
