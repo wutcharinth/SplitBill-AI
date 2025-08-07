@@ -55,37 +55,11 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
   const { items, discount, taxes, tip, billTotal, splitMode, tipSplitMode } = state;
   const [showTipInput, setShowTipInput] = useState(state.tip > 0);
   const [showDiscountInput, setShowDiscountInput] = useState(state.discount.value > 0);
-
-  const originalSubtotal = useMemo(() => items.reduce((sum: number, item: any) => sum + item.price, 0), [items]);
   
   const showOtherTax = useMemo(() => taxes.otherTax.isEnabled || taxes.otherTax.amount > 0, [taxes.otherTax]);
 
   return (
     <div className="space-y-4">
-        {/* Reconciliation Details Section */}
-        <div>
-            <div className="space-y-1 pt-2">
-                 <AdjustmentRow label="Receipt Total">
-                     <div className="flex items-center">
-                        <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
-                        <input 
-                            type="number" 
-                            value={billTotal > 0 ? (billTotal * fxRate).toFixed(2) : ''} 
-                            onChange={e => dispatch({type: 'UPDATE_BILL_TOTAL', payload: Number(e.target.value) / fxRate})} 
-                            className="w-24 text-right bg-transparent border border-gray-300 rounded-md p-1 font-mono text-xs text-gray-900"
-                            placeholder="Enter total"
-                        />
-                    </div>
-                </AdjustmentRow>
-                <AdjustmentRow label="Original Items Subtotal">
-                    <div className="flex items-center">
-                        <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
-                        <input type="text" value={(originalSubtotal * fxRate).toFixed(2)} readOnly className="w-24 text-right bg-gray-100 rounded-md p-1 font-mono text-xs border-none text-gray-700" />
-                    </div>
-                </AdjustmentRow>
-            </div>
-        </div>
-        
         {/* Charges & Discounts Section */}
         <div className="border-t pt-4 mt-4 border-gray-200">
              <h3 className="text-sm font-bold mb-2 text-gray-700">Charges & Discounts</h3>

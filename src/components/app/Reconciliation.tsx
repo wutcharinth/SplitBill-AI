@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { CheckCircle2, AlertCircle, PartyPopper, Info, Pointer } from 'lucide-react';
 
-const Reconciliation: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
+const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, currencySymbol, fxRate, formatNumber }) => {
     const { items, discount, taxes, billTotal, splitMode } = state;
 
     const { unassignedItemsCount, totalShares } = useMemo(() => {
