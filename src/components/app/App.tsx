@@ -249,12 +249,11 @@ export default function App() {
                                 </div>
                             )}
                             
-                            <footer className="text-center pt-4 text-xs text-muted-foreground">
+                            <footer className="text-center pt-8 text-xs text-muted-foreground">
                                 <div className="flex justify-center space-x-3">
                                     <Link href="/terms" target="_blank" className="underline hover:text-primary text-[10px]">Terms</Link>
                                     <Link href="/privacy" target="_blank" className="underline hover:text-primary text-[10px]">Privacy</Link>
                                     <Link href="/cookies" target="_blank" className="underline hover:text-primary text-[10px]">Cookies</Link>
-                                    <Link href="/contact" target="_blank" className="underline hover:text-primary text-[10px]">Contact</Link>
                                 </div>
                             </footer>
                         </div>
