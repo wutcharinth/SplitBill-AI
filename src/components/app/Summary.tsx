@@ -4,8 +4,9 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Download, X, QrCode, Share2, CheckCircle2 } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
-import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const fireConfetti = () => {
     const canvas = document.createElement('canvas');
@@ -59,39 +60,34 @@ const fireConfetti = () => {
     }
 };
 
-async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
+async function generatePdf(element: HTMLElement, filename: string) {
     if (!element) {
-        console.error('Element for image generation not found');
-        return null;
+        console.error('Element for PDF generation not found');
+        return;
     }
     
-    const font = await fetch('/Inter.woff2').then(res => res.blob());
-    const fontCSS = `@font-face { font-family: 'Inter'; src: url('${URL.createObjectURL(font)}') format('woff2'); }`;
-
     element.classList.add('capturing');
     try {
-        const dataUrl = await toPng(element, {
-            quality: 1.0,
-            pixelRatio: 2.5,
+        const canvas = await html2canvas(element, {
+            scale: 2.5,
+            useCORS: true,
             backgroundColor: '#f2f4f7',
-            cacheBust: true,
-            fontEmbedCSS: fontCSS,
-            filter: (node: HTMLElement) => {
-                // This filter helps prevent issues with complex or problematic elements.
-                // For example, filtering out external images if they cause CORS issues.
-                if (node.tagName === 'IMG' && node.src.startsWith('http')) {
-                    // You could choose to return false here to exclude certain images
-                    // but for now, we allow them and rely on the library's handling.
-                }
-                return true;
-            },
         });
-        const blob = await (await fetch(dataUrl)).blob();
-        return blob;
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(filename);
+        fireConfetti();
+
     } catch (err) {
-        console.error('Failed to generate summary image:', err);
-        alert('Sorry, there was an error creating the summary image. Please try again.');
-        return null;
+        console.error('Failed to generate summary PDF:', err);
+        alert('Sorry, there was an error creating the summary PDF. Please try again.');
     } finally {
         element.classList.remove('capturing');
     }
@@ -152,35 +148,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
 
     const handleShareSummary = async () => {
-        const blob = await generateImageBlob(summaryRef.current!);
-        if (!blob) return;
-
-        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
-        const file = new File([blob], filename, { type: 'image/png' });
-        const shareData = {
-            files: [file],
-            title: 'Bill Summary',
-            text: `Here is the bill summary for ${restaurantName}.`,
-        };
-
-        const canShare = isMobile && navigator.canShare && navigator.canShare(shareData);
-
-        if (canShare) {
-            try {
-                await navigator.share(shareData);
-                fireConfetti();
-            } catch (err) {
-                console.error('Share failed:', err);
-            }
-        } else {
-             const dataUrl = URL.createObjectURL(blob);
-             const link = document.createElement('a');
-             link.download = filename;
-             link.href = dataUrl;
-             link.click();
-             fireConfetti();
-             URL.revokeObjectURL(dataUrl);
-        }
+        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.pdf`;
+        await generatePdf(summaryRef.current!, filename);
     };
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -511,24 +480,22 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     )}
 
-                    {(hasQrCode || hasNotes) && (
-                        <div className={`mt-4 pt-4 border-t border-dashed border-border/80 grid grid-cols-1 ${hasQrCode && hasNotes ? 'sm:grid-cols-2' : ''} gap-4`}>
-                            {hasQrCode && (
-                                <div className={`space-y-2 ${!hasNotes ? 'flex flex-col items-center' : ''}`}>
-                                    <h4 className="text-xs font-semibold text-muted-foreground text-center">Payment QR Code</h4>
-                                    <div className="relative w-fit mx-auto">
-                                        <img src={qrCodeImage} alt="Payment QR Code" className={`rounded-lg object-contain ${!hasNotes ? 'max-w-[200px] max-h-[200px]' : 'max-w-[100px] max-h-[100px]'}`} />
-                                    </div>
+                    <div className="grid grid-cols-1 gap-4 mt-4 pt-4 border-t border-dashed border-border/80">
+                        {hasQrCode && (
+                            <div className="space-y-2 text-center">
+                                <h4 className="text-xs font-semibold text-muted-foreground">Payment QR Code</h4>
+                                <div className="relative w-fit mx-auto">
+                                    <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain max-w-[200px] max-h-[200px]" />
                                 </div>
-                            )}
-                            {hasNotes && (
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-semibold text-muted-foreground text-center sm:text-left">Notes</h4>
-                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-card rounded-md border border-border min-h-[100px] text-foreground">{notes}</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                            </div>
+                        )}
+                        {hasNotes && (
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-semibold text-muted-foreground text-center">Notes</h4>
+                                <p className="w-full p-2 text-xs whitespace-pre-wrap bg-card rounded-md border border-border min-h-[100px] text-foreground">{notes}</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -575,8 +542,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             
              <div className="mt-4 grid grid-cols-1 gap-3">
                 <button onClick={handleShareSummary} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
-                    <Share2 size={18} />
-                    <span>{isMobile ? 'Share Summary' : 'Download Summary'}</span>
+                    <Download size={18} />
+                    <span>Download as PDF</span>
                 </button>
             </div>
         </div>
