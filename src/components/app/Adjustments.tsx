@@ -299,6 +299,10 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     const matchClass = matchPercentage > 99 ? 'text-green-700' : 'text-yellow-700';
 
                     if (adjustment > 0) { // Shortfall
+                        const unassignedItems = splitMode === 'item' 
+                            ? items.filter((item: any) => item.shares.reduce((a: number, b: number) => a + b, 0) === 0)
+                            : [];
+
                         return (
                             <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
                                 <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
@@ -308,8 +312,20 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                                         <span className={`font-mono text-xs ml-2 ${matchClass}`}>({matchPercentage.toFixed(2)}% Match)</span>
                                     </h4>
                                     <p className="text-xs text-yellow-700 mt-1">
-                                        Difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be split among everyone.
+                                        There's a difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. This will be split among everyone.
                                     </p>
+                                    {unassignedItems.length > 0 && (
+                                        <div className="mt-2 pt-2 border-t border-yellow-200">
+                                            <p className="text-xs text-yellow-800 font-semibold">
+                                                You have {unassignedItems.length} unassigned item(s). Assigning them might resolve the shortfall:
+                                            </p>
+                                            <ul className="list-disc list-inside text-xs text-yellow-700 mt-1">
+                                                {unassignedItems.map((item: any, index: number) => (
+                                                    <li key={index}>{item.name} ({currencySymbol}{formatNumber(item.price * fxRate)})</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -403,3 +419,5 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 };
 
 export default Adjustments;
+
+    
