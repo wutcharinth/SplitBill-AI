@@ -144,6 +144,6 @@
 
 @media (max-width: 768px) {
     .sticky-reconciliation-container {
-        top: 158px; /* Adjusted top margin for mobile */
+        top: 158px;
     }
 }

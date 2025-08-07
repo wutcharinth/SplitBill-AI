@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { CheckCircle2, AlertCircle, PartyPopper, Info, Pointer } from 'lucide-react';
+import { CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
 
 const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, currencySymbol, fxRate, formatNumber }) => {
     const { items, discount, taxes, billTotal, splitMode } = state;
@@ -61,7 +61,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (totalShares === 0) {
             return (
                 <div className="flex items-start gap-3">
-                    <Pointer className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
                         <h4 className="font-bold text-indigo-800 text-sm">Let's Get Started!</h4>
                         <p className="text-xs text-indigo-700 mt-1">
@@ -75,7 +75,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (unassignedItemsCount > 0) {
              return (
                 <div className="flex items-start gap-3">
-                    <Pointer className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
                         <h4 className="font-bold text-indigo-800 text-sm">Keep Going!</h4>
                         <p className="text-xs text-indigo-700 mt-1">
