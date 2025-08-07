@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2 } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2 } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti';
@@ -226,7 +226,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         );
     };
 
-    const renderPerPersonResults = () => {
+    const perPersonResults = useMemo(() => {
         const { globalDiscountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment } = calculations;
 
         const totalPayableSubtotal = calculations.subtotal;
@@ -302,71 +302,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 });
             }
         }
-
-        return (
-            <div className="space-y-3">
-                {perPersonData.map((person, index) => {
-                    const breakdown = person.breakdown;
-                    const hasAdjustments = breakdown && (
-                        breakdown.discount > 0 ||
-                        breakdown.serviceCharge > 0 ||
-                        breakdown.vat > 0 ||
-                        breakdown.otherTax > 0 ||
-                        breakdown.adjustment !== 0 ||
-                        breakdown.tip > 0
-                    );
-
-                    return (
-                        <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
-                            <div className="p-3">
-                                <div className="flex justify-between items-center">
-                                    <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
-                                    <div className="text-right">
-                                        <span className="font-bold text-primary text-sm">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
-                                        {baseCurrency !== displayCurrency && (
-                                            <div className="text-xs text-muted-foreground font-normal">
-                                                ({baseCurrencySymbol}{formatNumber(person.total)})
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
-                                     <ul className="list-disc list-inside mt-2 text-xs text-muted-foreground">
-                                        {person.items.map((item: any, i: number) => <li key={i}>{item.name} {item.count > 1 ? `(x${item.count})` : ''}</li>)}
-                                    </ul>
-                                 )}
-                            </div>
-                            {splitMode === 'item' && summaryViewMode === 'detailed' && breakdown && (
-                                <div className="text-xs mt-2 pt-2 border-t border-border space-y-1 text-foreground bg-muted/50 p-3">
-                                    {person.items.map((item:any, i:number) => {
-                                        const displayName = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase() 
-                                            ? `${item.translatedName} (${item.name})` 
-                                            : item.name;
-                                        return (
-                                            <div key={i} className="flex justify-between" title={displayName}>
-                                                <span className="truncate pr-2">{displayName} {item.count > 1 ? `(x${item.count})` : ''}</span>
-                                                <span><DualCurrencyDisplay baseValue={item.value} /></span>
-                                            </div>
-                                        )
-                                    })}
-                                    {hasAdjustments && (
-                                        <div className="space-y-1 pt-1 mt-1 border-t border-border">
-                                            {breakdown.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span><DualCurrencyDisplay baseValue={breakdown.discount} sign="-" className="text-red-600"/></span></div>}
-                                            {breakdown.serviceCharge > 0 && <div className="flex justify-between"><span>{taxes.serviceCharge.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.serviceCharge} sign="+"/></span></div>}
-                                            {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat} sign="+"/></span></div>}
-                                            {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax} sign="+"/></span></div>}
-                                            {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
-                                            {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip} sign="+" className="text-blue-600"/></span></div>}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
+        return perPersonData;
+    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly]);
+    
+    const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.total, 0), [perPersonResults]);
 
     return (
         <div className="border-t pt-4 border-border">
@@ -414,7 +353,67 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         )}
                     </div>
                     
-                    {renderPerPersonResults()}
+                    <div className="space-y-3">
+                        {perPersonResults.map((person, index) => {
+                            const breakdown = person.breakdown;
+                            const hasAdjustments = breakdown && (
+                                breakdown.discount > 0 ||
+                                breakdown.serviceCharge > 0 ||
+                                breakdown.vat > 0 ||
+                                breakdown.otherTax > 0 ||
+                                breakdown.adjustment !== 0 ||
+                                breakdown.tip > 0
+                            );
+
+                            return (
+                                <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
+                                    <div className="p-3">
+                                        <div className="flex justify-between items-center">
+                                            <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
+                                            <div className="text-right">
+                                                <span className="font-bold text-primary text-sm">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
+                                                {baseCurrency !== displayCurrency && (
+                                                    <div className="text-xs text-muted-foreground font-normal">
+                                                        ({baseCurrencySymbol}{formatNumber(person.total)})
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
+                                            <ul className="list-disc list-inside mt-2 text-xs text-muted-foreground">
+                                                {person.items.map((item: any, i: number) => <li key={i}>{item.name} {item.count > 1 ? `(x${item.count})` : ''}</li>)}
+                                            </ul>
+                                        )}
+                                    </div>
+                                    {splitMode === 'item' && summaryViewMode === 'detailed' && breakdown && (
+                                        <div className="text-xs mt-2 pt-2 border-t border-border space-y-1 text-foreground bg-muted/50 p-3">
+                                            {person.items.map((item:any, i:number) => {
+                                                const displayName = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase() 
+                                                    ? `${item.translatedName} (${item.name})` 
+                                                    : item.name;
+                                                return (
+                                                    <div key={i} className="flex justify-between" title={displayName}>
+                                                        <span className="truncate pr-2">{displayName} {item.count > 1 ? `(x${item.count})` : ''}</span>
+                                                        <span><DualCurrencyDisplay baseValue={item.value} /></span>
+                                                    </div>
+                                                )
+                                            })}
+                                            {hasAdjustments && (
+                                                <div className="space-y-1 pt-1 mt-1 border-t border-border">
+                                                    {breakdown.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span><DualCurrencyDisplay baseValue={breakdown.discount} sign="-" className="text-red-600"/></span></div>}
+                                                    {breakdown.serviceCharge > 0 && <div className="flex justify-between"><span>{taxes.serviceCharge.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.serviceCharge} sign="+"/></span></div>}
+                                                    {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat} sign="+"/></span></div>}
+                                                    {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax} sign="+"/></span></div>}
+                                                    {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
+                                                    {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip} sign="+" className="text-blue-600"/></span></div>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
 
                     <div className="mt-4 pt-4 border-t border-border">
                         <h3 className="text-sm font-bold text-foreground mb-2 font-headline">Reconciliation</h3>
@@ -469,6 +468,12 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     />
                                 </div>
                             )}
+                             {tip > 0 && (
+                                <div className="flex justify-between items-center text-blue-600 font-medium border-t mt-1 pt-1 border-border">
+                                    <span>Total Tip:</span>
+                                    <DualCurrencyDisplay baseValue={tip} sign="+" displayMode="stacked" className="text-blue-600 font-medium" />
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -481,6 +486,20 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     ({baseCurrencySymbol}{formatNumber(calculations.grandTotalWithTip)})
                                 </div>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="mt-2 text-green-600 p-2 rounded-lg bg-green-50 border border-green-200">
+                        <div className="flex justify-between items-center font-bold text-xs">
+                             <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> Total of Individual Payments:</span>
+                             <div className="text-right">
+                                 <span>{currencySymbol}{formatNumber(totalFromIndividuals * fxRate)}</span>
+                                 {baseCurrency !== displayCurrency && (
+                                    <div className="text-xs font-normal text-green-700/80">
+                                        ({baseCurrencySymbol}{formatNumber(totalFromIndividuals)})
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                     

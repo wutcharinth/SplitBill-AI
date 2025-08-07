@@ -269,6 +269,21 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                             </div>
                         )
                     }
+
+                    if (matchPercentage < 90) {
+                        return (
+                            <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+                                <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                                <div>
+                                    <h4 className="font-bold text-yellow-800 text-sm">Large Difference Detected</h4>
+                                    <p className="text-xs text-yellow-700 mt-1">
+                                        The calculated total is off by <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. Please review items and adjustments carefully.
+                                        (<strong className="font-mono text-red-600">{matchPercentage.toFixed(2)}% Match</strong>)
+                                    </p>
+                                </div>
+                            </div>
+                        )
+                    }
                     
                     const matchClass = matchPercentage > 99 ? 'text-green-700' : 'text-yellow-700';
 

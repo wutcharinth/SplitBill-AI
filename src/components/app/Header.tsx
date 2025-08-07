@@ -31,7 +31,7 @@ const CurrencySelector: React.FC<{
         id={id}
         value={value}
         onChange={onChange}
-        className="font-semibold bg-card pl-3 pr-8 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-sm w-28 appearance-none"
+        className="font-semibold bg-card pl-2 pr-6 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-xs w-24 appearance-none"
         aria-label="Select currency"
     >
         {sortedCurrencies.pinned.length > 0 && (
@@ -146,7 +146,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                     {isFxVisible && (
                         <div className="w-full mt-2 pt-2 border-t border-border/80">
                              <div className="flex items-center justify-end gap-2 text-xs">
-                                 <label htmlFor="fx-rate" className="font-medium text-muted-foreground whitespace-nowrap">
+                                 <label htmlFor="fx-rate" className="font-medium text-muted-foreground whitespace-nowrap text-[11px]">
                                     1 {baseCurrency} =
                                  </label>
                                 <div className="flex items-center">
@@ -157,18 +157,18 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                             step="0.0001"
                                             value={fxRate}
                                             onChange={(e) => dispatch({ type: 'SET_FX_RATE', payload: { rate: Number(e.target.value) || 1, date: null, isLoading: false } })}
-                                            className="w-24 text-right bg-card border border-border rounded-md p-1 pr-6 font-mono text-xs text-foreground disabled:bg-muted"
+                                            className="w-20 text-right bg-card border border-border rounded-md p-0.5 pr-5 font-mono text-[11px] text-foreground disabled:bg-muted"
                                             disabled={isFxLoading}
                                         />
                                         {isFxLoading && <div className="absolute right-1 top-1/2 -translate-y-1/2 animate-spin text-primary pointer-events-none" >
-                                            <div className="loader ease-linear rounded-full border-2 border-t-2 border-border h-4 w-4"></div>
+                                            <div className="loader ease-linear rounded-full border-2 border-t-2 border-border h-3 w-3"></div>
                                         </div>}
                                     </div>
-                                     <span className="ml-2 font-semibold text-foreground">{displayCurrency}</span>
+                                     <span className="ml-1.5 font-semibold text-foreground text-[11px]">{displayCurrency}</span>
                                 </div>
                             </div>
                             {fxRateDate && !isFxLoading && (
-                                <p className="text-right text-[10px] text-muted-foreground mt-1">
+                                <p className="text-right text-[10px] text-muted-foreground mt-0.5">
                                     (Source: Currency API, as of {fxRateDate})
                                 </p>
                             )}

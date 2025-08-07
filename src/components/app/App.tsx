@@ -193,10 +193,10 @@ export default function App() {
                                <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
                             <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
-                            <div className="flex items-center justify-center my-2">
-                                 <span className="text-xs font-semibold bg-accent/20 text-accent-foreground/80 px-2 py-0.5 rounded-full border border-accent/30">Beta</span>
+                            <p className="text-gray-600 mt-1 mb-2 text-base font-medium">Snap. Split. Done.</p>
+                            <div className="flex items-center justify-center mb-6">
+                                 <span className="text-xs font-semibold bg-accent text-accent-foreground px-2 py-0.5 rounded-full border border-accent/30">Beta</span>
                             </div>
-                            <p className="text-gray-600 mt-1 mb-6 text-base font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
                                 <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
