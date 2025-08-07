@@ -488,19 +488,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     )}
 
                     <div className="grid grid-cols-1 gap-4 mt-4 pt-4 border-t border-dashed border-border/80">
-                         <div className="flex items-start gap-4">
+                         <div className="flex flex-col items-center gap-4">
                             {hasQrCode && (
-                                <div className="space-y-2 text-center flex-shrink-0">
+                                <div className="space-y-2 text-center w-full">
                                     <h4 className="text-xs font-semibold text-muted-foreground">Payment QR Code</h4>
                                     <div className="relative w-fit mx-auto">
-                                        <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-32 h-32" />
+                                        <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-48 h-48" />
                                     </div>
                                 </div>
                             )}
                             {hasNotes && (
-                                <div className="space-y-2 flex-grow">
+                                <div className="space-y-2 w-full">
                                     <h4 className="text-xs font-semibold text-muted-foreground text-center">Notes</h4>
-                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-card rounded-md border border-border min-h-[128px] text-foreground">{notes}</p>
+                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-card rounded-md border border-border min-h-[64px] text-foreground">{notes}</p>
                                 </div>
                             )}
                         </div>
@@ -563,3 +563,6 @@ export default Summary;
 
     
 
+
+
+    
