@@ -57,16 +57,6 @@ const comparisonData = [
         { name: 'Charts & Analytics', splitbill: <XMark />, splitwise: <FeatureText className="text-orange-500 font-medium">$ (Pro)</FeatureText>, splid: <XMark />, tricount: <XMark />, tab: <XMark /> },
         { name: 'CSV / Excel Export', splitbill: <XMark />, splitwise: <CheckMark />, splid: <FeatureText className="text-orange-500 font-medium">$ (1-time)</FeatureText>, tricount: <CheckMark />, tab: <XMark /> },
     ]},
-    { category: 'Localization & Integration', features: [
-        { name: 'QR Code Generation (for Venmo, etc.)', splitbill: <CheckMark />, splitwise: <XMark />, splid: <XMark />, tricount: <XMark />, tab: <XMark /> },
-        { name: 'E-Wallet Integration', splitbill: <FeatureText>Future</FeatureText>, splitwise: <FeatureText>US-centric</FeatureText>, splid: <XMark />, tricount: <XMark />, tab: <FeatureText>Venmo</FeatureText> },
-        { name: 'Full English UI/UX', splitbill: <CheckMark />, splitwise: <CheckMark />, splid: <CheckMark />, tricount: <CheckMark />, tab: <CheckMark /> },
-    ]},
-    { category: 'Business Model', features: [
-        { name: 'Daily Entry Limit', splitbill: <FeatureText className="font-medium">None</FeatureText>, splitwise: <FeatureText className="text-red-600 font-medium">3 (Free)</FeatureText>, splid: <FeatureText className="font-medium">None</FeatureText>, tricount: <FeatureText className="font-medium">None</FeatureText>, tab: <FeatureText className="font-medium">None</FeatureText> },
-        { name: 'Intrusive Ads (Free Tier)', splitbill: <FeatureText className="font-medium">None</FeatureText>, splitwise: <FeatureText className="text-red-600 font-medium">Yes (10s)</FeatureText>, splid: <FeatureText className="font-medium">None</FeatureText>, tricount: <FeatureText className="font-medium">None</FeatureText>, tab: <FeatureText className="font-medium">None</FeatureText> },
-        { name: 'Monetization Strategy', splitbill: <FeatureText className="text-green-600 font-medium">Free</FeatureText>, splitwise: <FeatureText>Freemium (Core Limits)</FeatureText>, splid: <FeatureText>Freemium (Feature Unlock)</FeatureText>, tricount: <FeatureText>Free</FeatureText>, tab: <FeatureText>Free</FeatureText> },
-    ]}
 ];
 
 
@@ -75,7 +65,7 @@ export default function AboutPage() {
         <PolicyPageLayout title="The Smartest Way to Split Bills" disableHeaderLink={true}>
             <div className="text-center">
                 <p className="text-muted-foreground max-w-3xl mx-auto text-base leading-relaxed">
-                    Tired of the awkward shuffle with calculators and crumpled receipts after a great meal with friends? SplitBill AI transforms that headache into a seamless, quick, and even fun experience. Just snap a photo of any receipt, and let our powerful AI do the heavy lifting. It intelligently extracts every item, translates foreign languages on the fly, and gets everything ready for a fair and easy split. No more manual entry, no more guesswork—just pure convenience.
+                    Tired of the <strong>awkward shuffle with calculators</strong> and crumpled receipts after a great meal with friends? SplitBill AI transforms that headache into a seamless, quick, and even fun experience. Just <strong>snap a photo of any receipt</strong>, and let our powerful AI do the heavy lifting. It intelligently extracts every item, translates foreign languages on the fly, and gets everything ready for a <strong>fair and easy split</strong>. No more manual entry, no more guesswork—just pure convenience.
                 </p>
             </div>
 
@@ -151,13 +141,13 @@ export default function AboutPage() {
             <div className="my-16">
                 <h2 className="text-2xl font-bold text-center font-headline mb-10 text-foreground">How We Stand Out</h2>
                 <p className="text-muted-foreground max-w-3xl mx-auto text-center text-base leading-relaxed mb-12">
-                    Many bill-splitting apps exist, but they often come with compromises—either they're bloated with features you don't need, lock essential tools behind a paywall, or bombard you with intrusive ads. We learned from their mistakes. SplitBill AI is designed to be the perfect balance: powerful, user-friendly, and completely free, with a focus on a smooth, friction-free experience.
+                    Many bill-splitting apps exist, but they often come with compromises—either they're bloated with features you don't need, lock essential tools behind a <strong>paywall</strong>, or bombard you with <strong>intrusive ads</strong>. We learned from their mistakes. SplitBill AI is designed to be the perfect balance: powerful, user-friendly, and <strong>completely free</strong>, with a focus on a smooth, friction-free experience.
                 </p>
                 <div className="w-full overflow-x-auto">
                     <table className="w-full min-w-[800px] border-collapse text-sm">
                         <thead>
                             <tr className="border-b border-border">
-                                <th className="text-left p-3 font-semibold text-foreground w-1/4">Feature / Monetization</th>
+                                <th className="text-left p-3 font-semibold text-foreground w-1/4">Feature</th>
                                 <th className="text-center p-3 font-semibold text-primary w-[15%]">SplitBill AI (Free)</th>
                                 <th className="text-center p-3 font-semibold text-muted-foreground w-[15%]">Splitwise</th>
                                 <th className="text-center p-3 font-semibold text-muted-foreground w-[15%]">Splid</th>

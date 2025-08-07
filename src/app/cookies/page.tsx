@@ -8,10 +8,10 @@ export default function CookiePolicyPage() {
         <PolicyPageLayout title="Cookie Policy">
             <p className='text-sm text-muted-foreground'>Last Updated: August 7, 2025</p>
             <div className="mt-6 space-y-4 text-foreground">
-                <p>This policy explains how I use cookies and similar technologies on the Split Bill AI app (the "App") and the official website, https://splitbill-ai.com (the "Website").</p>
+                <p>This policy explains how I use <strong>cookies and similar technologies</strong> on the Split Bill AI app (the "App") and the official website, https://splitbill-ai.com (the "Website").</p>
                 
                 <h2 className="text-xl font-bold font-headline pt-4">1. What Are Cookies?</h2>
-                <p>Cookies are small text files stored on your device that help the service function and help me understand how you use it.</p>
+                <p>Cookies are <strong>small text files</strong> stored on your device that help the service function and help me understand how you use it.</p>
                 
                 <h2 className="text-xl font-bold font-headline pt-4">2. How I Use Cookies</h2>
                 <ul className="list-disc list-inside space-y-2">
@@ -21,7 +21,7 @@ export default function CookiePolicyPage() {
                 </ul>
 
                 <h2 className="text-xl font-bold font-headline pt-4">3. Your Choices</h2>
-                <p>Most browsers and devices allow you to control cookies through their settings.</p>
+                <p>Most browsers and devices allow you to <strong>control cookies</strong> through their settings.</p>
             </div>
         </PolicyPageLayout>
     );
