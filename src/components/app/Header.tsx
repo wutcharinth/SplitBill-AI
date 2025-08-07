@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -5,6 +6,7 @@ import { ALLOWED_CURRENCIES } from '../constants';
 import { ArrowRightLeft, Star } from 'lucide-react';
 import { usePinnedCurrencies } from '../hooks/usePinnedCurrencies';
 import ManagePinnedCurrenciesModal from './ManagePinnedCurrenciesModal';
+import Link from 'next/link';
 
 interface HeaderProps {
     activePage: 'setup' | 'summary';
@@ -90,7 +92,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
         <>
             <header className={`fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
                <div className="w-full max-w-xl mx-auto px-4 py-2">
-                    <div className="flex justify-between items-center">
+                    <Link href="/" className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
                             <div>
@@ -98,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                 <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
                             </div>
                         </div>
-                    </div>
+                    </Link>
 
                     <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-1 bg-muted p-1 rounded-lg">

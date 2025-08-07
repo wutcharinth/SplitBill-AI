@@ -57,7 +57,36 @@ export default function App() {
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
-    const [consentGiven, setConsentGiven] = useState(false);
+    const [consentGiven, setConsentGiven] = useState(true);
+    const [isFirstVisit, setIsFirstVisit] = useState(true);
+
+    useEffect(() => {
+        try {
+            const consent = localStorage.getItem('consent_given');
+            if (consent === 'true') {
+                setIsFirstVisit(false);
+                setConsentGiven(true);
+            } else {
+                setIsFirstVisit(true);
+                setConsentGiven(false);
+            }
+        } catch (e) {
+            // If localStorage is not available, default to requiring consent each time.
+            setIsFirstVisit(true);
+            setConsentGiven(false);
+        }
+    }, []);
+
+    const handleConsentChange = (checked: boolean) => {
+        setConsentGiven(checked);
+        if (checked) {
+            try {
+                localStorage.setItem('consent_given', 'true');
+            } catch (e) {
+                console.error("Could not save consent to localStorage", e);
+            }
+        }
+    };
     
     const handleFileChange = async (file: File | null) => {
         if (!file) return;
@@ -196,27 +225,29 @@ export default function App() {
                                 />
                             </div>
                             
-                            <div className="mt-6 pt-6 border-t border-gray-200">
-                                <div className="flex items-start space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        id="consent"
-                                        checked={consentGiven}
-                                        onChange={(e) => setConsentGiven(e.target.checked)}
-                                        className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary border-gray-300"
-                                    />
-                                    <label htmlFor="consent" className="text-[11px] text-gray-500 text-left">
-                                        I have read and agree to the{' '}
-                                        <Link href="/terms" target="_blank" className="underline text-primary hover:text-primary/80">
-                                            Terms of Service
-                                        </Link>{' '}
-                                        and{' '}
-                                        <Link href="/privacy" target="_blank" className="underline text-primary hover:text-primary/80">
-                                            Privacy Policy
-                                        </Link>.
-                                    </label>
+                            {isFirstVisit && (
+                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                    <div className="flex items-start space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="consent"
+                                            checked={consentGiven}
+                                            onChange={(e) => handleConsentChange(e.target.checked)}
+                                            className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary border-gray-300"
+                                        />
+                                        <label htmlFor="consent" className="text-[11px] text-gray-500 text-left">
+                                            I have read and agree to the{' '}
+                                            <Link href="/terms" target="_blank" className="underline text-primary hover:text-primary/80">
+                                                Terms of Service
+                                            </Link>{' '}
+                                            and{' '}
+                                            <Link href="/privacy" target="_blank" className="underline text-primary hover:text-primary/80">
+                                                Privacy Policy
+                                            </Link>.
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                             
                             <footer className="text-center pt-4 text-xs text-muted-foreground">
                                 <div className="flex justify-center space-x-3">
