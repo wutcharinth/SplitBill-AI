@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -141,7 +142,7 @@ export default function App() {
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
                             <div className="flex justify-center items-center mb-4">
-                               <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-16 w-16" />
+                               <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
                             <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
                             <p className="text-gray-600 mt-1 mb-6 text-base font-medium">Snap. Split. Done.</p>
