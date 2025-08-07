@@ -50,17 +50,17 @@ export default function AboutPage() {
                     <div className="relative grid md:grid-cols-3 gap-x-8 gap-y-12 text-center">
                         <div className="flex flex-col items-center">
                             <StepIcon icon={<Camera size={32} />} />
-                            <h3 className="mt-4 text-xl font-bold font-headline">1. Snap or Upload</h3>
+                            <h3 className="mt-4 text-xl font-bold font-headline">1. Snap</h3>
                             <p className="mt-2 text-muted-foreground text-sm">Point your camera at the receipt or upload an image. Our AI instantly scans and digitizes everything—items, prices, taxes, and discounts—with incredible accuracy.</p>
                         </div>
                         <div className="flex flex-col items-center">
                             <StepIcon icon={<Users size={32} />} />
-                            <h3 className="mt-4 text-xl font-bold font-headline">2. Assign & Adjust</h3>
+                            <h3 className="mt-4 text-xl font-bold font-headline">2. Split</h3>
                             <p className="mt-2 text-muted-foreground text-sm">Tap to assign items to each person. Need to split a shared appetizer? No problem. The app handles the math, letting you split any item multiple ways with just a few taps.</p>
                         </div>
                         <div className="flex flex-col items-center">
                             <StepIcon icon={<Share2 size={32} />} />
-                            <h3 className="mt-4 text-xl font-bold font-headline">3. Share the Summary</h3>
+                            <h3 className="mt-4 text-xl font-bold font-headline">3. Done</h3>
                             <p className="mt-2 text-muted-foreground text-sm">Generate a beautiful, crystal-clear summary showing exactly who owes what. Share it as an image with your friends via any messaging app to settle up instantly.</p>
                         </div>
                     </div>
