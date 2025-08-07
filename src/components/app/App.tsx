@@ -205,7 +205,7 @@ export default function App() {
                                         onChange={(e) => setConsentGiven(e.target.checked)}
                                         className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary border-gray-300"
                                     />
-                                    <label htmlFor="consent" className="text-xs text-gray-500 text-left">
+                                    <label htmlFor="consent" className="text-[11px] text-gray-500 text-left">
                                         I have read and agree to the{' '}
                                         <Link href="/terms" target="_blank" className="underline text-primary hover:text-primary/80">
                                             Terms of Service

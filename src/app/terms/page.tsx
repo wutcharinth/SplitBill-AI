@@ -5,8 +5,12 @@ const PolicyPageLayout = ({ title, children }: { title: string, children: React.
     <div className="min-h-screen bg-background text-foreground font-sans">
         <header className="py-4 bg-card border-b">
             <div className="container mx-auto px-4">
-                <Link href="/" className="text-xl font-bold font-headline text-primary tracking-tighter">
-                    SplitBill AI
+                 <Link href="/" className="inline-flex items-center gap-3">
+                    <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
+                    <div>
+                        <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
+                        <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
+                    </div>
                 </Link>
             </div>
         </header>
@@ -46,7 +50,7 @@ export default function TermsOfServicePage() {
                 <p>The Service DOES NOT process payments. I take no responsibility for any financial transactions.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">6. DISCLAIMER OF WARRANTIES</h2>
-                <p>THE SERVICE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. I DO NOT WARRANT THAT THE SERVICE WILL BE ACCURATE, RELIABLE, OR ERROR-FREE.</p>
+                <p>THE SERVICE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY KIND. I DO NOT WARRANT THAT THE SERVICE WILL BE ACCURATE, RELIABLE, OR ERROR-FREE.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">7. LIMITATION OF LIABILITY</h2>
                 <p>IN NO EVENT SHALL I (THE DEVELOPER) BE LIABLE FOR ANY DIRECT, INDIRECT, PUNITIVE, INCIDENTAL, OR CONSEQUENTIAL DAMAGES WHATSOEVER ARISING OUT OF THE USE OF THE SERVICE.</p>

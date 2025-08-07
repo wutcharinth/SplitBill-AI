@@ -5,8 +5,12 @@ const PolicyPageLayout = ({ title, children }: { title: string, children: React.
     <div className="min-h-screen bg-background text-foreground font-sans">
         <header className="py-4 bg-card border-b">
             <div className="container mx-auto px-4">
-                <Link href="/" className="text-xl font-bold font-headline text-primary tracking-tighter">
-                    SplitBill AI
+                <Link href="/" className="inline-flex items-center gap-3">
+                    <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
+                    <div>
+                        <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
+                        <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
+                    </div>
                 </Link>
             </div>
         </header>
