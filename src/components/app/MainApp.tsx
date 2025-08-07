@@ -356,6 +356,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                     <Link href="/terms" target="_blank" className="underline hover:text-primary">Terms</Link>
                     <Link href="/privacy" target="_blank" className="underline hover:text-primary">Privacy</Link>
                     <Link href="/cookies" target="_blank" className="underline hover:text-primary">Cookies</Link>
+                    <Link href="/contact" target="_blank" className="underline hover:text-primary">Contact</Link>
                 </div>
             </footer>
         </main>

@@ -254,6 +254,7 @@ export default function App() {
                                     <Link href="/terms" target="_blank" className="underline hover:text-primary text-[10px]">Terms</Link>
                                     <Link href="/privacy" target="_blank" className="underline hover:text-primary text-[10px]">Privacy</Link>
                                     <Link href="/cookies" target="_blank" className="underline hover:text-primary text-[10px]">Cookies</Link>
+                                    <Link href="/contact" target="_blank" className="underline hover:text-primary text-[10px]">Contact</Link>
                                 </div>
                             </footer>
                         </div>

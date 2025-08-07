@@ -1,30 +1,7 @@
-import React from 'react';
-import Link from 'next/link';
 
-const PolicyPageLayout = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div className="min-h-screen bg-background text-foreground font-sans">
-        <header className="py-4 bg-card border-b">
-            <div className="container mx-auto px-4">
-                 <Link href="/" className="inline-flex items-center gap-3">
-                    <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
-                    <div>
-                        <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
-                        <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
-                    </div>
-                </Link>
-            </div>
-        </header>
-        <main className="container mx-auto px-4 py-8">
-            <div className="prose prose-sm md:prose-base max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold font-headline mb-4">{title}</h1>
-                {children}
-            </div>
-        </main>
-        <footer className="text-center py-4 mt-8 border-t text-xs text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} SplitBill AI. All rights reserved.</p>
-        </footer>
-    </div>
-);
+import React from 'react';
+import PolicyPageLayout from '@/components/app/PolicyPageLayout';
+
 
 export default function TermsOfServicePage() {
     return (
