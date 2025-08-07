@@ -56,9 +56,9 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert financial assistant specializing in extracting and translating data from receipts. Your task is to meticulously analyze the provided receipt image.
 
 **Analysis Steps:**
-1.  **Extract Core Information:** Identify the restaurant name and the transaction date. You MUST format the date as YYYY-MM-DD.
-2.  **Determine Currency:** You MUST determine the currency. If a symbol (e.g., $, £, ¥, ฿) is present, use it. If not, infer the currency from the language or location context on the receipt (e.g., Japanese text implies JPY, Thai text implies THB).
-3.  **Identify the FINAL TOTAL:** This is the most important step. Find the final, total amount due. This is often labeled "Total", "Grand Total", or "合計" (Go-kei) in Japanese. This value is what you must use for the \`total\` field.
+1.  **Extract Core Information:** You MUST identify the restaurant name and the transaction date from the receipt. You MUST format the date as YYYY-MM-DD.
+2.  **Determine Currency:** You MUST determine the currency from the receipt. If a symbol (e.g., $, £, ¥, ฿) is present, use it. If not, infer the currency from the language or location context on the receipt (e.g., Japanese text implies JPY, Thai text implies THB).
+3.  **Identify the FINAL TOTAL:** This is the most important step. Find the final, total amount due from the receipt. This is often labeled "Total", "Grand Total", or "合計" (Go-kei) in Japanese. This value is what you must use for the \`total\` field.
 4.  **Separate Items from Charges:**
     *   First, identify and list all purchased food and drink items in the 'items' array.
     *   Next, scan the receipt for any line items that are NOT food or drink. These are additional charges. This includes, but is not limited to, "Service Charge," "S.C.," "サービス料" (Service Fee), "VAT," "Tax," "消費税" (Consumption Tax), or any other fees.
