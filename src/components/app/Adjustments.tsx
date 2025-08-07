@@ -3,7 +3,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { CURRENCIES } from '../constants';
-import { Plus, X, CheckCircle2, AlertCircle, PartyPopper } from 'lucide-react';
+import { Plus, X, CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
 import { Person } from '../types';
 
 const AdjustmentRow: React.FC<{ label: React.ReactNode; children: React.ReactNode }> = ({ label, children }) => (
@@ -303,6 +303,26 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     }
                     
                     // Surplus
+                    const surplus = absAdjustment;
+                    const taxLikeSurplus = [taxes.serviceCharge, taxes.vat, taxes.otherTax].find(tax => 
+                        tax.isEnabled && Math.abs(surplus - tax.amount) / tax.amount < 0.1 // Within 10%
+                    );
+
+                    if (taxLikeSurplus) {
+                        return (
+                             <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 border border-indigo-200">
+                                <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                                <div>
+                                    <h4 className="font-bold text-indigo-800 text-sm">Surplus Found!</h4>
+                                    <p className="text-xs text-indigo-700 mt-1">
+                                        The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
+                                        Could the AI have mistaken this tax for a line item? Please review the items list above.
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    }
+
                     return (
                         <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 border border-indigo-200">
                             <PartyPopper className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
