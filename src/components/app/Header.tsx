@@ -124,7 +124,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                         </div>
                         
                         <div className="flex items-center gap-1">
-                            <div className="flex flex-col gap-1 relative items-center">
+                            <div className="flex flex-col gap-1.5 relative items-center">
                                 <CurrencySelector
                                     id="base-currency-select"
                                     label="Bill"
@@ -132,9 +132,6 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                     onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
                                     sortedCurrencies={sortedCurrencies}
                                 />
-                                <div className="absolute top-1/2 -translate-y-1/2 my-1.5 h-4 w-4 flex items-center justify-center text-muted-foreground/60 z-10 bg-background rounded-full">
-                                     <ArrowDown size={12} />
-                                </div>
                                 <CurrencySelector
                                     id="display-currency-select"
                                     label="Display"
