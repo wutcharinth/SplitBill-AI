@@ -363,7 +363,6 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 <div className="flex justify-center space-x-4">
                     <Link href="/about" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
                     <Link href="/terms" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
-                    <Link href="/contact" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Contact</Link>
                 </div>
             </footer>
         </main>

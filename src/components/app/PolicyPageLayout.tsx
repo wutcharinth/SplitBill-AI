@@ -6,7 +6,6 @@ const PolicyFooterNavigation = () => (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
         <Link href="/about" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
         <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
-        <Link href="/contact" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Contact</Link>
     </div>
 );
 
