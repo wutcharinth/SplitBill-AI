@@ -56,18 +56,19 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert financial assistant specializing in extracting and translating data from receipts. Your task is to meticulously analyze the provided receipt image.
 
 **Analysis Steps:**
-1.  **Extract Core Information:** Identify the restaurant name, the transaction date (in YYYY-MM-DD format), and the final total amount due.
+1.  **Extract Core Information:** Identify the restaurant name and the transaction date. You MUST format the date as YYYY-MM-DD.
 2.  **Determine Currency:** You MUST determine the currency. If a symbol (e.g., $, £, ¥, ฿) is present, use it. If not, infer the currency from the language or location context on the receipt (e.g., Japanese text implies JPY, Thai text implies THB).
-3.  **Separate Items from Charges:** This is a critical step.
+3.  **Identify the FINAL TOTAL:** This is the most important step. Find the final, total amount due. This is often labeled "Total", "Grand Total", or "合計" (Go-kei) in Japanese. This value is what you must use for the \`total\` field.
+4.  **Separate Items from Charges:**
     *   First, identify and list all purchased food and drink items in the 'items' array.
     *   Next, scan the receipt for any line items that are NOT food or drink. These are additional charges. This includes, but is not limited to, "Service Charge," "S.C.," "サービス料" (Service Fee), "VAT," "Tax," "消費税" (Consumption Tax), or any other fees.
-4.  **Categorize Charges:**
+5.  **Categorize Charges:**
     *   If a charge is for service (e.g., "Service Charge", "サービス料"), place it in the \`serviceCharge\` field.
     *   If a charge is for a value-added tax (e.g., "VAT", "消費税"), place it in the \`vat\` field.
     *   Place any other miscellaneous charges into the \`otherTax\` field.
     *   **IMPORTANT:** Items categorized as \`serviceCharge\`, \`vat\`, or \`otherTax\` MUST NOT appear in the main \`items\` array.
-5.  **Extract Discounts:** If a discount is listed, extract the total discount amount.
-6.  **Translate:** For all extracted item names, service charges, and taxes that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
+6.  **Extract Discounts:** If a discount is listed, extract the total discount amount.
+7.  **Translate:** For all extracted item names, service charges, and taxes that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
 
 **Source of Information:**
 Photo: {{media url=photoDataUri}}
