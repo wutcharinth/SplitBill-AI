@@ -44,28 +44,28 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
   const progress = Math.min(100, ((20 - countdown) / 20) * 100);
 
   return (
-    <div className="fixed inset-0 bg-white flex flex-col justify-center items-center z-50 text-center p-4">
+    <div className="fixed inset-0 bg-background flex flex-col justify-center items-center z-50 text-center p-4">
       <div className="relative h-24 w-24 flex items-center justify-center">
           <div className="loader absolute top-0 left-0 ease-linear rounded-full border-8 border-t-8 border-gray-200 h-full w-full"></div>
-          <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="Analyzing" className="h-12" />
+          <img src="/icon.svg" alt="Analyzing" className="h-12" />
       </div>
-      <p className="mt-6 text-xl font-semibold text-gray-800">{dynamicText}</p>
+      <p className="mt-6 text-xl font-semibold text-foreground font-headline">{dynamicText}</p>
       
       <div className="w-full max-w-xs mt-4">
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+        <div className="w-full bg-muted rounded-full h-2.5 mb-2">
             <div 
-                className="bg-agoda-blue h-2.5 rounded-full transition-[width] duration-1000 ease-linear" 
+                className="bg-primary h-2.5 rounded-full transition-[width] duration-1000 ease-linear" 
                 style={{ width: `${progress}%` }}>
             </div>
         </div>
-        <p className="text-md text-gray-600">
+        <p className="text-md text-muted-foreground">
             {countdown > 0 
               ? `This could take up to ${countdown} more second${countdown !== 1 ? 's' : ''}...`
               : "Still working, please be patient..."}
         </p>
       </div>
 
-      <p className="mt-6 text-sm text-gray-500 max-w-md">
+      <p className="mt-6 text-sm text-muted-foreground max-w-md">
           Use it for lunch, dinner, groceries, or even just to translate a foreign receipt while traveling!
       </p>
     </div>

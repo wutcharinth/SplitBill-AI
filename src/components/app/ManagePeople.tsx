@@ -77,11 +77,11 @@ const ManagePeople: React.FC<ManagePeopleProps> = ({ people, dispatch }) => {
                     onChange={e => setNewName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleAddPerson()}
                     placeholder="Custom name or leave blank for P3, P4..."
-                    className="flex-grow p-2 border rounded-md text-sm bg-white text-gray-900 border-gray-300 focus:ring-1 focus:ring-agoda-blue focus:border-agoda-blue"
+                    className="flex-grow p-2 border rounded-md text-sm bg-card text-foreground border-border focus:ring-1 focus:ring-ring focus:border-ring"
                 />
                 <button
                     onClick={handleAddPerson}
-                    className="bg-agoda-blue hover:bg-agoda-blue-dark text-white font-bold p-2 px-3 rounded-md flex items-center justify-center"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold p-2 px-3 rounded-md flex items-center justify-center"
                     aria-label="Add person"
                 >
                     <Plus size={20} />
@@ -92,5 +92,3 @@ const ManagePeople: React.FC<ManagePeopleProps> = ({ people, dispatch }) => {
 };
 
 export default ManagePeople;
-
-    

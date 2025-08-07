@@ -58,28 +58,6 @@ export default function App() {
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
     const { canUse, recordUsage, monthlyUses, USAGE_LIMIT } = useUsage();
 
-    useEffect(() => {
-        const embedGoogleFonts = async () => {
-            try {
-                // This URL points to the CSS file that defines the Manrope font-family.
-                const fontCssUrl = 'https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap';
-                const response = await fetch(fontCssUrl);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch font CSS: ${response.statusText}`);
-                }
-                const cssText = await response.text();
-                
-                const style = document.createElement('style');
-                style.textContent = cssText;
-                document.head.appendChild(style);
-            } catch (error) {
-                console.error('Could not embed Google Fonts:', error);
-            }
-        };
-
-        embedGoogleFonts();
-    }, []);
-
     const handleFileChange = async (file: File | null) => {
         if (!file) return;
 
@@ -179,28 +157,31 @@ export default function App() {
                 return (
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
-                            <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="SplitBill Logo" className="h-40 mx-auto" />
-                            <p className="text-gray-600 mt-1 mb-6 text-lg font-medium">Snap. Split. Done.</p>
+                            <div className="flex justify-center items-center mb-4">
+                               <img src="/icon.svg" alt="BillzAI Logo" className="h-16 w-16" />
+                            </div>
+                            <h1 className="text-2xl font-headline font-bold text-gray-800">BillzAI</h1>
+                            <p className="text-gray-600 mt-1 mb-6 text-base font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
-                                <label htmlFor="camera-upload" className="cursor-pointer group flex items-center justify-center space-x-3 w-full bg-agoda-blue text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:bg-agoda-blue-dark hover:shadow-lg hover:scale-105">
+                                <label htmlFor="camera-upload" className="cursor-pointer group flex items-center justify-center space-x-3 w-full bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg transition-all transform hover:bg-primary/90 hover:shadow-lg hover:scale-105">
                                     <Camera size={20} />
                                     <span>Take a Picture</span>
                                 </label>
                                 <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} />
                                 
-                                <label htmlFor="file-upload" className="cursor-pointer group flex items-center justify-center space-x-3 w-full bg-white text-gray-800 font-bold py-3 px-6 rounded-lg border border-gray-300 transition-all transform hover:bg-gray-50 hover:shadow-lg hover:scale-105">
+                                <label htmlFor="file-upload" className="cursor-pointer group flex items-center justify-center space-x-3 w-full bg-card text-card-foreground font-bold py-3 px-6 rounded-lg border border-border transition-all transform hover:bg-muted hover:shadow-lg hover:scale-105">
                                     <Upload size={20} />
                                     <span>Upload from Library</span>
                                 </label>
                                 <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} />
 
-                                <button onClick={handleStartManual} className="group flex items-center justify-center space-x-3 w-full bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-lg transition-all transform hover:bg-slate-300 hover:shadow-lg hover:scale-105">
+                                <button onClick={handleStartManual} className="group flex items-center justify-center space-x-3 w-full bg-secondary text-secondary-foreground font-bold py-3 px-6 rounded-lg transition-all transform hover:bg-secondary/80 hover:shadow-lg hover:scale-105">
                                     <PlusCircle size={20} />
                                     <span>Start without Receipt</span>
                                 </button>
                             </div>
-                                <div className="mt-6 text-center text-sm text-gray-500">
+                                <div className="mt-6 text-center text-sm text-muted-foreground">
                                     <p>You have {USAGE_LIMIT - monthlyUses} free scans remaining this month.</p>
                                 </div>
                         </div>

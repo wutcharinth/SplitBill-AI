@@ -14,7 +14,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, onReset }) => (
     </div>
     <button
       onClick={onReset}
-      className="mt-6 w-full max-w-md bg-agoda-blue hover:bg-agoda-blue-dark text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2"
+      className="mt-6 w-full max-w-md bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2"
     >
       <RotateCw size={18} />
       <span>Try Again</span>

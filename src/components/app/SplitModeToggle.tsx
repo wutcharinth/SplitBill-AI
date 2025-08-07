@@ -12,12 +12,12 @@ interface SplitModeToggleProps {
 const SplitModeToggle: React.FC<SplitModeToggleProps> = ({ mode, setMode }) => {
   const getButtonClasses = (buttonMode: SplitMode) => {
     return `w-full py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
-      mode === buttonMode ? 'bg-white shadow text-gray-800' : 'text-gray-500'
+      mode === buttonMode ? 'bg-card shadow text-foreground' : 'text-muted-foreground'
     }`;
   };
 
   return (
-    <div className="flex items-center justify-center space-x-2 bg-gray-100 p-1 rounded-lg">
+    <div className="flex items-center justify-center space-x-2 bg-muted p-1 rounded-lg">
       <button onClick={() => setMode('item')} className={getButtonClasses('item')}>
         Split by Item
       </button>
@@ -29,5 +29,3 @@ const SplitModeToggle: React.FC<SplitModeToggleProps> = ({ mode, setMode }) => {
 };
 
 export default SplitModeToggle;
-
-    

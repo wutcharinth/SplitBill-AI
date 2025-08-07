@@ -329,8 +329,8 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 />
             )}
             {activePage === 'summary' && (
-                <div className="bg-white rounded-xl shadow-card p-4 sm:p-5">
-                    <h2 className="text-sm font-bold mb-4 text-agoda-blue">Final Summary</h2>
+                <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+                    <h2 className="text-sm font-bold mb-4 text-primary font-headline">Final Summary</h2>
                     <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
                 </div>
             )}
@@ -339,13 +339,13 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
               {activePage === 'setup' && (
                   <button
                       onClick={() => setActivePage('summary')}
-                      className="w-full bg-agoda-blue hover:bg-agoda-blue-dark text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all transform hover:shadow-lg hover:scale-105"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all transform hover:shadow-lg hover:scale-105"
                   >
                       <span>View Summary</span>
                       <ArrowRight size={20} />
                   </button>
               )}
-              <button onClick={onReset} className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
+              <button onClick={onReset} className="w-full bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
                 <RotateCw size={18} />
                 <span>Start Over</span>
               </button>

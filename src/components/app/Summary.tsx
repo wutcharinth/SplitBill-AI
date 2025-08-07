@@ -85,7 +85,7 @@ async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
         const dataUrl = await toPng(element, {
             quality: 1.0,
             pixelRatio: 2.5,
-            backgroundColor: '#f1f5f9',
+            backgroundColor: '#f2f4f7', // --background HSL
             cacheBust: true,
         });
         const blob = await (await fetch(dataUrl)).blob();
@@ -157,7 +157,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const blob = await generateImageBlob(summaryRef.current!);
         if (!blob) return;
 
-        const filename = `splitbill-summary-${new Date().toISOString().slice(0, 10)}.png`;
+        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
         const file = new File([blob], filename, { type: 'image/png' });
         const shareData = {
             files: [file],
@@ -204,7 +204,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         sign?: string, 
         displayMode?: 'inline' | 'stacked',
         className?: string,
-    }> = ({ baseValue, sign = '', displayMode = 'inline', className = 'text-gray-800' }) => {
+    }> = ({ baseValue, sign = '', displayMode = 'inline', className = 'text-foreground' }) => {
         const convertedValue = formatNumber(baseValue * fxRate);
         const originalValue = formatNumber(baseValue);
     
@@ -216,7 +216,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             return (
                 <div className="text-right">
                     <span className={`font-mono text-xs ${className}`}>{sign}{currencySymbol}{convertedValue}</span>
-                    <div className="text-gray-400 text-[10px] leading-tight font-mono">({sign}{baseCurrencySymbol}{originalValue})</div>
+                    <div className="text-muted-foreground text-[10px] leading-tight font-mono">({sign}{baseCurrencySymbol}{originalValue})</div>
                 </div>
             );
         }
@@ -224,7 +224,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         return (
             <span className="font-mono text-xs">
                 <span className={className}>{sign}{currencySymbol}{convertedValue}</span>
-                <span className="text-gray-400 text-[10px] ml-1">({sign}{baseCurrencySymbol}{originalValue})</span>
+                <span className="text-muted-foreground text-[10px] ml-1">({sign}{baseCurrencySymbol}{originalValue})</span>
             </span>
         );
     };
@@ -319,27 +319,27 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     );
 
                     return (
-                        <div key={person.id} className="bg-white rounded-lg shadow overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
+                        <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                             <div className="p-3">
                                 <div className="flex justify-between items-center">
-                                    <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-gray-800 font-bold text-xs" disabled={splitMode === 'evenly'}/>
+                                    <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
                                     <div className="text-right">
-                                        <span className="font-bold text-agoda-blue text-xs">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
+                                        <span className="font-bold text-primary text-sm">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
                                         {baseCurrency !== displayCurrency && (
-                                            <div className="text-[10px] text-gray-500 font-normal">
+                                            <div className="text-xs text-muted-foreground font-normal">
                                                 ({baseCurrencySymbol}{formatNumber(person.total)})
                                             </div>
                                         )}
                                     </div>
                                 </div>
                                 {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
-                                     <ul className="list-disc list-inside mt-2 text-[10px] text-gray-600">
+                                     <ul className="list-disc list-inside mt-2 text-xs text-muted-foreground">
                                         {person.items.map((item: any, i: number) => <li key={i}>{item.name} {item.count > 1 ? `(x${item.count})` : ''}</li>)}
                                     </ul>
                                  )}
                             </div>
                             {splitMode === 'item' && summaryViewMode === 'detailed' && breakdown && (
-                                <div className="text-[10px] mt-2 pt-2 border-t border-gray-200 space-y-1 text-gray-700 bg-slate-50 p-3">
+                                <div className="text-xs mt-2 pt-2 border-t border-border space-y-1 text-foreground bg-muted/50 p-3">
                                     {person.items.map((item:any, i:number) => {
                                         const displayName = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase() 
                                             ? `${item.translatedName} (${item.name})` 
@@ -352,7 +352,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                         )
                                     })}
                                     {hasAdjustments && (
-                                        <div className="space-y-1 pt-1 mt-1 border-t border-gray-300">
+                                        <div className="space-y-1 pt-1 mt-1 border-t border-border">
                                             {breakdown.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span><DualCurrencyDisplay baseValue={breakdown.discount} sign="-" className="text-red-600"/></span></div>}
                                             {breakdown.serviceCharge > 0 && <div className="flex justify-between"><span>{taxes.serviceCharge.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.serviceCharge} sign="+"/></span></div>}
                                             {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat} sign="+"/></span></div>}
@@ -371,31 +371,31 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     };
 
     return (
-        <div className="border-t pt-4 border-gray-200">
+        <div className="border-t pt-4 border-border">
             <div id="summary-container" className="relative">
-                <div ref={summaryRef} className="bg-slate-100 p-4 rounded-lg">
+                <div ref={summaryRef} className="bg-background p-4 rounded-lg">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <input type="text" value={restaurantName} onChange={e => dispatch({type: 'UPDATE_RESTAURANT_NAME', payload: e.target.value})} className="text-base font-bold p-1 -ml-1 rounded-lg bg-transparent w-full text-gray-900" placeholder="Restaurant Name" />
+                            <input type="text" value={restaurantName} onChange={e => dispatch({type: 'UPDATE_RESTAURANT_NAME', payload: e.target.value})} className="text-base font-bold p-1 -ml-1 rounded-lg bg-transparent w-full text-foreground font-headline" placeholder="Restaurant Name" />
                             <div className="flex items-center">
-                                <label htmlFor="summary-bill-date" className="text-xs text-gray-600 font-medium whitespace-nowrap">Date:</label>
+                                <label htmlFor="summary-bill-date" className="text-xs text-muted-foreground font-medium whitespace-nowrap">Date:</label>
                                 <input 
                                     id="summary-bill-date"
                                     type="date"
                                     value={billDate}
                                     onChange={e => dispatch({type: 'UPDATE_BILL_DATE', payload: e.target.value})}
-                                    className="p-1 rounded-lg bg-transparent border-none text-xs text-gray-600 summary-date-input"
+                                    className="p-1 rounded-lg bg-transparent border-none text-xs text-muted-foreground summary-date-input"
                                 />
                             </div>
                         </div>
                         <div className="flex flex-col items-center text-center ml-2 flex-shrink-0">
-                            <img src="https://i.postimg.cc/FmGScVWG/image.png" alt="Logo" className="h-10" />
-                            <p className="text-[10px] text-gray-500 mt-1">Snap. Split. Done.</p>
+                            <img src="/icon.svg" alt="Logo" className="h-10" />
+                            <p className="text-[10px] text-muted-foreground mt-1">BillzAI</p>
                         </div>
                     </div>
                     
                     {baseCurrency !== displayCurrency && (
-                        <div className="text-center text-xs text-gray-500 mb-3 pb-3 border-b border-dashed border-gray-200">
+                        <div className="text-center text-xs text-muted-foreground mb-3 pb-3 border-b border-dashed border-border">
                             FX Rate: 1 {baseCurrency} = {fxRate.toFixed(4)} {displayCurrency}
                              {state.fxRateDate && (
                                 <>
@@ -407,20 +407,20 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     )}
 
                     <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-sm font-bold text-gray-800">Split Summary</h3>
+                        <h3 className="text-sm font-bold text-foreground font-headline">Split Summary</h3>
                         {splitMode === 'item' && (
-                            <div className="flex items-center justify-center space-x-1 bg-gray-200 p-1 rounded-lg text-xs border">
-                                <button onClick={() => setSummaryViewMode('detailed')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-white shadow text-gray-800' : 'text-gray-500'}`}>Detailed</button>
-                                <button onClick={() => setSummaryViewMode('compact')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-white shadow text-gray-800' : 'text-gray-500'}`}>Compact</button>
+                            <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
+                                <button onClick={() => setSummaryViewMode('detailed')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</button>
+                                <button onClick={() => setSummaryViewMode('compact')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</button>
                             </div>
                         )}
                     </div>
                     
                     {renderPerPersonResults()}
 
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                        <h3 className="text-sm font-bold text-gray-800 mb-2">Reconciliation Summary</h3>
-                        <div className="space-y-1 text-xs bg-gray-50 p-3 rounded-lg text-gray-800 border border-gray-200">
+                    <div className="mt-4 pt-4 border-t border-border">
+                        <h3 className="text-sm font-bold text-foreground mb-2 font-headline">Reconciliation</h3>
+                        <div className="space-y-1 text-xs bg-muted p-3 rounded-lg text-foreground border border-border">
                              {splitMode === 'item' ? (
                                 <div className="flex justify-between items-center">
                                     <span>Assigned Items Subtotal:</span>
@@ -456,9 +456,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     <DualCurrencyDisplay baseValue={calculations.otherTaxAmount} sign="+" displayMode="stacked" />
                                 </div>
                             )}
-                            <div className="flex justify-between items-center font-bold border-t mt-1 pt-1 border-gray-300">
+                            <div className="flex justify-between items-center font-bold border-t mt-1 pt-1 border-border">
                                 <span>Calculated Total:</span>
-                                <DualCurrencyDisplay baseValue={calculations.calculatedTotal} displayMode="stacked" className="font-bold text-gray-800"/>
+                                <DualCurrencyDisplay baseValue={calculations.calculatedTotal} displayMode="stacked" className="font-bold text-foreground"/>
                             </div>
                             {Math.abs(calculations.adjustment) > 0.01 && (
                                 <div className="flex justify-between items-center text-blue-600">
@@ -474,12 +474,12 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t-2 border-gray-300 flex justify-between font-bold text-base text-gray-900">
+                    <div className="mt-4 pt-3 border-t-2 border-border flex justify-between font-bold text-base text-foreground">
                         <span>Grand Total:</span>
                         <div className="text-right">
                             <span>{currencySymbol}{formatNumber(calculations.grandTotalWithTip * fxRate)}</span>
                             {baseCurrency !== displayCurrency && (
-                                <div className="text-xs font-normal text-gray-500">
+                                <div className="text-xs font-normal text-muted-foreground">
                                     ({baseCurrencySymbol}{formatNumber(calculations.grandTotalWithTip)})
                                 </div>
                             )}
@@ -487,17 +487,17 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     </div>
                     
                     {includeReceiptInSummary && uploadedReceipt && (
-                        <div className="mt-4 pt-4 border-t-2 border-dashed border-gray-200">
-                            <h4 className="text-xs font-semibold text-gray-700 text-center mb-2">Attached Receipt</h4>
+                        <div className="mt-4 pt-4 border-t-2 border-dashed border-border">
+                            <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
                             <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" />
                         </div>
                     )}
 
                     {(hasQrCode || hasNotes) && (
-                        <div className={`mt-4 pt-4 border-t border-dashed border-gray-300/80 grid grid-cols-1 ${hasQrCode && hasNotes ? 'sm:grid-cols-2' : ''} gap-4`}>
+                        <div className={`mt-4 pt-4 border-t border-dashed border-border/80 grid grid-cols-1 ${hasQrCode && hasNotes ? 'sm:grid-cols-2' : ''} gap-4`}>
                             {hasQrCode && (
                                 <div className={`space-y-2 ${!hasNotes ? 'flex flex-col items-center' : ''}`}>
-                                    <h4 className="text-xs font-semibold text-gray-700 text-center">Payment QR Code</h4>
+                                    <h4 className="text-xs font-semibold text-muted-foreground text-center">Payment QR Code</h4>
                                     <div className="relative w-fit mx-auto">
                                         <img src={qrCodeImage} alt="Payment QR Code" className={`rounded-lg object-contain ${!hasNotes ? 'max-w-[200px] max-h-[200px]' : 'max-w-[100px] max-h-[100px]'}`} />
                                     </div>
@@ -505,8 +505,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             )}
                             {hasNotes && (
                                 <div className="space-y-2">
-                                    <h4 className="text-xs font-semibold text-gray-700 text-center sm:text-left">Notes</h4>
-                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-white rounded-md border border-gray-200 min-h-[100px] text-gray-800">{notes}</p>
+                                    <h4 className="text-xs font-semibold text-muted-foreground text-center sm:text-left">Notes</h4>
+                                    <p className="w-full p-2 text-xs whitespace-pre-wrap bg-card rounded-md border border-border min-h-[100px] text-foreground">{notes}</p>
                                 </div>
                             )}
                         </div>
@@ -514,18 +514,18 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-dashed border-gray-300/80 space-y-3">
+            <div className="mt-4 pt-4 border-t border-dashed border-border/80 space-y-3">
                 <div className="flex items-center gap-3">
                     {qrCodeImage ? (
                         <div className="relative w-fit flex-shrink-0">
-                            <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg h-10 w-10 object-cover border border-gray-200" />
-                            <button onClick={() => dispatch({type: 'SET_QR_CODE_IMAGE', payload: null})} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow-md border-2 border-white">
+                            <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg h-10 w-10 object-cover border border-border" />
+                            <button onClick={() => dispatch({type: 'SET_QR_CODE_IMAGE', payload: null})} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow-md border-2 border-card">
                                 <X size={10} strokeWidth={3} />
                             </button>
                         </div>
                     ) : (
-                        <label htmlFor="qr-upload" className="flex-shrink-0 flex items-center justify-center h-10 w-10 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-100 hover:bg-gray-200 transition">
-                            <QrCode className="w-5 h-5 text-gray-500" />
+                        <label htmlFor="qr-upload" className="flex-shrink-0 flex items-center justify-center h-10 w-10 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80 transition">
+                            <QrCode className="w-5 h-5 text-muted-foreground" />
                             <input id="qr-upload" type="file" accept="image/*" className="hidden" onChange={handleQrUpload} />
                         </label>
                     )}
@@ -535,21 +535,21 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         value={notes}
                         onChange={e => dispatch({type: 'SET_NOTES', payload: e.target.value})}
                         placeholder="Add QR payment info or other notes..."
-                        className="w-full p-2 h-10 border rounded-md text-xs bg-white text-gray-900 border-gray-300 focus:ring-agoda-blue focus:border-agoda-blue transition"
+                        className="w-full p-2 h-10 border rounded-md text-xs bg-card text-foreground border-border focus:ring-ring focus:border-ring transition"
                     />
                 </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-300/80">
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-100">
+            <div className="mt-4 pt-4 border-t border-border/80">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted">
                     <input
                     type="checkbox"
                     checked={includeReceiptInSummary}
                     onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
-                    className="h-4 w-4 rounded text-agoda-blue focus:ring-agoda-blue border-gray-300 disabled:opacity-50"
+                    className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
                     disabled={!uploadedReceipt}
                     />
-                    <span className={`text-xs ${!uploadedReceipt ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
                         Attach receipt image to summary
                     </span>
                 </label>
