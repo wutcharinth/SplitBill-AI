@@ -22,23 +22,26 @@ const TermsContent = () => (
 
         <h2 className="text-xl font-bold font-headline pt-4">4. Prohibited Activities</h2>
         <p>You agree not to use the Service to: violate any law; upload malicious code; infringe on any rights; or attempt to reverse-engineer, scrape, or decompile the Service.</p>
+        
+        <h2 className="text-xl font-bold font-headline pt-4">5. Intellectual Property</h2>
+        <p>The Service and its original content (excluding User-Generated Content), features, and functionality are and will remain the exclusive property of the developer and its licensors. The Service is protected by copyright, trademark, and other laws of both Thailand and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of the developer.</p>
 
-        <h2 className="text-xl font-bold font-headline pt-4">5. No Financial Transactions</h2>
+        <h2 className="text-xl font-bold font-headline pt-4">6. No Financial Transactions</h2>
         <p>The Service <strong>DOES NOT process payments</strong>. I take no responsibility for any financial transactions.</p>
 
-        <h2 className="text-xl font-bold font-headline pt-4">6. DISCLAIMER OF WARRANTIES</h2>
+        <h2 className="text-xl font-bold font-headline pt-4">7. DISCLAIMER OF WARRANTIES</h2>
         <p>THE SERVICE IS PROVIDED <strong>"AS IS" WITHOUT ANY WARRANTY OF ANY KIND</strong>. <strong>I DO NOT WARRANT THAT THE SERVICE WILL BE ACCURATE, RELIABLE, OR ERROR-FREE.</strong></p>
 
-        <h2 className="text-xl font-bold font-headline pt-4">7. LIMITATION OF LIABILITY</h2>
+        <h2 className="text-xl font-bold font-headline pt-4">8. LIMITATION OF LIABILITY</h2>
         <p><strong>IN NO EVENT SHALL I (THE DEVELOPER) BE LIABLE</strong> FOR ANY DIRECT, INDIRECT, PUNITIVE, INCIDENTAL, OR CONSEQUENTIAL DAMAGES WHATSOEVER ARISING OUT OF THE USE OF THE SERVICE.</p>
 
-        <h2 className="text-xl font-bold font-headline pt-4">8. Indemnification</h2>
+        <h2 className="text-xl font-bold font-headline pt-4">9. Indemnification</h2>
         <p>You agree to <strong>defend and indemnify me</strong> (the developer) from any and all claims, damages, and expenses arising from your use of the Service or your violation of these Terms.</p>
 
-        <h2 className="text-xl font-bold font-headline pt-4">9. Changes to These Terms</h2>
+        <h2 className="text-xl font-bold font-headline pt-4">10. Changes to These Terms</h2>
         <p>I reserve the right to modify these Terms at any time. The most current version will always be available at <strong>https://splitbill-ai.com/terms</strong>. By continuing to use the Service after changes are made, you agree to be bound by the revised Terms.</p>
 
-        <h2 className="text-xl font-bold font-headline pt-4">10. Governing Law</h2>
+        <h2 className="text-xl font-bold font-headline pt-4">11. Governing Law</h2>
         <p>These Terms shall be governed by the laws of Thailand.</p>
     </div>
 );
