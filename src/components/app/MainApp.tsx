@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useReducer, useEffect } from 'react';
-import { BillData, BillItem, Person, Tax, Discount, SplitMode } from '../types';
+import { BillData, BillItem, Person, Tax, Discount, SplitMode } from '../../types';
 import { CURRENCIES } from '../constants';
 import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
@@ -73,7 +73,30 @@ type Action =
   | { type: 'SET_QR_CODE_IMAGE'; payload: string | null }
   | { type: 'SET_NOTES'; payload: string }
   | { type: 'TOGGLE_INCLUDE_RECEIPT' }
-  | { type: 'RESET'; payload: BillData };
+  | { type: 'RESET'; payload: BillData | null };
+
+const getStoredQrCode = (): string | null => {
+    try {
+        return localStorage.getItem('splitbill_qr');
+    } catch (e) {
+        console.error("Could not read QR code from local storage", e);
+        return null;
+    }
+};
+
+const createInitialState = (billData: BillData, uploadedReceipt: string | null): AppState => ({
+    ...billData, 
+    splitMode: 'item', 
+    peopleCountEvenly: 2,
+    displayCurrency: billData.baseCurrency,
+    fxRate: 1,
+    fxRateDate: null,
+    qrCodeImage: getStoredQrCode(),
+    notes: '',
+    isFxLoading: false,
+    includeReceiptInSummary: !!uploadedReceipt,
+    uploadedReceipt,
+});
 
 const reducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
@@ -249,7 +272,10 @@ const reducer = (state: AppState, action: Action): AppState => {
         return { ...state, includeReceiptInSummary: !state.includeReceiptInSummary };
 
     case 'RESET':
-        return { ...initialState(action.payload, null) };
+        if(action.payload) {
+             return { ...createInitialState(action.payload, null) };
+        }
+        return { ...state }; // No real reset if payload is null
         
     default:
       return state;
@@ -262,31 +288,8 @@ interface MainAppProps {
   uploadedReceipt: string | null;
 }
 
-const getStoredQrCode = (): string | null => {
-    try {
-        return localStorage.getItem('splitbill_qr');
-    } catch (e) {
-        console.error("Could not read QR code from local storage", e);
-        return null;
-    }
-};
-
-const initialState = (billData: BillData, uploadedReceipt: string | null): AppState => ({
-    ...billData, 
-    splitMode: 'item', 
-    peopleCountEvenly: 2,
-    displayCurrency: billData.baseCurrency,
-    fxRate: 1,
-    fxRateDate: null,
-    qrCodeImage: getStoredQrCode(),
-    notes: '',
-    isFxLoading: false,
-    includeReceiptInSummary: !!uploadedReceipt,
-    uploadedReceipt,
-});
-
 const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedReceipt }) => {
-  const [state, dispatch] = useReducer(reducer, initialState(initialBillData, uploadedReceipt));
+  const [state, dispatch] = useReducer(reducer, createInitialState(initialBillData, uploadedReceipt));
   const [activePage, setActivePage] = useState<'setup' | 'summary'>('setup');
   const { baseCurrency, displayCurrency } = state;
 

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ALLOWED_CURRENCIES } from '../constants';
-import { ArrowRightLeft, Star } from 'lucide-react';
+import { ArrowRightLeft, Star, ArrowDown } from 'lucide-react';
 import { usePinnedCurrencies } from '../hooks/usePinnedCurrencies';
 import ManagePinnedCurrenciesModal from './ManagePinnedCurrenciesModal';
 import Link from 'next/link';
@@ -23,30 +23,34 @@ interface HeaderProps {
 
 const CurrencySelector: React.FC<{
     id: string;
+    label: string;
     value: string;
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     sortedCurrencies: { pinned: [string, string][]; others: [string, string][] };
-}> = ({ id, value, onChange, sortedCurrencies }) => (
-    <select
-        id={id}
-        value={value}
-        onChange={onChange}
-        className="font-semibold bg-card pl-2 pr-6 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-xs w-24 appearance-none"
-        aria-label="Select currency"
-    >
-        {sortedCurrencies.pinned.length > 0 && (
-            <optgroup label="Pinned">
-                {sortedCurrencies.pinned.map(([code, name]) => (
-                    <option key={code as string} value={code as string}>{`${code}`}</option>
+}> = ({ id, label, value, onChange, sortedCurrencies }) => (
+    <div className="flex items-center gap-2">
+        <label htmlFor={id} className="text-[11px] font-medium text-muted-foreground w-10">{label}</label>
+        <select
+            id={id}
+            value={value}
+            onChange={onChange}
+            className="font-semibold bg-card pl-2 pr-6 py-1 rounded-md text-card-foreground border border-border focus:ring-ring focus:border-ring text-xs w-24 appearance-none"
+            aria-label={`Select ${label} currency`}
+        >
+            {sortedCurrencies.pinned.length > 0 && (
+                <optgroup label="Pinned">
+                    {sortedCurrencies.pinned.map(([code, name]) => (
+                        <option key={code as string} value={code as string}>{`${code}`}</option>
+                    ))}
+                </optgroup>
+            )}
+            <optgroup label="All Currencies">
+                {sortedCurrencies.others.map(([code, name]) => (
+                    <option key={code} value={code}>{`${code}`}</option>
                 ))}
             </optgroup>
-        )}
-        <optgroup label="All Currencies">
-            {sortedCurrencies.others.map(([code, name]) => (
-                <option key={code} value={code}>{`${code}`}</option>
-            ))}
-        </optgroup>
-    </select>
+        </select>
+    </div>
 );
 
 
@@ -92,15 +96,15 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
         <>
             <header className={`fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
                <div className="w-full max-w-xl mx-auto px-4 py-2">
-                    <Link href="/" className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3" onClick={() => dispatch({ type: 'RESET', payload: null })}>
                             <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
                             <div>
                                 <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
                                 <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
                             </div>
                         </div>
-                    </Link>
+                    </div>
 
                     <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-1 bg-muted p-1 rounded-lg">
@@ -118,23 +122,29 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                             </button>
                         </div>
                         
-                        <div className="flex items-center gap-2 text-sm">
-                            <CurrencySelector
-                                id="base-currency-select"
-                                value={baseCurrency}
-                                onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
-                                sortedCurrencies={sortedCurrencies}
-                            />
-                            <ArrowRightLeft size={14} className="text-muted-foreground flex-shrink-0"/>
-                            <CurrencySelector
-                                id="display-currency-select"
-                                value={displayCurrency}
-                                onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
-                                sortedCurrencies={sortedCurrencies}
-                            />
+                        <div className="flex items-center gap-1">
+                            <div className="flex flex-col gap-1 relative items-center">
+                                <CurrencySelector
+                                    id="base-currency-select"
+                                    label="Bill"
+                                    value={baseCurrency}
+                                    onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
+                                    sortedCurrencies={sortedCurrencies}
+                                />
+                                <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 my-1.5 h-4 w-4 flex items-center justify-center text-muted-foreground/60 z-10 bg-background rounded-full">
+                                     <ArrowDown size={12} />
+                                </div>
+                                <CurrencySelector
+                                    id="display-currency-select"
+                                    label="Display"
+                                    value={displayCurrency}
+                                    onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
+                                    sortedCurrencies={sortedCurrencies}
+                                />
+                            </div>
                             <button 
                                 onClick={() => setIsModalOpen(true)}
-                                className="p-1.5 rounded-full text-muted-foreground hover:bg-muted transition-colors"
+                                className="p-1.5 self-stretch rounded-lg text-muted-foreground hover:bg-muted transition-colors"
                                 aria-label="Manage pinned currencies"
                                 title="Manage pinned currencies"
                             >
