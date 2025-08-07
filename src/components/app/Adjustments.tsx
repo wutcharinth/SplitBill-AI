@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useState } from 'react';
@@ -46,7 +47,7 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
 
 
 const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, discount, taxes, tip, billTotal, splitMode } = state;
+  const { items, discount, taxes, tip, billTotal, splitMode, tipSplitMode } = state;
   const [showTipInput, setShowTipInput] = useState(state.tip > 0);
   const [showDiscountInput, setShowDiscountInput] = useState(state.discount.value > 0);
 
@@ -301,17 +302,34 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
             {showTipInput ? (
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex justify-between items-center mb-1">
-                        <h4 className="font-semibold text-xs text-gray-800">Tip Amount</h4>
+                        <h4 className="font-semibold text-xs text-gray-800">Tip</h4>
                          <button onClick={() => { setShowTipInput(false); dispatch({ type: 'UPDATE_TIP', payload: 0 }); }} className="text-gray-500 hover:text-gray-700" aria-label="Cancel tip">
                             <X size={16} />
                         </button>
                     </div>
-                    <AdjustmentRow label="Add a tip">
+                    <AdjustmentRow label="Amount">
                          <div className="flex items-center">
                             <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
                             <input type="number" value={(tip * fxRate).toFixed(2)} onChange={e => dispatch({ type: 'UPDATE_TIP', payload: Number(e.target.value) / fxRate })} className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs" />
                         </div>
                     </AdjustmentRow>
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                        <label className="font-semibold text-gray-700 text-xs mb-2 block">Split Method</label>
+                        <div className="flex items-center justify-center space-x-2 bg-gray-200 p-1 rounded-lg">
+                            <button
+                                onClick={() => dispatch({ type: 'UPDATE_TIP_SPLIT_MODE', payload: 'proportionally' })}
+                                className={`w-full py-1 px-2 rounded-md text-xs font-medium transition-all duration-200 ${tipSplitMode === 'proportionally' ? 'bg-white shadow text-gray-800' : 'text-gray-600'}`}
+                            >
+                                Proportionally
+                            </button>
+                            <button
+                                onClick={() => dispatch({ type: 'UPDATE_TIP_SPLIT_MODE', payload: 'equally' })}
+                                className={`w-full py-1 px-2 rounded-md text-xs font-medium transition-all duration-200 ${tipSplitMode === 'equally' ? 'bg-white shadow text-gray-800' : 'text-gray-600'}`}
+                            >
+                                Equally
+                            </button>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <button 

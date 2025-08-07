@@ -142,6 +142,7 @@ export default function App() {
             },
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
+            tipSplitMode: 'proportionally',
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
             restaurantName: data?.restaurantName || '',

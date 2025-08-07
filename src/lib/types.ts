@@ -38,6 +38,7 @@ export interface BillData {
   };
   discount: Discount;
   tip: number;
+  tipSplitMode: 'proportionally' | 'equally';
   billTotal: number;
   baseCurrency: string;
   restaurantName: string;

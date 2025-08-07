@@ -113,7 +113,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     }, []);
 
     const {
-        items, people, discount, taxes, tip, billTotal,
+        items, people, discount, taxes, tip, tipSplitMode, billTotal,
         splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
         restaurantName, billDate, qrCodeImage, notes,
         includeReceiptInSummary, uploadedReceipt
@@ -275,7 +275,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 const personAdjustment = proportionOfBill * adjustment;
 
                 const totalWithoutTip = personSub - personGlobalDiscount + personServiceCharge + personVat + personOtherTax + personAdjustment;
-                const personTip = proportionOfBill * tip;
+                const personTip = tipSplitMode === 'equally' ? tip / people.length : proportionOfBill * tip;
                 const total = totalWithoutTip + personTip;
 
                 return {
@@ -294,12 +294,13 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 };
             });
         } else { // Evenly
-            const perPersonTotal = calculations.grandTotalWithTip / peopleCountEvenly;
+            const totalPerPerson = calculations.grandTotal / peopleCountEvenly;
+            const tipPerPerson = tip / peopleCountEvenly;
             for(let i=0; i < peopleCountEvenly; i++) {
                 perPersonData.push({ 
                     id: `even-${i}`, 
                     name: `P${i+1}`, 
-                    total: perPersonTotal, 
+                    total: totalPerPerson + tipPerPerson, 
                     color: PERSON_COLORS[i % PERSON_COLORS.length]
                 });
             }
