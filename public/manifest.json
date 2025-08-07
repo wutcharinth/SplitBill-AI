@@ -2,32 +2,26 @@
   "name": "SplitBill AI",
   "short_name": "SplitBill",
   "description": "Easily split bills and expenses with the power of AI. Snap a receipt and let us do the rest.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#f2f4f7",
-  "theme_color": "#4681f4",
   "icons": [
     {
-      "src": "https://i.postimg.cc/x1mkMHxS/image.png",
+      "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://i.postimg.cc/x1mkMHxS/image.png",
+      "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "https://i.postimg.cc/x1mkMHxS/image.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "https://i.postimg.cc/x1mkMHxS/image.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+        "src": "/maskable_icon.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
     }
-  ]
+  ],
+  "theme_color": "#4681f4",
+  "background_color": "#f2f4f7",
+  "display": "standalone",
+  "start_url": "/"
 }

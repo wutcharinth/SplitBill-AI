@@ -8,6 +8,7 @@ import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
 import Header from './Header';
 import SetupPage from './SetupPage';
+import Link from 'next/link';
 
 const getFxRateApi = async (from: string, to: string): Promise<{rate: number, date: string} | null> => {
     if (!from || !to || from.toUpperCase() === to.toUpperCase()) {
@@ -350,6 +351,13 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 <span>Start Over</span>
               </button>
             </div>
+            <footer className="text-center pt-6 text-xs text-muted-foreground">
+                <div className="flex justify-center space-x-4">
+                    <Link href="/terms" target="_blank" className="underline hover:text-primary">Terms</Link>
+                    <Link href="/privacy" target="_blank" className="underline hover:text-primary">Privacy</Link>
+                    <Link href="/cookies" target="_blank" className="underline hover:text-primary">Cookies</Link>
+                </div>
+            </footer>
         </main>
     </div>
   );

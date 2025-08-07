@@ -11,7 +11,7 @@ import Loader from './Loader';
 import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
-import { useUsage } from '../hooks/useUsageTracker';
+import Link from 'next/link';
 
 const fileToBase64 = (file: File | Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -57,6 +57,7 @@ export default function App() {
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
+    const [consentGiven, setConsentGiven] = useState(false);
     
     const handleFileChange = async (file: File | null) => {
         if (!file) return;
@@ -128,6 +129,23 @@ export default function App() {
         setErrorMessage('');
     };
 
+    const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost' }) => {
+        const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
+        const typeClasses = {
+            primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
+            secondary: 'bg-card text-card-foreground border border-border hover:bg-muted hover:shadow-lg hover:scale-105',
+            ghost: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg hover:scale-105'
+        };
+        const disabledClasses = "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none";
+
+        return (
+            <button id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses}`}>
+                {icon}
+                <span>{text}</span>
+            </button>
+        )
+    }
+
     const renderContent = () => {
         switch (view) {
             case 'loading':
@@ -148,23 +166,63 @@ export default function App() {
                             <p className="text-gray-600 mt-1 mb-6 text-base font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
-                                <label htmlFor="camera-upload" className="cursor-pointer group flex items-center justify-center space-x-3 w-full bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg transition-all transform hover:bg-primary/90 hover:shadow-lg hover:scale-105">
-                                    <Camera size={20} />
-                                    <span>Take a Picture</span>
+                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                    <ActionButton
+                                        disabled={!consentGiven}
+                                        icon={<Camera size={20} />}
+                                        text="Take a Picture"
+                                    />
                                 </label>
-                                <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} />
+                                <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
                                 
-                                <label htmlFor="file-upload" className="cursor-pointer group flex items-center justify-center space-x-3 w-full bg-card text-card-foreground font-bold py-3 px-6 rounded-lg border border-border transition-all transform hover:bg-muted hover:shadow-lg hover:scale-105">
-                                    <Upload size={20} />
-                                    <span>Upload from Library</span>
+                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                    <ActionButton
+                                        disabled={!consentGiven}
+                                        icon={<Upload size={20} />}
+                                        text="Upload from Library"
+                                        type="secondary"
+                                    />
                                 </label>
-                                <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} />
+                                <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
 
-                                <button onClick={handleStartManual} className="group flex items-center justify-center space-x-3 w-full bg-secondary text-secondary-foreground font-bold py-3 px-6 rounded-lg transition-all transform hover:bg-secondary/80 hover:shadow-lg hover:scale-105">
-                                    <PlusCircle size={20} />
-                                    <span>Start without Receipt</span>
-                                </button>
+                                <ActionButton
+                                    onClick={handleStartManual}
+                                    disabled={!consentGiven}
+                                    icon={<PlusCircle size={20} />}
+                                    text="Start without Receipt"
+                                    type="ghost"
+                                />
                             </div>
+                            
+                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="flex items-start space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="consent"
+                                        checked={consentGiven}
+                                        onChange={(e) => setConsentGiven(e.target.checked)}
+                                        className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary border-gray-300"
+                                    />
+                                    <label htmlFor="consent" className="text-xs text-gray-500 text-left">
+                                        I have read and agree to the{' '}
+                                        <Link href="/terms" target="_blank" className="underline text-primary hover:text-primary/80">
+                                            Terms of Service
+                                        </Link>{' '}
+                                        and{' '}
+                                        <Link href="/privacy" target="_blank" className="underline text-primary hover:text-primary/80">
+                                            Privacy Policy
+                                        </Link>.
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <footer className="text-center pt-6 text-xs text-muted-foreground">
+                                <div className="flex justify-center space-x-4">
+                                    <Link href="/terms" target="_blank" className="underline hover:text-primary">Terms</Link>
+                                    <Link href="/privacy" target="_blank" className="underline hover:text-primary">Privacy</Link>
+                                    <Link href="/cookies" target="_blank" className="underline hover:text-primary">Cookies</Link>
+                                </div>
+                            </footer>
                         </div>
                     </div>
                 );

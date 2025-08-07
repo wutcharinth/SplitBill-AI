@@ -2,7 +2,6 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { Inter, Space_Grotesk } from 'next/font/google'
-import { UsageProvider } from '@/components/hooks/useUsageTracker';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,8 +20,8 @@ export const metadata: Metadata = {
   description: 'Easily split bills and expenses with the power of AI. Snap a receipt and let us do the rest.',
   manifest: '/manifest.json',
   icons: {
-    icon: 'https://i.postimg.cc/x1mkMHxS/image.png',
-    apple: 'https://i.postimg.cc/x1mkMHxS/image.png',
+    icon: '/icon.svg',
+    apple: '/apple-touch-icon.png',
   }
 };
 
@@ -37,10 +36,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#4681f4" />
       </head>
       <body className="font-sans antialiased bg-slate-100">
-        <UsageProvider>
           {children}
           <Toaster />
-        </UsageProvider>
       </body>
     </html>
   );
