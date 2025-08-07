@@ -18,7 +18,7 @@ interface SetupPageProps {
 
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       
       <div className="sticky-reconciliation-container z-30">
         <Reconciliation state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
@@ -65,7 +65,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
       )}
 
       <div className="bg-card rounded-xl shadow-card p-4 sm:p-5" id="adjustments-section">
-        <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Adjustments</h2>
+        <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Review & Adjust</h2>
         <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
       </div>
     </div>
