@@ -62,8 +62,9 @@ const comparisonData = [
 
 export default function AboutPage() {
     return (
-        <PolicyPageLayout title="The Smartest Way to Split Bills" disableHeaderLink={true}>
-            <div className="text-center">
+        <PolicyPageLayout title="" disableHeaderLink={true}>
+            <div className="text-center mb-12">
+                 <h1 className="text-3xl md:text-4xl font-bold font-headline mb-4 text-foreground">The <span className="text-primary">Smartest</span> Way to Split Bills</h1>
                 <p className="text-muted-foreground max-w-3xl mx-auto text-base leading-relaxed">
                     Tired of the <strong>awkward shuffle with calculators</strong> and crumpled receipts after a great meal with friends? SplitBill AI transforms that headache into a seamless, quick, and even fun experience. Just <strong>snap a photo of any receipt</strong>, and let our powerful AI do the heavy lifting. It intelligently extracts every item, translates foreign languages on the fly, and gets everything ready for a <strong>fair and easy split</strong>. No more manual entry, no more guesswork—just pure convenience.
                 </p>

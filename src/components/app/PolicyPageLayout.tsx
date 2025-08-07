@@ -44,7 +44,7 @@ const PolicyPageLayout = ({ title, children, disableHeaderLink = false }: { titl
             </header>
             <main className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
-                    <h1 className="text-3xl font-bold font-headline mb-4 text-foreground">{title}</h1>
+                    {title && <h1 className="text-3xl font-bold font-headline mb-4 text-foreground">{title}</h1>}
                     <div className="prose prose-sm md:prose-base max-w-none text-foreground">
                         {children}
                     </div>
