@@ -65,7 +65,6 @@ async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
         return null;
     }
     
-    // The library doesn't handle font fetching well on mobile, so we need to embed it
     const font = await fetch('/Inter.woff2').then(res => res.blob());
     const fontCSS = `@font-face { font-family: 'Inter'; src: url('${URL.createObjectURL(font)}') format('woff2'); }`;
 
@@ -74,15 +73,17 @@ async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
         const dataUrl = await toPng(element, {
             quality: 1.0,
             pixelRatio: 2.5,
-            backgroundColor: '#f2f4f7', // --background HSL
+            backgroundColor: '#f2f4f7',
             cacheBust: true,
             fontEmbedCSS: fontCSS,
-            // Fetch images and convert them to data URIs to embed them
-            fetchRequestInit: {
-                // This helps with CORS issues, especially for fonts or images from other domains
-                headers: new Headers({
-                    'Access-Control-Allow-Origin': '*'
-                }),
+            filter: (node: HTMLElement) => {
+                // This filter helps prevent issues with complex or problematic elements.
+                // For example, filtering out external images if they cause CORS issues.
+                if (node.tagName === 'IMG' && node.src.startsWith('http')) {
+                    // You could choose to return false here to exclude certain images
+                    // but for now, we allow them and rely on the library's handling.
+                }
+                return true;
             },
         });
         const blob = await (await fetch(dataUrl)).blob();
@@ -583,3 +584,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
