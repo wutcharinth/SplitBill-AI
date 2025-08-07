@@ -4,11 +4,11 @@ import Link from 'next/link';
 
 const PolicyFooterNavigation = () => (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-        <Link href="/about" className="underline hover:text-primary">About</Link>
-        <Link href="/terms" className="underline hover:text-primary">Terms</Link>
-        <Link href="/privacy" className="underline hover:text-primary">Privacy</Link>
-        <Link href="/cookies" className="underline hover:text-primary">Cookies</Link>
-        <Link href="/contact" className="underline hover:text-primary">Contact</Link>
+        <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">About</Link>
+        <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">Terms</Link>
+        <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">Privacy</Link>
+        <Link href="/cookies" className="text-muted-foreground hover:text-primary transition-colors">Cookies</Link>
+        <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link>
     </div>
 );
 
