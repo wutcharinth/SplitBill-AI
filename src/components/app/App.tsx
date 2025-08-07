@@ -129,7 +129,7 @@ export default function App() {
         setErrorMessage('');
     };
 
-    const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost' }) => {
+    const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType }) => {
         const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
         const typeClasses = {
             primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
@@ -139,10 +139,10 @@ export default function App() {
         const disabledClasses = "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none";
 
         return (
-            <button id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses}`}>
+            <Component id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses}`}>
                 {icon}
                 <span>{text}</span>
-            </button>
+            </Component>
         )
     }
 
@@ -167,7 +167,8 @@ export default function App() {
                             
                             <div className="space-y-3">
                                 <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
-                                    <ActionButton
+                                     <ActionButton
+                                        as="div"
                                         disabled={!consentGiven}
                                         icon={<Camera size={20} />}
                                         text="Take a Picture"
@@ -177,6 +178,7 @@ export default function App() {
                                 
                                 <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
                                     <ActionButton
+                                        as="div"
                                         disabled={!consentGiven}
                                         icon={<Upload size={20} />}
                                         text="Upload from Library"
@@ -216,11 +218,11 @@ export default function App() {
                                 </div>
                             </div>
                             
-                            <footer className="text-center pt-6 text-xs text-muted-foreground">
-                                <div className="flex justify-center space-x-4">
-                                    <Link href="/terms" target="_blank" className="underline hover:text-primary">Terms</Link>
-                                    <Link href="/privacy" target="_blank" className="underline hover:text-primary">Privacy</Link>
-                                    <Link href="/cookies" target="_blank" className="underline hover:text-primary">Cookies</Link>
+                            <footer className="text-center pt-4 text-xs text-muted-foreground">
+                                <div className="flex justify-center space-x-3">
+                                    <Link href="/terms" target="_blank" className="underline hover:text-primary text-[10px]">Terms</Link>
+                                    <Link href="/privacy" target="_blank" className="underline hover:text-primary text-[10px]">Privacy</Link>
+                                    <Link href="/cookies" target="_blank" className="underline hover:text-primary text-[10px]">Cookies</Link>
                                 </div>
                             </footer>
                         </div>
