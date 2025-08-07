@@ -36,7 +36,7 @@ const ExtractReceiptDataOutputSchema = z.object({
   ).describe('The list of items extracted from the receipt. If the item name is not in English, provide an English translation.'),
   total: z.number().describe('The total amount due on the receipt.'),
   restaurantName: z.string().optional().describe('The name of the restaurant.'),
-  date: z.string().optional().describe('The date of the receipt (e.g., YYYY-MM-DD).'),
+  date: z.string().optional().describe('The date of the receipt in YYYY-MM-DD format. Find this date on the receipt.'),
   discount: z.number().optional().describe('The total discount amount on the receipt. This should be a positive number.'),
   currency: z.string().optional().describe('The currency of the receipt (e.g., USD, EUR, THB).'),
   serviceCharge: taxSchema.optional().describe('The service charge, if present. Look for terms like "Service Charge", "S.C.", etc.'),
@@ -55,7 +55,7 @@ const prompt = ai.definePrompt({
   output: {schema: ExtractReceiptDataOutputSchema},
   prompt: `You are an expert financial assistant specializing in extracting and translating data from receipts.
 
-You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name and the date of the transaction.
+You will use this information to extract the items, their prices, and the total amount due on the receipt. Also extract the restaurant name and the date of the transaction. If a date is present, you MUST extract it.
 
 Crucially, you MUST determine the currency. If no currency symbol is present, infer it from the language on the receipt or other contextual clues (e.g., Thai text implies THB).
 
