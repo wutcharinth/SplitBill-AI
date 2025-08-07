@@ -67,27 +67,19 @@ async function generateImage(element: HTMLElement, filename: string) {
     }
     
     element.classList.add('capturing');
+
+    // Add a delay to ensure images are loaded
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     try {
         const dataUrl = await toPng(element, {
             quality: 0.95,
-            pixelRatio: 2.5,
+            pixelRatio: 2.0, // Reduced from 2.5 to optimize size and performance
             style: {
-                // Ensure fonts are loaded
                 fontFamily: "'Inter', sans-serif",
             },
-            // Filter out problematic elements if any
-             filter: (node: HTMLElement) => {
-                if (node.tagName?.toLowerCase() === 'script') {
-                    return false;
-                }
-                // A better check for external images that might cause taint issues
-                if (node.tagName?.toLowerCase() === 'img' && (node as HTMLImageElement).src.startsWith('http')) {
-                    // This is a simplified check. A more robust solution might involve
-                    // fetching images and converting to data URIs if possible.
-                    // For now, we skip external images if they cause issues.
-                    // Let's assume the library can handle it if CORS is correct.
-                }
-                return true;
+            filter: (node: HTMLElement) => {
+                return node.tagName?.toLowerCase() !== 'script';
             }
         });
 
@@ -570,6 +562,8 @@ export default Summary;
     
 
 
+
+    
 
     
 
