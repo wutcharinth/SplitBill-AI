@@ -135,3 +135,14 @@
 .shadow-card {
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
+
+.sticky-reconciliation-container {
+    position: sticky;
+    top: 130px;
+}
+
+@media (max-width: 768px) {
+    .sticky-reconciliation-container {
+        top: 160px;
+    }
+}

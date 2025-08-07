@@ -5,6 +5,7 @@ import SplitModeToggle from './SplitModeToggle';
 import ManagePeople from './ManagePeople';
 import ItemAssignment from './ItemAssignment';
 import Adjustments from './Adjustments';
+import Reconciliation from './Reconciliation';
 import { SplitMode } from '../types';
 
 interface SetupPageProps {
@@ -18,6 +19,11 @@ interface SetupPageProps {
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   return (
     <div className="space-y-4">
+      
+      <div className="sticky-reconciliation-container z-30">
+        <Reconciliation state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
+      </div>
+
       <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
         <h2 className="text-base font-bold mb-4 text-primary font-headline">1. Split Mode</h2>
         <SplitModeToggle mode={state.splitMode} setMode={(mode: SplitMode) => dispatch({ type: 'SET_SPLIT_MODE', payload: mode })} />
@@ -58,8 +64,8 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
         </div>
       )}
 
-      <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-        <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Adjustments &amp; Reconciliation</h2>
+      <div className="bg-card rounded-xl shadow-card p-4 sm:p-5" id="adjustments-section">
+        <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Adjustments</h2>
         <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
       </div>
     </div>
