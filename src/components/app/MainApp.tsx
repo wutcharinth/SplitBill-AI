@@ -351,7 +351,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 <span>Start Over</span>
               </button>
             </div>
-            <footer className="text-center pt-6 text-xs text-muted-foreground">
+            <footer className="text-center pt-6 mt-4 text-xs text-muted-foreground">
                 <div className="flex justify-center space-x-4">
                     <Link href="/about" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
                     <Link href="/terms" target="_blank" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms</Link>
