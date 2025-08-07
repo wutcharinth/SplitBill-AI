@@ -238,6 +238,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     const absAdjustment = Math.abs(adjustment);
                     const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
                     const isReconciled = absAdjustment < 0.01;
+                    const matchPercentage = billTotal > 0 ? (1 - absAdjustment / billTotal) * 100 : 100;
                     
                     if (isReconciled) {
                         return (
@@ -247,6 +248,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                                     <h4 className="font-bold text-green-800 text-sm">Perfect Match!</h4>
                                     <p className="text-xs text-green-700 mt-1">
                                         The calculated total matches the bill total from the receipt.
+                                        (<strong className="font-mono">{matchPercentage.toFixed(2)}% Match</strong>)
                                     </p>
                                 </div>
                             </div>
@@ -261,11 +263,14 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                                     <h4 className="font-bold text-green-800 text-sm">Almost There!</h4>
                                     <p className="text-xs text-green-700 mt-1">
                                         The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
+                                        (<strong className="font-mono">{matchPercentage.toFixed(2)}% Match</strong>)
                                     </p>
                                 </div>
                             </div>
                         )
                     }
+                    
+                    const matchClass = matchPercentage > 99 ? 'text-green-700' : 'text-yellow-700';
 
                     if (adjustment > 0) { // Shortfall
                         return (
@@ -275,6 +280,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                                     <h4 className="font-bold text-yellow-800 text-sm">Shortfall Detected</h4>
                                     <p className="text-xs text-yellow-700 mt-1">
                                         Difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be split among everyone.
+                                        (<strong className={`font-mono ${matchClass}`}>{matchPercentage.toFixed(2)}% Match</strong>)
                                     </p>
                                 </div>
                             </div>
@@ -289,6 +295,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                                 <h4 className="font-bold text-indigo-800 text-sm">Surplus Found!</h4>
                                 <p className="text-xs text-indigo-700 mt-1">
                                     Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
+                                    (<strong className={`font-mono ${matchClass}`}>{matchPercentage.toFixed(2)}% Match</strong>)
                                 </p>
                             </div>
                         </div>
