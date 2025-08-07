@@ -64,7 +64,7 @@ export default function App() {
         if (!file) return;
 
         if (!canUse) {
-            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please sign in to continue.`);
+            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please try again next month.`);
             setView('error');
             return;
         }
@@ -98,7 +98,7 @@ export default function App() {
 
     const handleStartManual = () => {
         if (!canUse) {
-            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please sign in to continue.`);
+            setErrorMessage(`You have reached your monthly limit of ${USAGE_LIMIT} receipt scans. Please try again next month.`);
             setView('error');
             return;
         }
@@ -180,9 +180,6 @@ export default function App() {
                             </div>
                                 <div className="mt-6 text-center text-sm text-gray-500">
                                     <p>You have {USAGE_LIMIT - monthlyUses} free scans remaining this month.</p>
-                                    <Button variant="link" className="text-agoda-blue">
-                                        Sign in for unlimited scans
-                                    </Button>
                                 </div>
                         </div>
                     </div>
