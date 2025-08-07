@@ -9,13 +9,13 @@ export default function TermsOfServicePage() {
             <p className='text-sm text-muted-foreground'>Effective Date: August 7, 2025</p>
             <div className="mt-6 space-y-4 text-foreground">
                 <p>By downloading, accessing, or using the Split Bill AI mobile application (the "App") or its official website https://splitbill-ai.com (the "Website"), you agree to these Terms of Service ("Terms"). The App and Website are collectively referred to as the "Service."</p>
-                <p className="font-bold uppercase">THIS SERVICE IS AN EXPERIMENTAL PROTOTYPE PROVIDED "AS IS" AND "AS AVAILABLE." USE IT ENTIRELY AT YOUR OWN RISK.</p>
+                <p className="font-bold uppercase">THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE." USE IT ENTIRELY AT YOUR OWN RISK.</p>
                 
                 <h2 className="text-xl font-bold font-headline pt-4">1. Description of Service</h2>
-                <p>Split Bill AI is an <strong>experimental tool</strong>. It is not a commercial product.</p>
+                <p>Split Bill AI is a tool designed to help users split bills and expenses. The features and functionalities are subject to change at any time without notice.</p>
 
-                <h2 className="text-xl font-bold font-headline pt-4">2. No Support or Maintenance</h2>
-                <p>The Service is provided <strong>without any promise of support, maintenance, or technical assistance</strong>. I am under no obligation to provide updates, fix bugs, or respond to general help requests. The contact email is provided for legal and privacy-related inquiries only.</p>
+                <h2 className="text-xl font-bold font-headline pt-4">2. Support and Maintenance</h2>
+                <p>The Service is provided without any promise of guaranteed support, maintenance, or technical assistance. While I aim to provide a reliable experience, I am under no obligation to provide updates, fix bugs, or respond to general help requests.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">3. User-Generated Content</h2>
                 <p>You are <strong>solely responsible for Your Content</strong>. By uploading it, you grant me a license to use it solely for the purpose of operating and providing the Service to you.</p>
@@ -27,16 +27,16 @@ export default function TermsOfServicePage() {
                 <p>The Service <strong>DOES NOT process payments</strong>. I take no responsibility for any financial transactions.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">6. DISCLAIMER OF WARRANTIES</h2>
-                <p>THE SERVICE IS PROVIDED <strong>"AS IS" WITHOUT ANY WARRANTY OF ANY KIND</strong>. I DO NOT WARRANT THAT THE SERVICE WILL BE <strong>ACCURATE, RELIABLE, OR ERROR-FREE</strong>.</p>
+                <p>THE SERVICE IS PROVIDED <strong>"AS IS" WITHOUT ANY WARRANTY OF ANY KIND</strong>. <strong>I DO NOT WARRANT THAT THE SERVICE WILL BE ACCURATE, RELIABLE, OR ERROR-FREE.</strong></p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">7. LIMITATION OF LIABILITY</h2>
-                <p>IN NO EVENT SHALL I (THE DEVELOPER) BE LIABLE FOR ANY <strong>DIRECT, INDIRECT, PUNITIVE, INCIDENTAL, OR CONSEQUENTIAL DAMAGES</strong> WHATSOEVER ARISING OUT OF THE USE OF THE SERVICE.</p>
+                <p><strong>IN NO EVENT SHALL I (THE DEVELOPER) BE LIABLE</strong> FOR ANY DIRECT, INDIRECT, PUNITIVE, INCIDENTAL, OR CONSEQUENTIAL DAMAGES WHATSOEVER ARISING OUT OF THE USE OF THE SERVICE.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">8. Indemnification</h2>
                 <p>You agree to <strong>defend and indemnify me</strong> (the developer) from any and all claims, damages, and expenses arising from your use of the Service or your violation of these Terms.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">9. Changes to These Terms</h2>
-                <p>I reserve the right to modify these Terms. The most current version will be at <strong>https://splitbill-ai.com/terms</strong>.</p>
+                <p>I reserve the right to modify these Terms at any time. The most current version will always be available at <strong>https://splitbill-ai.com/terms</strong>. By continuing to use the Service after changes are made, you agree to be bound by the revised Terms.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">10. Governing Law</h2>
                 <p>These Terms shall be governed by the laws of Thailand.</p>
