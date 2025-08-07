@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Download, X, QrCode, Share2 } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toPng } from 'html-to-image';
@@ -103,6 +103,14 @@ async function generateImageBlob(element: HTMLElement): Promise<Blob | null> {
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkIsMobile = () => {
+            setIsMobile(/Mobi/i.test(window.navigator.userAgent));
+        };
+        checkIsMobile();
+    }, []);
 
     const {
         items, people, discount, taxes, tip, billTotal,
@@ -157,7 +165,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             text: `Here is the bill summary for ${restaurantName}.`,
         };
 
-        const canShare = navigator.canShare && navigator.canShare(shareData);
+        const canShare = isMobile && navigator.canShare && navigator.canShare(shareData);
 
         if (canShare) {
             try {
@@ -165,13 +173,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 fireConfetti();
             } catch (err) {
                 console.error('Share failed:', err);
-                // Fallback to download if user cancels share dialog on some platforms
-                const dataUrl = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = filename;
-                link.href = dataUrl;
-                link.click();
-                URL.revokeObjectURL(dataUrl);
             }
         } else {
              const dataUrl = URL.createObjectURL(blob);
@@ -557,7 +558,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
              <div className="mt-4 grid grid-cols-1 gap-3">
                 <button onClick={handleShareSummary} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
                     <Share2 size={18} />
-                    <span>Share Summary</span>
+                    <span>{isMobile ? 'Share Summary' : 'Download Summary'}</span>
                 </button>
             </div>
         </div>

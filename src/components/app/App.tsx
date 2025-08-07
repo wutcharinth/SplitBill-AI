@@ -4,14 +4,13 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Camera, Upload, PlusCircle } from 'lucide-react';
 import { parseReceipt } from '../services/geminiService';
 import { BillData, Person } from '../types';
-import { ALLOWED_CURRENCIES, PERSON_COLORS } from '../constants';
+import { ALLOWED_CURRENCIES, PERSON_COLORS, COUNTRY_CURRENCY_MAP, CURRENCIES } from '../constants';
 import MainApp from './MainApp';
 import Loader from './Loader';
 import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 import { useUsage } from '../hooks/useUsageTracker';
-import { Button } from '../ui/button';
 
 const fileToBase64 = (file: File | Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -28,6 +27,27 @@ const fileToBase64 = (file: File | Blob): Promise<string> => {
         };
         reader.onerror = error => reject(error);
     });
+};
+
+const getCurrencyFromLocale = (): string => {
+    try {
+        const locale = navigator.language; // e.g., "en-US"
+        if (locale) {
+            const region = locale.split('-')[1]?.toUpperCase();
+            if (region) {
+                const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(region);
+                if (countryName && COUNTRY_CURRENCY_MAP[countryName]) {
+                    const currencyCode = COUNTRY_CURRENCY_MAP[countryName];
+                    if (CURRENCIES[currencyCode]) {
+                        return currencyCode;
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Could not determine currency from locale", e);
+    }
+    return 'USD'; // Fallback
 };
 
 
@@ -111,7 +131,9 @@ export default function App() {
 
     const processParsedData = (data: ExtractReceiptDataOutput | null) => {
         const detectedCurrency = data?.currency?.toUpperCase();
-        const baseCurrency = (detectedCurrency && ALLOWED_CURRENCIES[detectedCurrency]) ? detectedCurrency : 'USD';
+        const baseCurrency = (detectedCurrency && ALLOWED_CURRENCIES[detectedCurrency]) 
+            ? detectedCurrency 
+            : getCurrencyFromLocale();
         
         const initialPeople: Person[] = [
             { id: `p${Date.now()}-1`, name: 'P1', color: PERSON_COLORS[0] },
