@@ -139,11 +139,11 @@
 
 .sticky-reconciliation-container {
     position: sticky;
-    top: 130px;
+    top: 110px;
 }
 
 @media (max-width: 768px) {
     .sticky-reconciliation-container {
-        top: 178px; /* Increased top margin for mobile */
+        top: 158px; /* Adjusted top margin for mobile */
     }
 }
