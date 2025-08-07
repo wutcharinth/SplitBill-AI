@@ -192,11 +192,11 @@ export default function App() {
                             <div className="flex justify-center items-center mb-4">
                                <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
-                            <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
-                            <p className="text-gray-600 mt-1 mb-2 text-base font-medium">Snap. Split. Done.</p>
-                            <div className="flex items-center justify-center mb-6">
-                                 <span className="text-xs font-semibold bg-accent text-accent-foreground px-2 py-0.5 rounded-full border border-accent/30">Beta</span>
+                            <div className="relative inline-block mb-1">
+                                <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
+                                <span className="absolute -top-1 -right-2 transform translate-x-full text-[9px] font-bold bg-accent text-accent-foreground px-1.5 py-0.5 rounded-full border-2 border-background">BETA</span>
                             </div>
+                            <p className="text-gray-600 mb-6 text-base font-medium">Snap. Split. Done.</p>
                             
                             <div className="space-y-3">
                                 <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
@@ -242,7 +242,7 @@ export default function App() {
                                         <label htmlFor="consent" className="text-[11px] text-gray-500 text-left">
                                             I have read and agree to the{' '}
                                             <Link href="/terms" target="_blank" className="underline text-primary hover:text-primary/80">
-                                                Terms of Service
+                                                Terms & Policies
                                             </Link>.
                                         </label>
                                     </div>
