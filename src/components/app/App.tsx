@@ -194,7 +194,7 @@ export default function App() {
                             </div>
                             <div className="relative inline-block mb-1">
                                 <h1 className="text-2xl font-headline font-bold text-gray-800">SplitBill AI</h1>
-                                <span className="absolute -top-1 -right-8 transform translate-x-full text-[9px] font-bold bg-accent text-accent-foreground px-1.5 py-0.5 rounded-full border-2 border-background">BETA</span>
+                                <span className="absolute -top-1 -right-6 text-[9px] font-bold bg-accent text-accent-foreground px-1.5 py-0.5 rounded-full border-2 border-background">BETA</span>
                             </div>
                             <p className="text-gray-600 mb-6 text-base font-medium">Snap. Split. Done.</p>
                             
@@ -268,5 +268,3 @@ export default function App() {
         </>
     );
 }
-
-    
