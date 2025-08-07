@@ -27,7 +27,7 @@ export default function TermsOfServicePage() {
                 <p>The Service <strong>DOES NOT process payments</strong>. I take no responsibility for any financial transactions.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">6. DISCLAIMER OF WARRANTIES</h2>
-                <p>THE SERVICE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY KIND. I DO NOT WARRANT THAT THE SERVICE WILL BE <strong>ACCURATE, RELIABLE, OR ERROR-FREE</strong>.</p>
+                <p>THE SERVICE IS PROVIDED <strong>"AS IS" WITHOUT ANY WARRANTY OF ANY KIND</strong>. I DO NOT WARRANT THAT THE SERVICE WILL BE <strong>ACCURATE, RELIABLE, OR ERROR-FREE</strong>.</p>
 
                 <h2 className="text-xl font-bold font-headline pt-4">7. LIMITATION OF LIABILITY</h2>
                 <p>IN NO EVENT SHALL I (THE DEVELOPER) BE LIABLE FOR ANY <strong>DIRECT, INDIRECT, PUNITIVE, INCIDENTAL, OR CONSEQUENTIAL DAMAGES</strong> WHATSOEVER ARISING OUT OF THE USE OF THE SERVICE.</p>
