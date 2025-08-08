@@ -21,11 +21,12 @@ function AppContent() {
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
-    const [consentGiven, setConsentGiven] = useState(true);
+    const [consentGiven, setConsentGiven] = useState(false);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
 
     useEffect(() => {
+        // This code runs only on the client, after the component has mounted.
         try {
             const consent = localStorage.getItem('consent_given');
             if (consent === 'true') {
@@ -250,6 +251,10 @@ const fileToBase64 = (file: File | Blob): Promise<string> => {
 };
 
 const getCurrencyFromLocale = (): string => {
+    // This function can only be called on the client side
+    if (typeof window === 'undefined') {
+        return 'USD'; // Default fallback for server-side
+    }
     try {
         const locale = navigator.language; // e.g., "en-US"
         if (locale) {
@@ -279,3 +284,5 @@ export default function App() {
         </UsageProvider>
     )
 }
+
+    
