@@ -1,21 +1,21 @@
 {
-  "name": "BillzAI - Smart Bill Splitting",
-  "short_name": "BillzAI",
-  "description": "Snap a receipt, split the bill. The smartest way to handle expenses with friends.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#f2f4f7",
-  "theme_color": "#4681f4",
+  "short_name": "SplitBill AI",
+  "name": "SplitBill AI",
   "icons": [
     {
-      "src": "https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "https://i.postimg.cc/x1mkMHxS/image.png",
+      "type": "image/png",
+      "sizes": "192x192"
     },
     {
-      "src": "https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "https://i.postimg.cc/x1mkMHxS/image.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#4681f4",
+  "background_color": "#f2f4f7"
 }
