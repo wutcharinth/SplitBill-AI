@@ -162,7 +162,7 @@ function AppContent({ modelName }: { modelName: string }) {
                             <div className="flex flex-col justify-center items-center mb-4">
                                <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
-                            <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
+                            <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
                              <div className="space-y-4">
                                 <ActionButton

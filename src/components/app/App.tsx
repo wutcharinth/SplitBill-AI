@@ -109,6 +109,7 @@ function AppContent() {
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
             tipSplitMode: 'proportionally',
+            deposits: [],
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
             restaurantName: data?.restaurantName || '',
@@ -159,7 +160,7 @@ function AppContent() {
                                <img src="https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                                <h1 className="text-2xl font-bold text-foreground font-headline mt-2">SplitBill AI</h1>
                             </div>
-                            <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
+                            <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
                             <div className="flex flex-col">
                                 <label htmlFor="camera-upload" className={`cursor-pointer mb-3 ${!consentGiven ? 'cursor-not-allowed' : ''}`}>

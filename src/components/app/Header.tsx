@@ -161,7 +161,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                             <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
                             <div>
                                 <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
-                                <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
+                                <p className="text-xs text-muted-foreground">Snap.Split.Share!</p>
                             </div>
                         </div>
                          {user && <UserMenu user={user} />}
