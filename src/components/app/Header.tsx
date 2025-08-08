@@ -3,10 +3,26 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ALLOWED_CURRENCIES } from '../constants';
-import { ArrowRightLeft, Star, ArrowDown } from 'lucide-react';
+import { ArrowRightLeft, Star, ArrowDown, LogOut, Settings } from 'lucide-react';
 import { usePinnedCurrencies } from '../hooks/usePinnedCurrencies';
 import ManagePinnedCurrenciesModal from './ManagePinnedCurrenciesModal';
 import Link from 'next/link';
+import { User } from 'firebase/auth';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "@/components/ui/avatar"
+import { useAuth } from '@/hooks/useAuth';
+
 
 interface HeaderProps {
     activePage: 'setup' | 'summary';
@@ -59,6 +75,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
     const [isScrolled, setIsScrolled] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { pinnedCurrencies, togglePin } = usePinnedCurrencies();
+    const { user, logout } = useAuth();
 
     const { baseCurrency, displayCurrency, fxRate, fxRateDate, isFxLoading } = state;
 
@@ -93,6 +110,34 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
         return `${baseClasses} text-muted-foreground hover:bg-muted/50`;
     };
 
+    const UserMenu: React.FC<{user: User}> = ({ user }) => (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                 <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || 'User'} />
+                        <AvatarFallback>{user.displayName?.[0] || user.email?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48" align="end">
+                <DropdownMenuLabel>
+                    <p className="text-sm font-medium truncate">{user.displayName || 'Welcome!'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log Out</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+
     return (
         <>
             <header className={`fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm transition-shadow duration-300 ${isScrolled ? '' : ''}`}>
@@ -105,6 +150,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                                 <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
                             </div>
                         </div>
+                         {user && <UserMenu user={user} />}
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
