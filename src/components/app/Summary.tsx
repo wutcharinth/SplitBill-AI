@@ -483,9 +483,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     )}
 
                     <div className="mt-4 pt-4 border-t border-dashed border-border/80">
-                        <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
                             {hasQrCode && (
-                                <div className="space-y-2 text-center w-full md:w-auto">
+                                <div className="space-y-2 text-center w-full">
                                     <h4 className="text-xs font-semibold text-muted-foreground">Payment QR Code</h4>
                                     <div className="relative w-fit mx-auto">
                                         <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-full max-w-[256px] h-auto" />
