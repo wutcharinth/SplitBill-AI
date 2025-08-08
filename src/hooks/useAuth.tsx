@@ -10,8 +10,7 @@ import {
     signOut,
     User,
     GoogleAuthProvider,
-    signInWithRedirect,
-    getRedirectResult,
+    signInWithPopup,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/config';
 
@@ -33,25 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
         setUser(user);
         setLoading(false);
-      } else {
-         // Check for redirect result when the app loads
-        getRedirectResult(auth)
-          .then((result) => {
-            if (result && result.user) {
-              setUser(result.user);
-            }
-          })
-          .catch((error) => {
-            // Handle Errors here.
-            console.error("Error getting redirect result:", error);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
     });
     return () => unsubscribe();
   }, []);
@@ -77,9 +59,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogle = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();
-    // This function will navigate the user away to the Google sign-in page.
-    await signInWithRedirect(auth, provider);
-    // The result is handled by the useEffect hook when the user is redirected back.
+    provider.setCustomParameters({
+        auth_type: 'rerequest',
+        prompt: 'select_account'
+    });
+    try {
+        return await signInWithPopup(auth, provider);
+    } finally {
+        setLoading(false);
+    }
   };
 
   const logout = async () => {
