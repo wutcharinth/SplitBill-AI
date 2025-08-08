@@ -74,6 +74,18 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
            <ReconciliationDetails state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
         </div>
+        
+        {state.uploadedReceipt && (
+          <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+            <h2 className="text-base font-bold mb-4 text-primary font-headline">Original Receipt</h2>
+            <img 
+              src={`data:image/png;base64,${state.uploadedReceipt}`} 
+              alt="Uploaded Receipt"
+              className="w-full rounded-lg" 
+            />
+          </div>
+        )}
+
       </div>
     </div>
   );

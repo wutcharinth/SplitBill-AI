@@ -474,13 +474,27 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             </div>
                         </div>
                     </div>
-                    
-                    {includeReceiptInSummary && uploadedReceipt && (
-                        <div className="mt-4 pt-4 border-t-2 border-dashed border-border">
-                            <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
-                            <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" />
-                        </div>
-                    )}
+
+                    <div className="mt-4 pt-4 border-t border-dashed border-border/80">
+                      <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -mt-2 mb-2">
+                          <input
+                          type="checkbox"
+                          checked={includeReceiptInSummary}
+                          onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
+                          className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
+                          disabled={!uploadedReceipt}
+                          />
+                          <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
+                              Attach receipt image to summary
+                          </span>
+                      </label>
+                      {includeReceiptInSummary && uploadedReceipt && (
+                          <div className="mt-2">
+                              <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
+                              <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" />
+                          </div>
+                      )}
+                    </div>
 
                     <div className="mt-4 pt-4 border-t border-dashed border-border/80">
                         <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
@@ -528,21 +542,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     />
                 </div>
             </div>
-
-            <div className="mt-4 pt-4 border-t border-border/80">
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted">
-                    <input
-                    type="checkbox"
-                    checked={includeReceiptInSummary}
-                    onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
-                    className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
-                    disabled={!uploadedReceipt}
-                    />
-                    <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
-                        Attach receipt image to summary
-                    </span>
-                </label>
-            </div>
             
              <div className="mt-4 grid grid-cols-1 gap-3">
                 <Button onClick={handleShareSummary} className="w-full font-bold">
@@ -555,5 +554,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    
