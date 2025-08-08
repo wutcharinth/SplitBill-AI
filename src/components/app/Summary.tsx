@@ -64,7 +64,23 @@ const fireConfetti = () => {
     }
 };
 
-async function generateImage(element: HTMLElement, filename: string) {
+const waitForImagesToLoad = (element: HTMLElement): Promise<void[]> => {
+    const images = Array.from(element.getElementsByTagName('img'));
+    const promises = images.map(img => {
+        return new Promise<void>((resolve, reject) => {
+            if (img.complete) {
+                resolve();
+            } else {
+                img.onload = () => resolve();
+                img.onerror = () => reject(new Error(`Failed to load image: ${img.src}`));
+            }
+        });
+    });
+    return Promise.all(promises);
+};
+
+
+async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void) {
     if (!element) {
         console.error('Element for image generation not found');
         return;
@@ -72,10 +88,10 @@ async function generateImage(element: HTMLElement, filename: string) {
     
     element.classList.add('capturing');
 
-    // Add a delay to ensure images are loaded
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
     try {
+        // Wait for all images inside the summary component to load
+        await waitForImagesToLoad(element);
+
         const dataUrl = await toPng(element, {
             quality: 0.95,
             pixelRatio: 1.5,
@@ -83,7 +99,10 @@ async function generateImage(element: HTMLElement, filename: string) {
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
-                return node.tagName?.toLowerCase() !== 'script';
+                // This filter helps prevent some browser-specific rendering issues,
+                // especially in Firefox, by excluding problematic elements.
+                if (node.tagName?.toLowerCase() === 'button') return false;
+                return true;
             }
         });
 
@@ -96,7 +115,11 @@ async function generateImage(element: HTMLElement, filename: string) {
 
     } catch (err) {
         console.error('Failed to generate summary image:', err);
-        alert('Sorry, there was an error creating the summary image. Please try again.');
+        toast({
+            variant: 'destructive',
+            title: 'Image Generation Error',
+            description: 'Sorry, there was an error creating the summary image. Please try again.',
+        });
     } finally {
         element.classList.remove('capturing');
     }
@@ -105,11 +128,12 @@ async function generateImage(element: HTMLElement, filename: string) {
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
 
     const handleShareSummary = async () => {
         const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
         if (summaryRef.current) {
-            await generateImage(summaryRef.current, filename);
+            await generateImage(summaryRef.current, filename, toast);
         }
     };
     
@@ -474,26 +498,26 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             </div>
                         </div>
                     </div>
-
+                    
                     <div className="mt-4 pt-4 border-t border-dashed border-border/80">
-                      <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -mt-2 mb-2">
-                          <input
-                          type="checkbox"
-                          checked={includeReceiptInSummary}
-                          onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
-                          className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
-                          disabled={!uploadedReceipt}
-                          />
-                          <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
-                              Attach receipt image to summary
-                          </span>
-                      </label>
-                      {includeReceiptInSummary && uploadedReceipt && (
-                          <div className="mt-2">
-                              <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
-                              <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" />
-                          </div>
-                      )}
+                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -mt-2 mb-2">
+                            <input
+                            type="checkbox"
+                            checked={includeReceiptInSummary}
+                            onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
+                            className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
+                            disabled={!uploadedReceipt}
+                            />
+                            <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                Attach receipt image to summary
+                            </span>
+                        </label>
+                        {includeReceiptInSummary && uploadedReceipt && (
+                            <div className="mt-2">
+                                <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
+                                <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" />
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-dashed border-border/80">
