@@ -44,9 +44,23 @@ const CurrencySelector: React.FC<{
     value: string;
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     sortedCurrencies: { pinned: [string, string][]; others: [string, string][] };
-}> = ({ id, label, value, onChange, sortedCurrencies }) => (
+    showPinButton?: boolean;
+    onPinButtonClick?: () => void;
+}> = ({ id, label, value, onChange, sortedCurrencies, showPinButton = false, onPinButtonClick }) => (
     <div className="flex items-center gap-2">
-        <label htmlFor={id} className="text-[11px] font-medium text-muted-foreground w-10">{label}</label>
+        <div className="flex items-center justify-end w-12">
+            {showPinButton && (
+                 <button 
+                    onClick={onPinButtonClick}
+                    className="p-1 rounded-full text-muted-foreground hover:bg-muted transition-colors"
+                    aria-label="Manage pinned currencies"
+                    title="Manage pinned currencies"
+                >
+                    <Star size={14} />
+                </button>
+            )}
+            <label htmlFor={id} className="text-[11px] font-medium text-muted-foreground text-right w-full pr-1">{label}</label>
+        </div>
         <select
             id={id}
             value={value}
@@ -169,31 +183,23 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                             </button>
                         </div>
                         
-                        <div className="flex items-center">
-                            <div className="flex flex-col gap-1.5 relative items-center">
-                                <CurrencySelector
-                                    id="base-currency-select"
-                                    label="Bill"
-                                    value={baseCurrency}
-                                    onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
-                                    sortedCurrencies={sortedCurrencies}
-                                />
-                                <CurrencySelector
-                                    id="display-currency-select"
-                                    label="Display"
-                                    value={displayCurrency}
-                                    onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
-                                    sortedCurrencies={sortedCurrencies}
-                                />
-                            </div>
-                            <button 
-                                onClick={() => setIsModalOpen(true)}
-                                className="p-1.5 self-stretch rounded-lg text-muted-foreground hover:bg-muted transition-colors ml-1"
-                                aria-label="Manage pinned currencies"
-                                title="Manage pinned currencies"
-                            >
-                                <Star size={14} />
-                            </button>
+                        <div className="flex flex-col gap-1.5 relative items-center">
+                            <CurrencySelector
+                                id="base-currency-select"
+                                label="Bill"
+                                value={baseCurrency}
+                                onChange={(e) => dispatch({ type: 'SET_BASE_CURRENCY', payload: e.target.value })}
+                                sortedCurrencies={sortedCurrencies}
+                                showPinButton={true}
+                                onPinButtonClick={() => setIsModalOpen(true)}
+                            />
+                            <CurrencySelector
+                                id="display-currency-select"
+                                label="Display"
+                                value={displayCurrency}
+                                onChange={(e) => dispatch({ type: 'SET_DISPLAY_CURRENCY', payload: e.target.value })}
+                                sortedCurrencies={sortedCurrencies}
+                            />
                         </div>
                     </div>
 
