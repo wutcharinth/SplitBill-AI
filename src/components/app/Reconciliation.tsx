@@ -213,7 +213,8 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     };
 
     const getWrapperClass = () => {
-        const baseClass = "bg-card rounded-xl shadow-card p-3 sm:p-4 border backdrop-blur-sm";
+        const baseClass = "bg-card rounded-xl shadow-card p-3 sm:p-4 border";
+        
         if (totalShares === 0 && splitMode === 'item') {
             return `${baseClass} border-border`;
         }
@@ -222,12 +223,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         const isReconciled = absAdjustment < 0.01;
 
         if (isReconciled || isNearlyReconciled) {
-            return `${baseClass} border-primary/30 bg-primary/20`;
+            return `${baseClass} border-primary`;
         }
         if (adjustment > 0 || (matchPercentage < 90 && totalShares > 0)) {
-            return `${baseClass} border-yellow-500/30 bg-yellow-500/20`;
+            return `${baseClass} border-yellow-500`;
         }
-        return `${baseClass} border-accent/30 bg-accent/20`;
+        return `${baseClass} border-accent`;
     };
 
 
