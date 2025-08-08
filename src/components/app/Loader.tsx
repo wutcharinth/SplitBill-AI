@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Zap } from 'lucide-react';
 
 interface LoaderProps {
   message?: string;
@@ -69,10 +70,13 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
       <p className="mt-6 text-sm text-muted-foreground max-w-md">
           Use it for lunch, dinner, groceries, or even just to translate a foreign receipt while traveling!
       </p>
+
+      <div className="absolute bottom-6 text-xs text-muted-foreground flex items-center gap-1.5">
+        <Zap size={12} />
+        <span>Powered by Gemini 2.5 Flash</span>
+      </div>
     </div>
   );
 };
 
 export default Loader;
-
-    
