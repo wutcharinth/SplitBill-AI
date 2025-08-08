@@ -6,6 +6,7 @@ import { Zap } from 'lucide-react';
 
 interface LoaderProps {
   message?: string;
+  modelName?: string;
 }
 
 const loadingTexts = [
@@ -17,7 +18,7 @@ const loadingTexts = [
     "Almost there! Just polishing the details."
 ];
 
-const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
+const Loader: React.FC<LoaderProps> = ({ message = "Loading...", modelName }) => {
   const [dynamicText, setDynamicText] = useState(loadingTexts[0]);
   const [countdown, setCountdown] = useState(15);
 
@@ -73,7 +74,7 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
 
       <div className="absolute bottom-6 text-xs text-muted-foreground flex items-center gap-1.5">
         <Zap size={12} />
-        <span>Powered by Gemini 1.5 Flash</span>
+        <span>{modelName ? `Powered by ${modelName}` : 'Loading...'}</span>
       </div>
     </div>
   );

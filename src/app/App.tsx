@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
 
 
-function AppContent() {
+function AppContent({ modelName }: { modelName: string }) {
     const [view, setView] = useState<'upload' | 'loading' | 'main' | 'error'>('upload');
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
@@ -148,7 +148,7 @@ function AppContent() {
     const renderContent = () => {
         switch (view) {
             case 'loading':
-                return <Loader message="Analyzing receipt..." />;
+                return <Loader message="Analyzing receipt..." modelName={modelName} />;
             case 'error':
                 return <ErrorMessage message={errorMessage} onReset={handleReset} />;
             case 'main':
@@ -268,12 +268,10 @@ const getCurrencyFromLocale = (): string => {
     return 'USD'; // Fallback
 };
 
-export default function App() {
+export default function App({ modelName }: { modelName: string }) {
     return (
         <UsageProvider>
-            <AppContent />
+            <AppContent modelName={modelName} />
         </UsageProvider>
     )
 }
-
-    
