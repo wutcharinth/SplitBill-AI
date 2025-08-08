@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description: 'Easily split bills and expenses with the power of AI. Snap a receipt and let us do the rest.',
   manifest: '/manifest.json',
   icons: {
-    icon: 'https://i.postimg.cc/x1mkMHxS/image.png',
+    icon: 'https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png',
     apple: '/apple-touch-icon.png',
   }
 };

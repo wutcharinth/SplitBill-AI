@@ -144,7 +144,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                <div className="w-full max-w-xl mx-auto px-4 py-2">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3 cursor-pointer" onClick={onReset}>
-                            <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
+                            <img src="https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-10" />
                             <div>
                                 <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
                                 <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>

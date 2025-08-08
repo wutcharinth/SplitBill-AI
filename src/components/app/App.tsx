@@ -13,7 +13,6 @@ import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
-import { AuthProvider } from '@/hooks/useAuth';
 
 
 function AppContent() {
@@ -21,12 +20,11 @@ function AppContent() {
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
-    const [consentGiven, setConsentGiven] = useState(false);
+    const [consentGiven, setConsentGiven] = useState(true);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
 
     useEffect(() => {
-        // This code runs only on the client, after the component has mounted.
         try {
             const consent = localStorage.getItem('consent_given');
             if (consent === 'true') {
@@ -157,8 +155,9 @@ function AppContent() {
                 return (
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
-                            <div className="flex justify-center items-center mb-4">
-                               <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
+                            <div className="flex flex-col justify-center items-center mb-4">
+                               <img src="https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-48 w-48" />
+                               <h1 className="text-2xl font-bold text-foreground font-headline mt-2">SplitBill AI</h1>
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
                             
@@ -251,10 +250,6 @@ const fileToBase64 = (file: File | Blob): Promise<string> => {
 };
 
 const getCurrencyFromLocale = (): string => {
-    // This function can only be called on the client side
-    if (typeof window === 'undefined') {
-        return 'USD'; // Default fallback for server-side
-    }
     try {
         const locale = navigator.language; // e.g., "en-US"
         if (locale) {
@@ -278,11 +273,7 @@ const getCurrencyFromLocale = (): string => {
 export default function App() {
     return (
         <UsageProvider>
-            <AuthProvider>
-                <AppContent />
-            </AuthProvider>
+            <AppContent />
         </UsageProvider>
     )
 }
-
-    

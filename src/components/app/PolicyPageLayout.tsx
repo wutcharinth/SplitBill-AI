@@ -13,7 +13,7 @@ const PolicyFooterNavigation = () => (
 const PolicyPageLayout = ({ title, children, disableHeaderLink = false }: { title: string, children: React.ReactNode, disableHeaderLink?: boolean }) => {
     const HeaderContent = () => (
         <div className="inline-flex items-center gap-3">
-            <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-10" />
+            <img src="https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-10" />
             <div>
                 <h1 className="text-base font-bold text-foreground font-headline">SplitBill AI</h1>
                 <p className="text-xs text-muted-foreground">Snap. Split. Done.</p>
