@@ -136,9 +136,20 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
 
+    const {
+        items, people, discount, taxes, tip, tipSplitMode, billTotal,
+        splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
+        restaurantName, billDate, qrCodeImage, notes,
+        includeReceiptInSummary, uploadedReceipt
+    } = state;
+
     const handleShareSummary = async () => {
         setIsDownloading(true);
-        const filename = `SplitBill-AI-${new Date().toISOString().slice(0, 10)}.png`;
+        const now = new Date();
+        const datePart = now.toISOString().slice(0, 10);
+        const timePart = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+        const restaurantPart = restaurantName.replace(/[^a-zA-Z0-9]/g, ' ').trim().replace(/\s+/g, '-');
+        const filename = `SplitBill-AI-${datePart}${restaurantPart ? `-${restaurantPart}` : ''}-${timePart}.png`;
         if (summaryRef.current) {
             await generateImage(summaryRef.current, filename, toast);
         }
@@ -155,13 +166,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         reader.readAsDataURL(file);
         e.target.value = '';
     };
-
-    const {
-        items, people, discount, taxes, tip, tipSplitMode, billTotal,
-        splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
-        restaurantName, billDate, qrCodeImage, notes,
-        includeReceiptInSummary, uploadedReceipt
-    } = state;
 
     const baseCurrencySymbol = CURRENCIES[baseCurrency] || baseCurrency;
 
