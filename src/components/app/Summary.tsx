@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2, Mail, Lock } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail, Lock, UserPlus } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import confetti from 'canvas-confetti';
 import { toPng } from 'html-to-image';
@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { useUsage } from '@/hooks/useUsageTracker';
 import { useAuth } from '@/hooks/useAuth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const fireConfetti = () => {
@@ -119,37 +120,53 @@ async function generateImage(element: HTMLElement, filename: string) {
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
-    const [email, setEmail] = useState('');
     const { toast } = useToast();
     const { monthlyUses, USAGE_LIMIT } = useUsage();
-    const { user, login } = useAuth(); // Using placeholder auth hook
+    const { user, login, signUp } = useAuth();
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
-    const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+    const [registerEmail, setRegisterEmail] = useState('');
+    const [registerPassword, setRegisterPassword] = useState('');
+    const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+
+    useEffect(() => {
+        if(user && isAuthDialogOpen) {
+            handleShareSummary();
+            setIsAuthDialogOpen(false);
+        }
+    }, [user, isAuthDialogOpen]);
+
 
     const handleShareSummary = async () => {
         const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
         await generateImage(summaryRef.current!, filename);
     };
 
-    const handleEmailSubmit = () => {
-        // Here you would typically send the email to a backend service
-        if (email) {
-            console.log('Subscribing email:', email);
-            toast({
-                title: "You're Subscribed!",
-                description: "Thanks for signing up. We'll keep you posted on new features.",
-            });
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await login(loginEmail, loginPassword);
+            toast({ title: "Login Successful" });
+            // The useEffect will handle closing the dialog and triggering the download
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: "Login Failed", description: error.message });
         }
-        setIsEmailDialogOpen(false); // Close this dialog
-        handleShareSummary(); // Trigger download
     }
 
-    const handleLoginSubmit = (e: React.FormEvent) => {
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // This is a placeholder login. Replace with real Firebase Auth.
-        login(loginEmail, loginPassword);
-        toast({ title: "Login Successful", description: "You can now download your summary." });
+        if (registerPassword !== registerConfirmPassword) {
+            toast({ variant: 'destructive', title: "Registration Failed", description: "Passwords do not match." });
+            return;
+        }
+        try {
+            await signUp(registerEmail, registerPassword);
+            toast({ title: "Registration Successful" });
+             // The useEffect will handle closing the dialog and triggering the download
+        } catch (error: any) {
+             toast({ variant: 'destructive', title: "Registration Failed", description: error.message });
+        }
     }
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -590,7 +607,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         <span>Download as PNG</span>
                     </Button>
                 ) : (
-                    <AlertDialog>
+                    <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
                         <AlertDialogTrigger asChild>
                             <Button className="w-full font-bold">
                                 <Lock size={16} />
@@ -598,66 +615,71 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Sign In Required</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Please sign in to download your bill summary. This helps us provide better features in the future!
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <form onSubmit={handleLoginSubmit}>
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="login-email">Email</Label>
-                                        <Input id="login-email" type="email" placeholder="you@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="login-password">Password</Label>
-                                        <Input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
-                                    </div>
-                                </div>
-                                <AlertDialogFooter className="mt-4">
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction type="submit">
-                                        Sign In & Download
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </form>
-                             <div className="text-center text-xs mt-2">
-                                <button onClick={() => setIsEmailDialogOpen(true)} className="text-primary hover:underline">
-                                    Or, subscribe to updates & download without signing in.
-                                </button>
-                            </div>
+                             <Tabs defaultValue="signin" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="signin">Sign In</TabsTrigger>
+                                    <TabsTrigger value="register">Register</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="signin">
+                                    <form onSubmit={handleLoginSubmit}>
+                                        <AlertDialogHeader className="mt-4 mb-2">
+                                            <AlertDialogTitle>Sign In</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Sign in to your account to continue.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="login-email">Email</Label>
+                                                <Input id="login-email" type="email" placeholder="you@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="login-password">Password</Label>
+                                                <Input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
+                                            </div>
+                                        </div>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <Button type="submit">
+                                                <Lock className="mr-2 h-4 w-4"/> Sign In
+                                            </Button>
+                                        </AlertDialogFooter>
+                                    </form>
+                                </TabsContent>
+                                <TabsContent value="register">
+                                    <form onSubmit={handleRegisterSubmit}>
+                                         <AlertDialogHeader className="mt-4 mb-2">
+                                            <AlertDialogTitle>Create an Account</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Register to save your bills and access more features.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <div className="space-y-4 py-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="register-email">Email</Label>
+                                                <Input id="register-email" type="email" placeholder="you@example.com" value={registerEmail} onChange={e => setRegisterEmail(e.target.value)} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="register-password">Password</Label>
+                                                <Input id="register-password" type="password" value={registerPassword} onChange={e => setRegisterPassword(e.target.value)} required />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="register-confirm-password">Confirm Password</Label>
+                                                <Input id="register-confirm-password" type="password" value={registerConfirmPassword} onChange={e => setRegisterConfirmPassword(e.target.value)} required />
+                                            </div>
+                                        </div>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <Button type="submit">
+                                                <UserPlus className="mr-2 h-4 w-4"/> Register
+                                            </Button>
+                                        </AlertDialogFooter>
+                                    </form>
+                                </TabsContent>
+                            </Tabs>
                         </AlertDialogContent>
                     </AlertDialog>
                 )}
-                {/* This is the separate dialog for email subscription */}
-                <AlertDialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Get Updates on New Features?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                We're adding new features like premium tools. Enter your email to be the first to know!
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <div className="space-y-2">
-                             <Label htmlFor="email-signup" className="text-sm font-medium">Email Address</Label>
-                             <Input 
-                                id="email-signup"
-                                type="email"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => { setIsEmailDialogOpen(false); handleShareSummary(); }}>No, Thanks</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleEmailSubmit}>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Subscribe & Download
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
             </div>
              <div className="text-center mt-4">
                 <p className="text-xs text-muted-foreground">Scans this month: {monthlyUses} / {USAGE_LIMIT}</p>

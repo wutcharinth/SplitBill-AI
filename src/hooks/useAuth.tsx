@@ -2,72 +2,65 @@
 'use client'
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-
-// This is a placeholder for a real user object from Firebase Auth
-interface User {
-  uid: string;
-  email: string | null;
-}
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword,
+    signOut,
+    User 
+} from 'firebase/auth';
+import { app } from '@/lib/firebase/config';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
+  signUp: (email: string, pass: string) => Promise<any>;
+  login: (email: string, pass: string) => Promise<any>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const auth = getAuth(app);
 
-// This provider component will wrap your app
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you'd have a listener here for Firebase Auth state changes
-    // For this placeholder, we'll just simulate checking for a logged-in user
-    try {
-        const storedUser = localStorage.getItem('splitbill_user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-    } catch(e) {
-        console.error("Could not read user from localStorage", e);
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Placeholder login function
-  const login = async (email: string, pass: string) => {
+  const signUp = async (email: string, pass: string) => {
     setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const mockUser = { uid: `mock-${Date.now()}`, email };
-    setUser(mockUser);
     try {
-        localStorage.setItem('splitbill_user', JSON.stringify(mockUser));
-    } catch (e) {
-        console.error("Could not save user to localStorage", e);
+        return await createUserWithEmailAndPassword(auth, email, pass);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Placeholder logout function
-  const logout = async () => {
+  const login = async (email: string, pass: string) => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setUser(null);
-     try {
-        localStorage.removeItem('splitbill_user');
-    } catch (e) {
-        console.error("Could not remove user from localStorage", e);
+    try {
+        return await signInWithEmailAndPassword(auth, email, pass);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const logout = async () => {
+    return await signOut(auth);
   };
 
   const value = {
     user,
     loading,
+    signUp,
     login,
     logout,
   };
@@ -75,7 +68,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
