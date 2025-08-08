@@ -40,7 +40,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     const matchPercentage = billTotal > 0 ? Math.max(0, (1 - absAdjustment / billTotal) * 100) : (totalShares > 0 ? 0 : 100);
 
     const getProgressColor = () => {
-        if (matchPercentage > 99) return "bg-primary";
+        if (matchPercentage > 99) return "bg-green-500";
         if (matchPercentage > 90) return "bg-yellow-500";
         return "bg-destructive";
     }
@@ -109,12 +109,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (isReconciled) {
             return (
                 <div className="flex items-start gap-3 w-full">
-                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div className="flex-grow">
-                        <h4 className="font-bold text-primary text-base">
+                        <h4 className="font-bold text-green-700 text-base">
                             Perfect Match!
                         </h4>
-                        <p className="text-sm text-primary/80 mt-1">
+                        <p className="text-sm text-green-600 mt-1">
                             The calculated total matches the bill total from the receipt.
                         </p>
                         <MatchProgress />
@@ -126,12 +126,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (isNearlyReconciled) {
             return (
                  <div className="flex items-start gap-3 w-full">
-                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div className="flex-grow">
-                        <h4 className="font-bold text-primary text-base">
+                        <h4 className="font-bold text-green-700 text-base">
                             Almost There!
                         </h4>
-                        <p className="text-sm text-primary/80 mt-1">
+                        <p className="text-sm text-green-600 mt-1">
                             The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
                         </p>
                          <MatchProgress />
@@ -223,7 +223,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         const isReconciled = absAdjustment < 0.01;
 
         if (isReconciled || isNearlyReconciled) {
-            return `${baseClass} border-primary`;
+            return `${baseClass} border-green-500`;
         }
         if (adjustment > 0 || (matchPercentage < 90 && totalShares > 0)) {
             return `${baseClass} border-yellow-500`;
