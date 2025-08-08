@@ -485,7 +485,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     </div>
 
-                    <div className="mt-2 text-green-600 p-2 rounded-lg bg-green-50 border border-green-200">
+                    <div className="mt-2 text-green-600 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
                         <div className="flex justify-between items-center font-bold text-xs">
                              <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> Total of Individual Payments:</span>
                              <div className="text-right">

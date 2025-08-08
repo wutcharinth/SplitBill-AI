@@ -213,17 +213,17 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     };
 
     const getWrapperClass = () => {
-        const baseClass = "bg-card/80 backdrop-blur-sm rounded-xl shadow-card p-3 sm:p-4 border";
+        const baseClass = "bg-card rounded-xl shadow-card p-3 sm:p-4 border";
         const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
         const isReconciled = absAdjustment < 0.01;
 
         if (isReconciled || isNearlyReconciled) {
-            return `${baseClass} border-green-500/30`;
+            return `${baseClass} border-green-500/30 bg-green-500/20`;
         }
         if (adjustment > 0 || (matchPercentage < 90 && totalShares > 0)) {
-            return `${baseClass} border-yellow-500/30`;
+            return `${baseClass} border-yellow-500/30 bg-yellow-500/20`;
         }
-        return `${baseClass} border-accent/30`;
+        return `${baseClass} border-accent/30 bg-accent/10`;
     };
 
 
