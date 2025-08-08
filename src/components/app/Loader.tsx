@@ -50,7 +50,7 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading...", modelName }) =>
     <div className="fixed inset-0 bg-background flex flex-col justify-center items-center z-50 text-center p-4">
       <div className="relative h-24 w-24 flex items-center justify-center">
           <div className="loader absolute top-0 left-0 ease-linear rounded-full border-8 border-t-8 border-gray-200 h-full w-full"></div>
-          <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="Analyzing" className="h-12" />
+          <img src="https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="Analyzing" className="h-12" />
       </div>
       <p className="mt-6 text-xl font-semibold text-foreground font-headline">{dynamicText}</p>
       

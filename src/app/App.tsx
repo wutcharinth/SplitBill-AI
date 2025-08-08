@@ -160,7 +160,7 @@ function AppContent({ modelName }: { modelName: string }) {
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
                             <div className="flex flex-col justify-center items-center mb-4">
-                               <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
+                               <img src="https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
