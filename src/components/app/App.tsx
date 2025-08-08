@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -13,53 +12,18 @@ import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 import Link from 'next/link';
-
-const fileToBase64 = (file: File | Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            const result = reader.result as string;
-            const base64Data = result.split(',')[1];
-            if (base64Data) {
-                resolve(base64Data);
-            } else {
-                reject(new Error('Failed to convert file to base64.'));
-            }
-        };
-        reader.onerror = error => reject(error);
-    });
-};
-
-const getCurrencyFromLocale = (): string => {
-    try {
-        const locale = navigator.language; // e.g., "en-US"
-        if (locale) {
-            const region = locale.split('-')[1]?.toUpperCase();
-            if (region) {
-                const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(region);
-                if (countryName && COUNTRY_CURRENCY_MAP[countryName]) {
-                    const currencyCode = COUNTRY_CURRENCY_MAP[countryName];
-                    if (CURRENCIES[currencyCode]) {
-                        return currencyCode;
-                    }
-                }
-            }
-        }
-    } catch (e) {
-        console.error("Could not determine currency from locale", e);
-    }
-    return 'USD'; // Fallback
-};
+import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
+import { AuthProvider } from '@/hooks/useAuth';
 
 
-export default function App() {
+function AppContent() {
     const [view, setView] = useState<'upload' | 'loading' | 'main' | 'error'>('upload');
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
     const [consentGiven, setConsentGiven] = useState(true);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
+    const { recordUsage } = useUsage();
 
     useEffect(() => {
         try {
@@ -109,6 +73,7 @@ export default function App() {
             
             const data = await parseReceipt(base64, mimeType);
             processParsedData(data);
+            recordUsage(); // Track usage
 
         } catch (error) {
             const message = error instanceof Error ? error.message : 'An unknown error occurred while processing the image.';
@@ -120,6 +85,7 @@ export default function App() {
     const handleStartManual = () => {
         setUploadedReceipt(null);
         processParsedData(null);
+        recordUsage(); // Track usage
     };
 
     const processParsedData = (data: ExtractReceiptDataOutput | null) => {
@@ -250,6 +216,7 @@ export default function App() {
                                 <div className="flex justify-center space-x-4">
                                     <Link href="/about" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">About</Link>
                                     <Link href="/terms" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Terms & Policies</Link>
+                                    <Link href="/contact" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">Contact</Link>
                                 </div>
                             </footer>
                         </div>
@@ -263,4 +230,52 @@ export default function App() {
             {renderContent()}
         </>
     );
+}
+
+const fileToBase64 = (file: File | Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const result = reader.result as string;
+            const base64Data = result.split(',')[1];
+            if (base64Data) {
+                resolve(base64Data);
+            } else {
+                reject(new Error('Failed to convert file to base64.'));
+            }
+        };
+        reader.onerror = error => reject(error);
+    });
+};
+
+const getCurrencyFromLocale = (): string => {
+    try {
+        const locale = navigator.language; // e.g., "en-US"
+        if (locale) {
+            const region = locale.split('-')[1]?.toUpperCase();
+            if (region) {
+                const countryName = new Intl.DisplayNames(['en'], { type: 'region' }).of(region);
+                if (countryName && COUNTRY_CURRENCY_MAP[countryName]) {
+                    const currencyCode = COUNTRY_CURRENCY_MAP[countryName];
+                    if (CURRENCIES[currencyCode]) {
+                        return currencyCode;
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Could not determine currency from locale", e);
+    }
+    return 'USD'; // Fallback
+};
+
+export default function App() {
+    return (
+        <UsageProvider>
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
+        </UsageProvider>
+    )
 }

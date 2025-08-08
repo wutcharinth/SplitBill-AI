@@ -1,7 +1,8 @@
+
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2, Mail } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail, Lock } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import confetti from 'canvas-confetti';
 import { toPng } from 'html-to-image';
@@ -21,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { useUsage } from '@/hooks/useUsageTracker';
+import { useAuth } from '@/hooks/useAuth';
 
 
 const fireConfetti = () => {
@@ -117,17 +119,49 @@ async function generateImage(element: HTMLElement, filename: string) {
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
-    const [isMobile, setIsMobile] = useState(false);
     const [email, setEmail] = useState('');
     const { toast } = useToast();
     const { monthlyUses, USAGE_LIMIT } = useUsage();
+    const { user, login } = useAuth(); // Using placeholder auth hook
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
 
-    useEffect(() => {
-        const checkIsMobile = () => {
-            setIsMobile(/Mobi/i.test(window.navigator.userAgent));
+    const handleShareSummary = async () => {
+        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
+        await generateImage(summaryRef.current!, filename);
+    };
+
+    const handleEmailSubmit = () => {
+        // Here you would typically send the email to a backend service
+        if (email) {
+            console.log('Subscribing email:', email);
+            toast({
+                title: "You're Subscribed!",
+                description: "Thanks for signing up. We'll keep you posted on new features.",
+            });
+        }
+        setIsEmailDialogOpen(false); // Close this dialog
+        handleShareSummary(); // Trigger download
+    }
+
+    const handleLoginSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // This is a placeholder login. Replace with real Firebase Auth.
+        login(loginEmail, loginPassword);
+        toast({ title: "Login Successful", description: "You can now download your summary." });
+    }
+    
+    const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            dispatch({ type: 'SET_QR_CODE_IMAGE', payload: reader.result as string });
         };
-        checkIsMobile();
-    }, []);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
 
     const {
         items, people, discount, taxes, tip, tipSplitMode, billTotal,
@@ -168,69 +202,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         
         return { subtotal, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment, grandTotal, grandTotalWithTip, itemDiscountsTotal, globalDiscountAmount, calculatedTotal };
     }, [items, discount, taxes, tip, billTotal, splitMode]);
-
-
-    const handleShareSummary = async () => {
-        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
-        await generateImage(summaryRef.current!, filename);
-    };
-
-    const handleEmailSubmit = () => {
-        // Here you would typically send the email to a backend service
-        if (email) {
-            console.log('Subscribing email:', email);
-            toast({
-                title: "You're Subscribed!",
-                description: "Thanks for signing up. We'll keep you posted on new features.",
-            });
-        }
-        handleShareSummary();
-    }
     
-    const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            dispatch({ type: 'SET_QR_CODE_IMAGE', payload: reader.result as string });
-        };
-        reader.readAsDataURL(file);
-        e.target.value = '';
-    };
-    
-    const hasQrCode = !!qrCodeImage;
-    const hasNotes = notes && notes.trim().length > 0;
-
-    const DualCurrencyDisplay: React.FC<{
-        baseValue: number, 
-        sign?: string, 
-        displayMode?: 'inline' | 'stacked',
-        className?: string,
-    }> = ({ baseValue, sign = '', displayMode = 'inline', className = 'text-foreground' }) => {
-        const convertedValue = formatNumber(baseValue * fxRate);
-        const originalValue = formatNumber(baseValue);
-    
-        if (baseCurrency === displayCurrency) {
-            return <span className={`font-mono text-xs ${className}`}>{sign}{currencySymbol}{convertedValue}</span>;
-        }
-        
-        if (displayMode === 'stacked') {
-            return (
-                <div className="text-right">
-                    <span className={`font-mono text-[11px] leading-none ${className}`}>{sign}{currencySymbol}{convertedValue}</span>
-                    <div className="text-muted-foreground text-[9px] leading-tight font-mono">({sign}{baseCurrencySymbol}{originalValue})</div>
-                </div>
-            );
-        }
-    
-        return (
-            <span className="font-mono text-xs">
-                <span className={className}>{sign}{currencySymbol}{convertedValue}</span>
-                <span className="text-muted-foreground text-[10px] ml-1">({sign}{baseCurrencySymbol}{originalValue})</span>
-            </span>
-        );
-    };
-
     const perPersonResults = useMemo(() => {
         const { globalDiscountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment } = calculations;
 
@@ -312,6 +284,39 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     
     const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.total, 0), [perPersonResults]);
 
+    const DualCurrencyDisplay: React.FC<{
+        baseValue: number, 
+        sign?: string, 
+        displayMode?: 'inline' | 'stacked',
+        className?: string,
+    }> = ({ baseValue, sign = '', displayMode = 'inline', className = 'text-foreground' }) => {
+        const convertedValue = formatNumber(baseValue * fxRate);
+        const originalValue = formatNumber(baseValue);
+    
+        if (baseCurrency === displayCurrency) {
+            return <span className={`font-mono text-xs ${className}`}>{sign}{currencySymbol}{convertedValue}</span>;
+        }
+        
+        if (displayMode === 'stacked') {
+            return (
+                <div className="text-right">
+                    <span className={`font-mono text-[11px] leading-none ${className}`}>{sign}{currencySymbol}{convertedValue}</span>
+                    <div className="text-muted-foreground text-[9px] leading-tight font-mono">({sign}{baseCurrencySymbol}{originalValue})</div>
+                </div>
+            );
+        }
+    
+        return (
+            <span className="font-mono text-xs">
+                <span className={className}>{sign}{currencySymbol}{convertedValue}</span>
+                <span className="text-muted-foreground text-[10px] ml-1">({sign}{baseCurrencySymbol}{originalValue})</span>
+            </span>
+        );
+    };
+
+    const hasQrCode = !!qrCodeImage;
+    const hasNotes = notes && notes.trim().length > 0;
+    
     return (
         <div className="border-t pt-4 border-border">
             <div id="summary-container" className="relative">
@@ -579,18 +584,59 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </div>
             
              <div className="mt-4 grid grid-cols-1 gap-3">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                         <Button className="w-full font-bold bg-green-500 hover:bg-green-600 text-white">
-                            <Download size={18} />
-                            <span>Download as PNG</span>
-                        </Button>
-                    </AlertDialogTrigger>
+                {user ? (
+                    <Button onClick={handleShareSummary} className="w-full font-bold bg-green-500 hover:bg-green-600 text-white">
+                        <Download size={18} />
+                        <span>Download as PNG</span>
+                    </Button>
+                ) : (
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button className="w-full font-bold">
+                                <Lock size={16} />
+                                <span>Sign in to Download</span>
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Sign In Required</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Please sign in to download your bill summary. This helps us provide better features in the future!
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <form onSubmit={handleLoginSubmit}>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="login-email">Email</Label>
+                                        <Input id="login-email" type="email" placeholder="you@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="login-password">Password</Label>
+                                        <Input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
+                                    </div>
+                                </div>
+                                <AlertDialogFooter className="mt-4">
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction type="submit">
+                                        Sign In & Download
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </form>
+                             <div className="text-center text-xs mt-2">
+                                <button onClick={() => setIsEmailDialogOpen(true)} className="text-primary hover:underline">
+                                    Or, subscribe to updates & download without signing in.
+                                </button>
+                            </div>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
+                {/* This is the separate dialog for email subscription */}
+                <AlertDialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Get Updates on New Features?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                We're constantly adding new features, like support for more currencies and premium tools. Enter your email to be the first to know!
+                                We're adding new features like premium tools. Enter your email to be the first to know!
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="space-y-2">
@@ -604,7 +650,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             />
                         </div>
                         <AlertDialogFooter>
-                            <AlertDialogCancel onClick={handleShareSummary}>No, Thanks</AlertDialogCancel>
+                            <AlertDialogCancel onClick={() => { setIsEmailDialogOpen(false); handleShareSummary(); }}>No, Thanks</AlertDialogCancel>
                             <AlertDialogAction onClick={handleEmailSubmit}>
                                 <Mail className="mr-2 h-4 w-4" />
                                 Subscribe & Download
