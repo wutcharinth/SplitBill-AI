@@ -125,7 +125,7 @@ function AppContent() {
         setErrorMessage('');
     };
 
-    const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType }) => {
+    const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
         const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
         const typeClasses = {
             primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
@@ -135,7 +135,7 @@ function AppContent() {
         const disabledClasses = "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none";
 
         return (
-            <Component id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses}`}>
+            <Component id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses} ${className}`}>
                 {icon}
                 <span>{text}</span>
             </Component>
@@ -161,8 +161,8 @@ function AppContent() {
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
                             
-                            <div className="space-y-3">
-                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                            <div className="flex flex-col">
+                                <label htmlFor="camera-upload" className={`cursor-pointer mb-3 ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
                                      <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
@@ -172,7 +172,7 @@ function AppContent() {
                                 </label>
                                 <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
                                 
-                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                <label htmlFor="file-upload" className={`cursor-pointer mb-3 ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
                                     <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
@@ -189,6 +189,7 @@ function AppContent() {
                                     icon={<PlusCircle size={20} />}
                                     text="Start without Receipt"
                                     type="ghost"
+                                    className="mb-3"
                                 />
                             </div>
                             

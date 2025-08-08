@@ -9,6 +9,7 @@ import { RotateCw, ArrowRight } from 'lucide-react';
 import Header from './Header';
 import SetupPage from './SetupPage';
 import Link from 'next/link';
+import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
 
 const getFxRateApi = async (from: string, to: string): Promise<{rate: number, date: string} | null> => {
     if (!from || !to || from.toUpperCase() === to.toUpperCase()) {
@@ -340,7 +341,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             {activePage === 'summary' && (
                 <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
                     <h2 className="text-sm font-bold mb-4 text-primary font-headline">Final Summary</h2>
-                    <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
+                    <Summary state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
                 </div>
             )}
 
