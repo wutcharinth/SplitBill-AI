@@ -11,6 +11,7 @@ import {
     User,
     GoogleAuthProvider,
     signInWithPopup,
+    getRedirectResult,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/config';
 
@@ -59,11 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogle = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({
-        auth_type: 'rerequest',
-        prompt: 'select_account'
-    });
     try {
+        // Reverting to popup as redirect is also blocked
         return await signInWithPopup(auth, provider);
     } finally {
         setLoading(false);
