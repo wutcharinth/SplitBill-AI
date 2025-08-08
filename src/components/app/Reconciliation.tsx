@@ -214,6 +214,10 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
 
     const getWrapperClass = () => {
         const baseClass = "bg-card rounded-xl shadow-card p-3 sm:p-4 border backdrop-blur-sm";
+        if (totalShares === 0 && splitMode === 'item') {
+            return `${baseClass} border-border`;
+        }
+
         const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
         const isReconciled = absAdjustment < 0.01;
 
