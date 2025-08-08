@@ -67,7 +67,7 @@ export default function ContactPage() {
     return (
         <PolicyPageLayout title="Contact Us">
             <p className="text-muted-foreground">
-                Have a <strong>question</strong>, <strong>feedback</strong>, or a <strong>legal inquiry</strong>? We'd love to hear from you. Please use the form below, and we'll get back to you as soon as possible.
+                Have a <strong>question</strong>, <strong>feedback</strong>, or a <strong>partnership inquiry</strong>? We'd love to hear from you. Please use the form below, and we'll get back to you as soon as possible.
             </p>
             <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-card p-6 rounded-lg border">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
