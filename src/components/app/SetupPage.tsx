@@ -27,18 +27,21 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
 
       <div className="space-y-6 mt-12">
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-          <h2 className="text-base font-bold mb-4 text-primary font-headline">1. Split Mode</h2>
+          <h2 className="text-base font-bold mb-1 text-primary font-headline">1. Split Mode</h2>
+          <p className="text-xs text-muted-foreground mb-4">Choose whether to split the bill by individual items or divide the total evenly.</p>
           <SplitModeToggle mode={state.splitMode} setMode={(mode: SplitMode) => dispatch({ type: 'SET_SPLIT_MODE', payload: mode })} />
         </div>
 
         {state.splitMode === 'item' ? (
           <>
             <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-              <h2 className="text-base font-bold mb-4 text-primary font-headline">2. Manage People</h2>
+              <h2 className="text-base font-bold mb-1 text-primary font-headline">2. Manage People</h2>
+              <p className="text-xs text-muted-foreground mb-4">Add or remove the people who are sharing this bill.</p>
               <ManagePeople people={state.people} dispatch={dispatch} />
             </div>
             <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-              <h2 className="text-base font-bold mb-4 text-primary font-headline">3. Assign Items</h2>
+              <h2 className="text-base font-bold mb-1 text-primary font-headline">3. Assign Items</h2>
+              <p className="text-xs text-muted-foreground mb-4">Review all items from the receipt. Tap a person's icon to assign them a share of an item.</p>
               <ItemAssignment
                 items={state.items}
                 people={state.people}
@@ -50,7 +53,8 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
           </>
         ) : (
           <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-            <h2 className="text-base font-bold mb-4 text-primary font-headline">2. How many people?</h2>
+            <h2 className="text-base font-bold mb-1 text-primary font-headline">2. How many people?</h2>
+            <p className="text-xs text-muted-foreground mb-4">Select the total number of people to divide the bill between.</p>
             <div className="flex items-center justify-between space-x-4 bg-muted p-4 rounded-lg">
               <label htmlFor="people-count-evenly" className="font-semibold text-foreground text-sm">Split between:</label>
               <input
@@ -67,7 +71,8 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
         )}
 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5" id="adjustments-section">
-          <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Review & Adjust</h2>
+          <h2 className="text-base font-bold mb-1 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Review & Adjust</h2>
+          <p className="text-xs text-muted-foreground mb-4">Apply any overall discounts, taxes, service fees, or tips to the bill.</p>
           <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
         </div>
 
