@@ -132,7 +132,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [isDownloading, setIsDownloading] = useState(false);
 
     const {
-        items, people, discount, taxes, tip, tipSplitMode, billTotal,
+        items, people, discount, taxes, tip, tipSplitMode, billTotal, deposit,
         splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
         restaurantName, billDate, qrCodeImage, notes,
         includeReceiptInSummary, uploadedReceipt
@@ -199,9 +199,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const adjustment = billTotal > 0 ? billTotal - calculatedTotal : 0;
         const grandTotal = calculatedTotal + adjustment;
         const grandTotalWithTip = grandTotal + tip;
+        const grandTotalWithTipAndDeposit = grandTotalWithTip - deposit;
         
-        return { subtotal, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment, grandTotal, grandTotalWithTip, itemDiscountsTotal, globalDiscountAmount, calculatedTotal };
-    }, [items, discount, taxes, tip, billTotal, splitMode]);
+        return { subtotal, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment, grandTotal, grandTotalWithTip, grandTotalWithTipAndDeposit, itemDiscountsTotal, globalDiscountAmount, calculatedTotal };
+    }, [items, discount, taxes, tip, billTotal, splitMode, deposit]);
     
     const perPersonResults = useMemo(() => {
         const { globalDiscountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment } = calculations;
@@ -250,7 +251,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
                 const totalWithoutTip = personSub - personGlobalDiscount + personServiceCharge + personVat + personOtherTax + personAdjustment;
                 const personTip = tipSplitMode === 'equally' ? tip / people.length : proportionOfBill * tip;
-                const total = totalWithoutTip + personTip;
+                const personDeposit = proportionOfBill * deposit;
+                const total = totalWithoutTip + personTip - personDeposit;
 
                 return {
                     ...person,
@@ -263,24 +265,24 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         vat: personVat,
                         otherTax: personOtherTax,
                         adjustment: personAdjustment,
-                        tip: personTip
+                        tip: personTip,
+                        deposit: personDeposit
                     }
                 };
             });
         } else { // Evenly
-            const totalPerPerson = calculations.grandTotal / peopleCountEvenly;
-            const tipPerPerson = tip / peopleCountEvenly;
+            const totalPerPerson = calculations.grandTotalWithTipAndDeposit / peopleCountEvenly;
             for(let i=0; i < peopleCountEvenly; i++) {
                 perPersonData.push({ 
                     id: `even-${i}`, 
                     name: `P${i+1}`, 
-                    total: totalPerPerson + tipPerPerson, 
+                    total: totalPerPerson, 
                     color: PERSON_COLORS[i % PERSON_COLORS.length]
                 });
             }
         }
         return perPersonData;
-    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly]);
+    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly, deposit]);
     
     const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.total, 0), [perPersonResults]);
 
@@ -372,7 +374,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                 breakdown.vat > 0 ||
                                 breakdown.otherTax > 0 ||
                                 breakdown.adjustment !== 0 ||
-                                breakdown.tip > 0
+                                breakdown.tip > 0 ||
+                                breakdown.deposit > 0
                             );
 
                             return (
@@ -417,6 +420,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                     {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax} sign="+"/></span></div>}
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
                                                     {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip} sign="+" className="text-blue-600"/></span></div>}
+                                                    {breakdown.deposit > 0 && <div className="flex justify-between text-red-600"><span>Deposit:</span><span><DualCurrencyDisplay baseValue={breakdown.deposit} sign="-" className="text-red-600"/></span></div>}
                                                 </div>
                                             )}
                                         </div>
@@ -485,16 +489,22 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     <DualCurrencyDisplay baseValue={tip} sign="+" displayMode="stacked" className="text-blue-600 font-medium" />
                                 </div>
                             )}
+                            {deposit > 0 && (
+                                <div className="flex justify-between items-center text-red-600 font-medium border-t mt-1 pt-1 border-border">
+                                    <span>Total Deposit:</span>
+                                    <DualCurrencyDisplay baseValue={deposit} sign="-" displayMode="stacked" className="text-red-600 font-medium" />
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <div className="mt-4 pt-3 border-t-2 border-border flex justify-between font-bold text-base text-foreground">
                         <span>Grand Total:</span>
                         <div className="text-right">
-                            <span>{currencySymbol}{formatNumber(calculations.grandTotalWithTip * fxRate)}</span>
+                            <span>{currencySymbol}{formatNumber(calculations.grandTotalWithTipAndDeposit * fxRate)}</span>
                             {baseCurrency !== displayCurrency && (
                                 <div className="text-xs font-normal text-muted-foreground">
-                                    ({baseCurrencySymbol}{formatNumber(calculations.grandTotalWithTip)})
+                                    ({baseCurrencySymbol}{formatNumber(calculations.grandTotalWithTipAndDeposit)})
                                 </div>
                             )}
                         </div>
@@ -604,5 +614,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    

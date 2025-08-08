@@ -112,6 +112,7 @@ function AppContent({ modelName }: { modelName: string }) {
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
             tipSplitMode: 'proportionally',
+            deposit: 0,
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
             restaurantName: data?.restaurantName || '',

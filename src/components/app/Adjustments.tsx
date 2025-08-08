@@ -91,6 +91,40 @@ const TipInput: React.FC<{
     );
 };
 
+const DepositInput: React.FC<{
+    deposit: number;
+    fxRate: number;
+    dispatch: React.Dispatch<any>;
+}> = ({ deposit, fxRate, dispatch }) => {
+    const [localDeposit, setLocalDeposit] = useState((deposit * fxRate).toFixed(2));
+
+    useEffect(() => {
+        setLocalDeposit((deposit * fxRate).toFixed(2));
+    }, [deposit, fxRate]);
+
+    const handleBlur = () => {
+        const numericValue = parseFloat(localDeposit);
+        if (!isNaN(numericValue)) {
+            dispatch({ type: 'UPDATE_DEPOSIT', payload: numericValue / fxRate });
+        } else {
+            setLocalDeposit((deposit * fxRate).toFixed(2));
+        }
+    };
+
+    return (
+        <input
+            type="number"
+            value={localDeposit}
+            onChange={(e) => setLocalDeposit(e.target.value)}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs"
+        />
+    );
+};
+
+
 const DiscountInput: React.FC<{
     discount: { value: number, type: string };
     fxRate: number;
@@ -173,8 +207,9 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
 
 
 const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, discount, taxes, tip, billTotal, splitMode, tipSplitMode } = state;
+  const { items, discount, taxes, tip, deposit, billTotal, splitMode, tipSplitMode } = state;
   const [showTipInput, setShowTipInput] = useState(state.tip > 0);
+  const [showDepositInput, setShowDepositInput] = useState(state.deposit > 0);
   const [showDiscountInput, setShowDiscountInput] = useState(state.discount.value > 0);
   
   const showOtherTax = useMemo(() => taxes.otherTax.isEnabled || taxes.otherTax.amount > 0, [taxes.otherTax]);
@@ -300,6 +335,34 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                 >
                     <Plus size={14} />
                     <span className="text-xs font-medium">Add a Tip</span>
+                </button>
+            )}
+        </div>
+
+        {/* Deposit Section */}
+        <div className="border-t pt-4 mt-4 border-gray-200">
+            {showDepositInput ? (
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex justify-between items-center mb-1">
+                        <h4 className="font-semibold text-xs text-gray-800">Deposit</h4>
+                         <button onClick={() => { setShowDepositInput(false); dispatch({ type: 'UPDATE_DEPOSIT', payload: 0 }); }} className="text-gray-500 hover:text-gray-700" aria-label="Cancel deposit">
+                            <X size={16} />
+                        </button>
+                    </div>
+                    <AdjustmentRow label="Amount">
+                         <div className="flex items-center">
+                            <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
+                            <DepositInput deposit={deposit} fxRate={fxRate} dispatch={dispatch} />
+                        </div>
+                    </AdjustmentRow>
+                </div>
+            ) : (
+                <button 
+                    onClick={() => setShowDepositInput(true)}
+                    className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center space-x-2 transition-colors"
+                >
+                    <Plus size={14} />
+                    <span className="text-xs font-medium">Add Deposit (Deduct from Total)</span>
                 </button>
             )}
         </div>

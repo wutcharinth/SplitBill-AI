@@ -17,9 +17,9 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
 };
 
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, billTotal, discount, taxes, splitMode, tip } = state;
+  const { items, billTotal, discount, taxes, splitMode, tip, deposit } = state;
 
-  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTip } = useMemo(() => {
+  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTipAndDeposit } = useMemo(() => {
     const sub = items.reduce((sum: number, item: any) => sum + item.price, 0);
     
     let baseForCharges = sub;
@@ -37,7 +37,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
 
     const calcTotal = subAfterDiscount + scAmount + vAmount + otAmount;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
-    const gTotalWithTip = calcTotal + adj + tip;
+    const gTotalWithTipAndDeposit = calcTotal + adj + tip - deposit;
 
     return { 
         subtotal: sub,
@@ -47,9 +47,9 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
         otherTaxAmount: otAmount,
         calculatedTotal: calcTotal,
         adjustment: adj,
-        grandTotalWithTip: gTotalWithTip,
+        grandTotalWithTipAndDeposit: gTotalWithTipAndDeposit,
     };
-}, [items, billTotal, discount, taxes, splitMode, tip]);
+}, [items, billTotal, discount, taxes, splitMode, tip, deposit]);
 
 
   return (
@@ -117,10 +117,17 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                     <span className="font-mono text-blue-600">+ {currencySymbol}{(tip * fxRate).toFixed(2)}</span>
                 </div>
             )}
+            
+            {deposit > 0 && (
+                <div className="flex justify-between items-center pt-1 text-sm font-semibold">
+                    <h4 className="text-red-600">Deposit</h4>
+                    <span className="font-mono text-red-600">- {currencySymbol}{(deposit * fxRate).toFixed(2)}</span>
+                </div>
+            )}
 
             <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
                 <h4 className="text-gray-900">Grand Total</h4>
-                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTip * fxRate).toFixed(2)}</span>
+                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTipAndDeposit * fxRate).toFixed(2)}</span>
             </div>
         </div>
     </div>

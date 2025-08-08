@@ -64,6 +64,7 @@ type Action =
   | { type: 'UPDATE_DISCOUNT'; payload: Partial<Discount> }
   | { type: 'TOGGLE_DISCOUNT_SHARE'; payload: { personId: string } }
   | { type: 'UPDATE_TIP'; payload: number }
+  | { type: 'UPDATE_DEPOSIT'; payload: number }
   | { type: 'UPDATE_TIP_SPLIT_MODE'; payload: 'proportionally' | 'equally' }
   | { type: 'UPDATE_BILL_TOTAL'; payload: number }
   | { type: 'UPDATE_RESTAURANT_NAME'; payload: string }
@@ -222,6 +223,9 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'UPDATE_TIP':
         return { ...state, tip: action.payload };
 
+    case 'UPDATE_DEPOSIT':
+        return { ...state, deposit: action.payload };
+
     case 'UPDATE_TIP_SPLIT_MODE':
         return { ...state, tipSplitMode: action.payload };
 
@@ -372,5 +376,3 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 };
 
 export default MainApp;
-
-    
