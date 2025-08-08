@@ -1,11 +1,26 @@
-
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2 } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import confetti from 'canvas-confetti';
 import { toPng } from 'html-to-image';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { useUsage } from '@/hooks/useUsageTracker';
 
 
 const fireConfetti = () => {
@@ -103,6 +118,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
     const [isMobile, setIsMobile] = useState(false);
+    const [email, setEmail] = useState('');
+    const { toast } = useToast();
+    const { monthlyUses, USAGE_LIMIT } = useUsage();
 
     useEffect(() => {
         const checkIsMobile = () => {
@@ -156,6 +174,18 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
         await generateImage(summaryRef.current!, filename);
     };
+
+    const handleEmailSubmit = () => {
+        // Here you would typically send the email to a backend service
+        if (email) {
+            console.log('Subscribing email:', email);
+            toast({
+                title: "You're Subscribed!",
+                description: "Thanks for signing up. We'll keep you posted on new features.",
+            });
+        }
+        handleShareSummary();
+    }
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -549,23 +579,45 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </div>
             
              <div className="mt-4 grid grid-cols-1 gap-3">
-                <button onClick={handleShareSummary} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center space-x-2">
-                    <Download size={18} />
-                    <span>Download as PNG</span>
-                </button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                         <Button className="w-full font-bold bg-green-500 hover:bg-green-600 text-white">
+                            <Download size={18} />
+                            <span>Download as PNG</span>
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Get Updates on New Features?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                We're constantly adding new features, like support for more currencies and premium tools. Enter your email to be the first to know!
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="space-y-2">
+                             <Label htmlFor="email-signup" className="text-sm font-medium">Email Address</Label>
+                             <Input 
+                                id="email-signup"
+                                type="email"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel onClick={handleShareSummary}>No, Thanks</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleEmailSubmit}>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Subscribe & Download
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+             <div className="text-center mt-4">
+                <p className="text-xs text-muted-foreground">Scans this month: {monthlyUses} / {USAGE_LIMIT}</p>
             </div>
         </div>
     );
 };
 
 export default Summary;
-
-    
-
-
-
-    
-
-    
-
-    
