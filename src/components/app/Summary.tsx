@@ -4,25 +4,24 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Download, X, QrCode, Share2, CheckCircle2, Mail, Lock, UserPlus } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
-import confetti from 'canvas-confetti';
 import { toPng } from 'html-to-image';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import confetti from 'canvas-confetti'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 const fireConfetti = () => {
@@ -119,13 +118,13 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
-    const { user, login, signUp, sendPasswordReset } = useAuth();
+    const { user, login, signUp, logout, sendPasswordReset } = useAuth();
+    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
     const [registerEmail, setRegisterEmail] = useState('');
     const [registerPassword, setRegisterPassword] = useState('');
     const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
-    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
     const handleShareSummary = async () => {
         const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
@@ -133,66 +132,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             await generateImage(summaryRef.current, filename);
         }
     };
-    
-    useEffect(() => {
-        if (user) {
-            setIsAuthDialogOpen(false);
-            const pendingAction = sessionStorage.getItem('pending_action');
-            if (pendingAction === 'download-summary') {
-                handleShareSummary();
-                sessionStorage.removeItem('pending_action');
-            }
-        }
-    }, [user]);
-
-
-    const handleLoginSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await login(loginEmail, loginPassword);
-            toast({ title: "Login Successful" });
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: "Login Failed", description: "The email or password you entered is incorrect. Please try again." });
-        }
-    }
-    
-    const handleRegisterSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (registerPassword !== registerConfirmPassword) {
-            toast({ variant: 'destructive', title: "Registration Failed", description: "Passwords do not match." });
-            return;
-        }
-        try {
-            await signUp(registerEmail, registerPassword);
-            toast({ title: "Registration Successful" });
-        } catch (error: any) {
-             toast({ variant: 'destructive', title: "Registration Failed", description: error.message });
-        }
-    }
-
-    const handleForgotPassword = async () => {
-        if (!loginEmail) {
-            toast({
-                variant: 'destructive',
-                title: 'Email Required',
-                description: 'Please enter your email address to reset your password.',
-            });
-            return;
-        }
-        try {
-            await sendPasswordReset(loginEmail);
-            toast({
-                title: 'Password Reset Email Sent',
-                description: `If an account exists for ${loginEmail}, you will receive an email with instructions to reset your password.`,
-            });
-        } catch (error: any) {
-             toast({
-                variant: 'destructive',
-                title: 'Error Sending Reset Email',
-                description: "There was a problem sending the password reset email. Please try again.",
-            });
-        }
-    }
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -358,12 +297,61 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
-
-    const handleSignInClick = () => {
-        sessionStorage.setItem('pending_action', 'download-summary');
-        // The AlertDialogTrigger will open the dialog
-    }
     
+     const handleSignInClick = () => {
+        setIsAuthDialogOpen(true);
+    };
+
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await login(loginEmail, loginPassword);
+            toast({ title: 'Signed in successfully!' });
+            setIsAuthDialogOpen(false);
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Sign In Failed', description: error.message });
+        }
+    };
+
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (registerPassword !== registerConfirmPassword) {
+            toast({ variant: 'destructive', title: 'Registration Failed', description: "Passwords do not match." });
+            return;
+        }
+        try {
+            await signUp(registerEmail, registerPassword);
+            toast({ title: 'Registration successful!', description: 'You are now signed in.' });
+            setIsAuthDialogOpen(false);
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
+        }
+    };
+
+    const handleForgotPassword = async () => {
+        if (!loginEmail) {
+            toast({
+                variant: 'destructive',
+                title: 'Email Required',
+                description: 'Please enter your email address to reset your password.',
+            });
+            return;
+        }
+        try {
+            await sendPasswordReset(loginEmail);
+            toast({
+                title: 'Password Reset Email Sent',
+                description: 'Check your inbox for instructions to reset your password.',
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Password Reset Failed',
+                description: error.message,
+            });
+        }
+    };
+
     return (
         <div className="border-t pt-4 border-border">
             <div id="summary-container" className="relative">
