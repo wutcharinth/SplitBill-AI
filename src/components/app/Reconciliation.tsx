@@ -60,7 +60,6 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                     <div>
                         <h4 className="font-bold text-indigo-800 text-sm">
                             Let's Get Started!
-                            <span className="font-mono text-xs ml-2 text-muted-foreground">({matchPercentage.toFixed(1)}% Match)</span>
                         </h4>
                     </div>
                 </div>

@@ -159,7 +159,7 @@ function AppContent() {
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
                             
-                            <div className="space-y-4">
+                            <div className="flex flex-col gap-3">
                                 <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
                                      <ActionButton
                                         as="div"
