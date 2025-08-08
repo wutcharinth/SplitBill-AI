@@ -153,6 +153,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             if (success) {
                 fireConfetti();
                 toast({
+                    variant: 'success',
                     title: "Summary Saved!",
                     description: "Your summary image has been saved to your device.",
                 });
