@@ -29,7 +29,7 @@ export interface Discount {
     shares: string[]; // Person IDs sharing the discount
 }
 
-export interface Deposit {
+export interface Payment {
     id: string;
     amount: number;
     paidBy: string | null; // Person ID
@@ -46,7 +46,7 @@ export interface BillData {
   discount: Discount;
   tip: number;
   tipSplitMode: 'proportionally' | 'equally';
-  deposits: Deposit[];
+  payments: Payment[];
   billTotal: number;
   baseCurrency: string;
   restaurantName: string;

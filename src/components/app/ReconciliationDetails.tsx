@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Deposit } from '@/lib/types';
+import { Payment } from '@/lib/types';
 
 const DetailRow: React.FC<{ label: React.ReactNode; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
     <div className={`flex justify-between items-center py-1.5 ${className}`}>
@@ -18,9 +18,9 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
 };
 
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, billTotal, discount, taxes, splitMode, tip, deposits } = state;
+  const { items, billTotal, discount, taxes, splitMode, tip, payments } = state;
 
-  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTipAndDeposit, totalDeposit } = useMemo(() => {
+  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTipAndPayment, totalPayment } = useMemo(() => {
     const sub = items.reduce((sum: number, item: any) => sum + item.price, 0);
     
     let baseForCharges = sub;
@@ -35,11 +35,11 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
     const scAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
     const vAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
     const otAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
-    const depAmount = deposits.reduce((sum: number, deposit: Deposit) => sum + deposit.amount, 0);
+    const paymentAmount = payments.reduce((sum: number, payment: Payment) => sum + payment.amount, 0);
 
     const calcTotal = subAfterDiscount + scAmount + vAmount + otAmount;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
-    const gTotalWithTipAndDeposit = calcTotal + adj + tip - depAmount;
+    const gTotalWithTipAndPayment = calcTotal + adj + tip - paymentAmount;
 
     return { 
         subtotal: sub,
@@ -49,10 +49,10 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
         otherTaxAmount: otAmount,
         calculatedTotal: calcTotal,
         adjustment: adj,
-        grandTotalWithTipAndDeposit: gTotalWithTipAndDeposit,
-        totalDeposit: depAmount
+        grandTotalWithTipAndPayment: gTotalWithTipAndPayment,
+        totalPayment: paymentAmount
     };
-}, [items, billTotal, discount, taxes, splitMode, tip, deposits]);
+}, [items, billTotal, discount, taxes, splitMode, tip, payments]);
 
 
   return (
@@ -121,16 +121,16 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 </div>
             )}
             
-            {totalDeposit > 0 && (
+            {totalPayment > 0 && (
                 <div className="flex justify-between items-center pt-1 text-sm font-semibold">
                     <h4 className="text-red-600">Payments</h4>
-                    <span className="font-mono text-red-600">- {currencySymbol}{(totalDeposit * fxRate).toFixed(2)}</span>
+                    <span className="font-mono text-red-600">- {currencySymbol}{(totalPayment * fxRate).toFixed(2)}</span>
                 </div>
             )}
 
             <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
                 <h4 className="text-gray-900">Grand Total</h4>
-                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTipAndDeposit * fxRate).toFixed(2)}</span>
+                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTipAndPayment * fxRate).toFixed(2)}</span>
             </div>
         </div>
     </div>

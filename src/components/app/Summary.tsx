@@ -428,9 +428,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             return (
                                 <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                                     <div className="p-3">
-                                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                                        <div className="flex justify-between items-start gap-2">
                                             <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
-                                            <div className="flex flex-row-reverse sm:flex-col justify-between items-end sm:items-end w-full sm:w-auto">
+                                            <div className="flex flex-col items-end">
                                                 <FinalAmountDisplay person={person} />
                                                 <TotalShareDisplay person={person} />
                                             </div>
@@ -658,5 +658,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    

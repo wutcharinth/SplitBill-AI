@@ -4,7 +4,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { CURRENCIES } from '../constants';
 import { Plus, X, CheckCircle2, AlertCircle, PartyPopper, Info, User } from 'lucide-react';
-import { Person, Deposit } from '../types';
+import { Person, Payment } from '../types';
 
 const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     if (parseFloat(e.target.value) === 0) {
@@ -91,25 +91,25 @@ const TipInput: React.FC<{
     );
 };
 
-const DepositInput: React.FC<{
-    deposit: Deposit;
+const PaymentInput: React.FC<{
+    payment: Payment;
     people: Person[];
     fxRate: number;
     dispatch: React.Dispatch<any>;
     currencySymbol: string;
-}> = ({ deposit, people, fxRate, dispatch, currencySymbol }) => {
-    const [localAmount, setLocalAmount] = useState((deposit.amount * fxRate).toFixed(2));
+}> = ({ payment, people, fxRate, dispatch, currencySymbol }) => {
+    const [localAmount, setLocalAmount] = useState((payment.amount * fxRate).toFixed(2));
 
     useEffect(() => {
-        setLocalAmount((deposit.amount * fxRate).toFixed(2));
-    }, [deposit.amount, fxRate]);
+        setLocalAmount((payment.amount * fxRate).toFixed(2));
+    }, [payment.amount, fxRate]);
 
     const handleBlur = () => {
         const numericValue = parseFloat(localAmount);
         if (!isNaN(numericValue)) {
-            dispatch({ type: 'UPDATE_DEPOSIT', payload: { id: deposit.id, amount: numericValue / fxRate } });
+            dispatch({ type: 'UPDATE_PAYMENT', payload: { id: payment.id, amount: numericValue / fxRate } });
         } else {
-            setLocalAmount((deposit.amount * fxRate).toFixed(2)); // Reset on invalid input
+            setLocalAmount((payment.amount * fxRate).toFixed(2)); // Reset on invalid input
         }
     };
 
@@ -117,8 +117,8 @@ const DepositInput: React.FC<{
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex items-center gap-2">
                 <select
-                    value={deposit.paidBy || ''}
-                    onChange={e => dispatch({ type: 'UPDATE_DEPOSIT', payload: { id: deposit.id, paidBy: e.target.value } })}
+                    value={payment.paidBy || ''}
+                    onChange={e => dispatch({ type: 'UPDATE_PAYMENT', payload: { id: payment.id, paidBy: e.target.value } })}
                     className="bg-white rounded-md p-1 text-xs border border-gray-300 text-gray-900"
                 >
                     <option value="">Select Person</option>
@@ -138,7 +138,7 @@ const DepositInput: React.FC<{
                     className="w-24 text-right bg-white border border-gray-300 rounded-md p-1 font-mono text-xs text-gray-900"
                 />
                 <button 
-                    onClick={() => dispatch({ type: 'REMOVE_DEPOSIT', payload: { id: deposit.id } })}
+                    onClick={() => dispatch({ type: 'REMOVE_PAYMENT', payload: { id: payment.id } })}
                     className="text-gray-500 hover:text-red-500"
                 >
                     <X size={16}/>
@@ -186,20 +186,20 @@ const DiscountInput: React.FC<{
     );
 };
 
-const PaymentInput: React.FC<{ person: Person; deposit: Deposit | undefined, fxRate: number; dispatch: React.Dispatch<any>; currencySymbol: string }> = ({ person, deposit, fxRate, dispatch, currencySymbol }) => {
-    const depositAmount = deposit ? deposit.amount : 0;
-    const [localAmount, setLocalAmount] = useState((depositAmount * fxRate).toFixed(2));
+const SinglePersonPaymentInput: React.FC<{ person: Person; payment: Payment | undefined, fxRate: number; dispatch: React.Dispatch<any>; currencySymbol: string }> = ({ person, payment, fxRate, dispatch, currencySymbol }) => {
+    const paymentAmount = payment ? payment.amount : 0;
+    const [localAmount, setLocalAmount] = useState((paymentAmount * fxRate).toFixed(2));
   
     useEffect(() => {
-        setLocalAmount((depositAmount * fxRate).toFixed(2));
-    }, [depositAmount, fxRate]);
+        setLocalAmount((paymentAmount * fxRate).toFixed(2));
+    }, [paymentAmount, fxRate]);
   
     const handleBlur = () => {
       const numericValue = parseFloat(localAmount);
       if (!isNaN(numericValue)) {
-        dispatch({ type: 'UPDATE_DEPOSIT', payload: { id: deposit?.id || person.id, paidBy: person.id, amount: numericValue / fxRate } });
+        dispatch({ type: 'UPDATE_PERSON_PAYMENT', payload: { paidBy: person.id, amount: numericValue / fxRate } });
       } else {
-        setLocalAmount((depositAmount * fxRate).toFixed(2));
+        setLocalAmount((paymentAmount * fxRate).toFixed(2));
       }
     };
   
@@ -276,7 +276,7 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
 
 
 const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, people, discount, taxes, tip, deposits, billTotal, splitMode, tipSplitMode } = state;
+  const { items, people, discount, taxes, tip, payments, billTotal, splitMode, tipSplitMode } = state;
   const [showTipInput, setShowTipInput] = useState(state.tip > 0);
   const [showDiscountInput, setShowDiscountInput] = useState(state.discount.value > 0);
   
@@ -292,10 +292,10 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
     const calculatedTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
     const adjustment = billTotal > 0 ? billTotal - calculatedTotal : 0;
     const totalWithTip = calculatedTotal + adjustment + tip;
-    const totalDeposits = deposits.reduce((sum: number, d: Deposit) => sum + d.amount, 0);
-    const remaining = totalWithTip - totalDeposits;
+    const totalPayments = payments.reduce((sum: number, p: Payment) => sum + p.amount, 0);
+    const remaining = totalWithTip - totalPayments;
     return { grandTotalWithTip: totalWithTip, remainingAmount: remaining };
-  }, [items, discount, taxes, tip, billTotal, deposits]);
+  }, [items, discount, taxes, tip, billTotal, payments]);
 
   return (
     <div className="space-y-4">
@@ -422,7 +422,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
             )}
         </div>
 
-        {/* Deposit Section */}
+        {/* Payment Section */}
         <div className="border-t pt-4 mt-4 border-gray-200 space-y-2">
             <h3 className="text-sm font-bold mb-2 text-gray-700">Record Payments</h3>
             <p className="text-xs text-muted-foreground">Enter the total amount each person paid to the restaurant (including any pre-paid deposits).</p>
@@ -432,8 +432,8 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
             </div>
             <div className="space-y-2">
                 {people.map((person: Person) => {
-                    const deposit = deposits.find((d: Deposit) => d.paidBy === person.id);
-                    return <PaymentInput key={person.id} person={person} deposit={deposit} fxRate={fxRate} dispatch={dispatch} currencySymbol={currencySymbol} />
+                    const payment = payments.find((d: Payment) => d.paidBy === person.id);
+                    return <SinglePersonPaymentInput key={person.id} person={person} payment={payment} fxRate={fxRate} dispatch={dispatch} currencySymbol={currencySymbol} />
                 })}
             </div>
         </div>

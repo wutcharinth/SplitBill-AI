@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useReducer, useEffect } from 'react';
-import { BillData, BillItem, Person, Tax, Discount, SplitMode, Deposit } from '../../types';
+import { BillData, BillItem, Person, Tax, Discount, SplitMode, Payment } from '../../types';
 import { CURRENCIES } from '../constants';
 import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
@@ -64,9 +64,10 @@ type Action =
   | { type: 'UPDATE_DISCOUNT'; payload: Partial<Discount> }
   | { type: 'TOGGLE_DISCOUNT_SHARE'; payload: { personId: string } }
   | { type: 'UPDATE_TIP'; payload: number }
-  | { type: 'ADD_DEPOSIT' }
-  | { type: 'REMOVE_DEPOSIT'; payload: { id: string } }
-  | { type: 'UPDATE_DEPOSIT'; payload: { id: string, amount?: number, paidBy?: string | null } }
+  | { type: 'ADD_PAYMENT' }
+  | { type: 'REMOVE_PAYMENT'; payload: { id: string } }
+  | { type: 'UPDATE_PAYMENT'; payload: { id: string, amount?: number, paidBy?: string | null } }
+  | { type: 'UPDATE_PERSON_PAYMENT'; payload: { paidBy: string, amount: number } }
   | { type: 'UPDATE_TIP_SPLIT_MODE'; payload: 'proportionally' | 'equally' }
   | { type: 'UPDATE_BILL_TOTAL'; payload: number }
   | { type: 'UPDATE_RESTAURANT_NAME'; payload: string }
@@ -90,7 +91,7 @@ const getStoredQrCode = (): string | null => {
 
 const createInitialState = (billData: BillData, uploadedReceipt: string | null): AppState => ({
     ...billData,
-    deposits: billData.deposits || [],
+    payments: billData.payments || [],
     splitMode: 'item', 
     peopleCountEvenly: 2,
     displayCurrency: billData.baseCurrency,
@@ -115,9 +116,9 @@ const reducer = (state: AppState, action: Action): AppState => {
           ...item,
           shares: [...item.shares, 0]
       }));
-      // Also add a default deposit for the new person
-      const newDepositsArray = [...state.deposits, {id: newPerson.id, amount: 0, paidBy: newPerson.id}];
-      return { ...state, people: newPeopleArray, items: itemsWithNewPerson, deposits: newDepositsArray };
+      // Also add a default payment for the new person
+      const newPaymentsArray = [...state.payments, {id: newPerson.id, amount: 0, paidBy: newPerson.id}];
+      return { ...state, people: newPeopleArray, items: itemsWithNewPerson, payments: newPaymentsArray };
 
     case 'REMOVE_PERSON': {
       const { personId } = action.payload;
@@ -133,15 +134,15 @@ const reducer = (state: AppState, action: Action): AppState => {
       });
       // Also remove person from discount shares
       const newDiscountShares = state.discount.shares.filter(id => id !== personId);
-      // And from deposits
-      const newDeposits = state.deposits.filter(d => d.paidBy !== personId);
+      // And from payments
+      const newPayments = state.payments.filter(d => d.paidBy !== personId);
 
       return {
           ...state,
           people: filteredPeople,
           items: itemsWithPersonRemoved,
           discount: { ...state.discount, shares: newDiscountShares },
-          deposits: newDeposits
+          payments: newPayments
       };
     }
 
@@ -232,41 +233,51 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'UPDATE_TIP':
         return { ...state, tip: action.payload };
 
-    case 'ADD_DEPOSIT': {
-      const newDeposit: Deposit = {
+    case 'ADD_PAYMENT': {
+      const newPayment: Payment = {
         id: `d${Date.now()}`,
         amount: 0,
         paidBy: null
       };
-      return { ...state, deposits: [...state.deposits, newDeposit] };
+      return { ...state, payments: [...state.payments, newPayment] };
     }
 
-    case 'REMOVE_DEPOSIT': {
-      return { ...state, deposits: state.deposits.filter(d => d.id !== action.payload.id) };
+    case 'REMOVE_PAYMENT': {
+      return { ...state, payments: state.payments.filter(d => d.id !== action.payload.id) };
     }
 
-    case 'UPDATE_DEPOSIT': {
-      const { paidBy, amount } = action.payload;
-      if (!paidBy) return state;
+    case 'UPDATE_PAYMENT': {
+        const updatedPayments = state.payments.map(p => {
+            if (p.id === action.payload.id) {
+                return { ...p, ...action.payload };
+            }
+            return p;
+        });
+        return { ...state, payments: updatedPayments };
+    }
 
-      const existingDepositIndex = state.deposits.findIndex(d => d.paidBy === paidBy);
-      let newDeposits;
-
-      if (existingDepositIndex > -1) {
-          // Update existing deposit for the person
-          newDeposits = state.deposits.map((d, index) => {
-              if (index === existingDepositIndex) {
-                  return { ...d, amount: amount ?? d.amount };
-              }
-              return d;
-          });
-      } else {
-          // Add new deposit for the person
-          newDeposits = [...state.deposits, { id: paidBy, paidBy, amount: amount ?? 0 }];
+    case 'UPDATE_PERSON_PAYMENT': {
+        const { paidBy, amount } = action.payload;
+        if (!paidBy) return state;
+  
+        const existingPaymentIndex = state.payments.findIndex(p => p.paidBy === paidBy);
+        let newPayments: Payment[];
+  
+        if (existingPaymentIndex > -1) {
+            // Update existing payment for the person
+            newPayments = state.payments.map((p, index) => {
+                if (index === existingPaymentIndex) {
+                    return { ...p, amount: amount ?? p.amount };
+                }
+                return p;
+            });
+        } else {
+            // Add new payment for the person
+            newPayments = [...state.payments, { id: paidBy, paidBy, amount: amount ?? 0 }];
+        }
+  
+        return { ...state, payments: newPayments };
       }
-
-      return { ...state, deposits: newDeposits };
-    }
 
     case 'UPDATE_TIP_SPLIT_MODE':
         return { ...state, tipSplitMode: action.payload };
