@@ -92,7 +92,7 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
     try {
         await waitForImagesToLoad(element);
         
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 100)));
 
         const dataUrl = await toPng(element, {
             quality: 0.95,
@@ -154,7 +154,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 fireConfetti();
                 toast({
                     title: "Summary Saved!",
-                    description: "Your summary image has been downloaded. Please check your downloads folder.",
+                    description: "Your summary image has been saved to your device.",
                 });
             }
         }
@@ -633,5 +633,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    
