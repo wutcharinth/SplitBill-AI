@@ -89,7 +89,8 @@ const getStoredQrCode = (): string | null => {
 };
 
 const createInitialState = (billData: BillData, uploadedReceipt: string | null): AppState => ({
-    ...billData, 
+    ...billData,
+    deposits: billData.deposits || [],
     splitMode: 'item', 
     peopleCountEvenly: 2,
     displayCurrency: billData.baseCurrency,
