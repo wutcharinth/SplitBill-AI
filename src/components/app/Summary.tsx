@@ -138,7 +138,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const handleShareSummary = async () => {
         setIsDownloading(true);
-        const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
+        const filename = `SplitBill-AI-${new Date().toISOString().slice(0, 10)}.png`;
         if (summaryRef.current) {
             await generateImage(summaryRef.current, filename, toast);
         }
