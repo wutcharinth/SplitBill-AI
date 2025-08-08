@@ -11,10 +11,10 @@ import {
     User,
     GoogleAuthProvider,
     signInWithPopup,
-    signInWithRedirect,
     getRedirectResult,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/config';
+import { useToast } from './use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -31,6 +31,7 @@ const auth = getAuth(app);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -38,13 +39,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
     });
 
-    // Check for redirect result
+    // Check for redirect result, in case that flow is ever used.
     getRedirectResult(auth)
       .then((result) => {
         if (result) {
-          // This is the signed-in user
           const user = result.user;
           setUser(user);
+          toast({ title: "Signed in successfully!"});
         }
       }).catch((error) => {
         // Handle Errors here.
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
     return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   const signUp = async (email: string, pass: string) => {
     setLoading(true);
@@ -77,8 +78,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogle = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();
-    // Use signInWithRedirect for better mobile compatibility
-    return await signInWithRedirect(auth, provider);
+    try {
+        return await signInWithPopup(auth, provider);
+    } finally {
+        setLoading(false);
+    }
   };
 
   const logout = async () => {
