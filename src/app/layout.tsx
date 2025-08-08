@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <head>
-        <meta name="theme-color" content="#4681f4" />
+        <meta name="theme-color" content="#f2f4f7" />
       </head>
       <body className="font-sans antialiased bg-slate-100">
           <AuthProvider>
