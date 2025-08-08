@@ -370,6 +370,11 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
     fetchRate();
   }, [state.baseCurrency, state.displayCurrency]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }, [activePage]);
 
   const displayCurrencySymbol = CURRENCIES[state.displayCurrency] || state.displayCurrency;
 
