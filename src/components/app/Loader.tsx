@@ -74,3 +74,5 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
 };
 
 export default Loader;
+
+    
