@@ -39,21 +39,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
     });
 
-    // Check for redirect result, in case that flow is ever used.
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          const user = result.user;
-          setUser(user);
-          toast({ title: "Signed in successfully!"});
-        }
-      }).catch((error) => {
-        // Handle Errors here.
-        console.error("Error getting redirect result:", error);
-      }).finally(() => {
-        setLoading(false);
-      });
-
     return () => unsubscribe();
   }, [toast]);
 
@@ -98,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loginWithGoogle,
   };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
