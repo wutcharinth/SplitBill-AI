@@ -92,6 +92,9 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
         // Wait for all images inside the summary component to load
         await waitForImagesToLoad(element);
 
+        // Small delay after images load before capturing
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const dataUrl = await toPng(element, {
             quality: 0.95,
             pixelRatio: 1.5,
@@ -103,8 +106,10 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 // especially in Firefox, by excluding problematic elements.
                 if (node.tagName?.toLowerCase() === 'button') return false;
                 return true;
+            },
+            cacheBust: true, // Add cacheBust option
             }
-        });
+        );
 
         const link = document.createElement('a');
         link.download = filename;
@@ -129,12 +134,15 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const handleShareSummary = async () => {
+        setIsDownloading(true);
         const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
         if (summaryRef.current) {
             await generateImage(summaryRef.current, filename, toast);
         }
+        setIsDownloading(false);
     };
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -500,18 +508,20 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-dashed border-border/80">
-                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -mt-2 mb-2">
-                            <input
-                            type="checkbox"
-                            checked={includeReceiptInSummary}
-                            onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
-                            className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
-                            disabled={!uploadedReceipt}
-                            />
-                            <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
-                                Attach receipt image to summary
-                            </span>
-                        </label>
+                         <div className="flex items-center justify-between">
+                            <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2">
+                                <input
+                                type="checkbox"
+                                checked={includeReceiptInSummary}
+                                onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
+                                className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
+                                disabled={!uploadedReceipt}
+                                />
+                                <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                    Attach receipt image to summary
+                                </span>
+                            </label>
+                        </div>
                         {includeReceiptInSummary && uploadedReceipt && (
                             <div className="mt-2">
                                 <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
@@ -568,9 +578,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </div>
             
              <div className="mt-4 grid grid-cols-1 gap-3">
-                <Button onClick={handleShareSummary} className="w-full font-bold">
-                    <Download size={18} />
-                    <span>Download as PNG</span>
+                <Button onClick={handleShareSummary} className="w-full font-bold" disabled={isDownloading}>
+                    {isDownloading ? 'Preparing...' : <Download size={18} />}
+                    <span>{isDownloading ? 'Preparing...' : 'Download as PNG'}</span>
                 </Button>
             </div>
         </div>
