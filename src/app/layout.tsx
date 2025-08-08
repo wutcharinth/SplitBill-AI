@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description: 'Easily split bills and expenses with the power of AI. Snap a receipt and let us do the rest.',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icon.svg',
+    icon: 'https://i.postimg.cc/x1mkMHxS/image.png',
     apple: '/apple-touch-icon.png',
   }
 };
@@ -34,7 +34,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <head>
         <meta name="theme-color" content="#4681f4" />
-        <link rel="preload" href="/Inter.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
       <body className="font-sans antialiased bg-slate-100">
           {children}
