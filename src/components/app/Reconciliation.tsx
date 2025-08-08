@@ -62,9 +62,6 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                             Let's Get Started!
                             <span className="font-mono text-xs ml-2 text-muted-foreground">({matchPercentage.toFixed(1)}% Match)</span>
                         </h4>
-                        <p className="text-xs text-indigo-700 mt-1">
-                           Tap the person icons below each item to start assigning shares.
-                        </p>
                     </div>
                 </div>
             );
