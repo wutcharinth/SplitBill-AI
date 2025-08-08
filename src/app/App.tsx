@@ -154,13 +154,14 @@ function AppContent() {
                 return (
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
-                            <div className="flex justify-center items-center mb-4">
-                               <img src="https://i.postimg.cc/x1mkMHxS/image.png" alt="SplitBill AI Logo" className="h-48 w-48" />
+                            <div className="flex flex-col justify-center items-center mb-4">
+                               <img src="https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-48 w-48" />
+                               <h1 className="text-2xl font-bold text-foreground font-headline mt-2">SplitBill AI</h1>
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
                             
-                             <div className="space-y-4">
-                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''} block`}>
+                             <div className="space-y-3">
+                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
                                      <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
@@ -170,7 +171,7 @@ function AppContent() {
                                 </label>
                                 <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
                                 
-                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''} block`}>
+                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
                                     <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
