@@ -68,12 +68,12 @@ const fireConfetti = () => {
 const waitForImagesToLoad = (element: HTMLElement): Promise<void[]> => {
     const images = Array.from(element.getElementsByTagName('img'));
     const promises = images.map(img => {
-        return new Promise<void>((resolve, reject) => {
-            if (img.complete && img.naturalHeight !== 0) {
+        return new Promise<void>((resolve) => {
+             if (img.complete && img.naturalHeight !== 0) {
                 resolve();
             } else {
                 img.onload = () => resolve();
-                img.onerror = () => reject(new Error(`Failed to load image: ${img.src}`));
+                img.onerror = () => resolve(); // Resolve even on error to not block generation
             }
         });
     });
@@ -91,6 +91,7 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
 
     try {
         await waitForImagesToLoad(element);
+        
         await new Promise(resolve => setTimeout(resolve, 100));
 
         const dataUrl = await toPng(element, {
@@ -100,7 +101,7 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
-                return node.tagName?.toLowerCase() !== 'button';
+                 return node.tagName?.toLowerCase() !== 'button';
             },
             cacheBust: true,
         });
@@ -297,8 +298,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         displayMode?: 'inline' | 'stacked',
         className?: string,
     }> = ({ baseValue, sign = '', displayMode = 'inline', className = 'text-foreground' }) => {
-        const convertedValue = formatNumber(baseValue * fxRate);
-        const originalValue = formatNumber(baseValue);
+        const convertedValue = formatNumber(baseValue);
+        const originalValue = formatNumber(baseValue / fxRate);
     
         if (baseCurrency === displayCurrency) {
             return <span className={`font-mono text-xs ${className}`}>{sign}{currencySymbol}{convertedValue}</span>;
@@ -320,6 +321,26 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </span>
         );
     };
+
+    const PersonTotalDisplay: React.FC<{person: any}> = ({ person }) => {
+        const isOwed = person.total < 0;
+        const displayValue = Math.abs(person.total);
+        const textColor = isOwed ? 'text-green-600' : 'text-primary';
+
+        return (
+            <div className="text-right">
+                <span className={`font-bold text-sm ${textColor}`}>
+                    {isOwed ? 'Is Owed: ' : 'Owes: '}
+                    {currencySymbol}{formatNumber(displayValue * fxRate)}
+                </span>
+                 {baseCurrency !== displayCurrency && (
+                    <div className="text-xs text-muted-foreground font-normal">
+                        ({baseCurrencySymbol}{formatNumber(displayValue)})
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
@@ -388,14 +409,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     <div className="p-3">
                                         <div className="flex justify-between items-center">
                                             <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
-                                            <div className="text-right">
-                                                <span className="font-bold text-primary text-sm">{currencySymbol}{formatNumber(person.total * fxRate)}</span>
-                                                {baseCurrency !== displayCurrency && (
-                                                    <div className="text-xs text-muted-foreground font-normal">
-                                                        ({baseCurrencySymbol}{formatNumber(person.total)})
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <PersonTotalDisplay person={person} />
                                         </div>
                                         {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
                                             <ul className="list-disc list-inside mt-2 text-xs text-muted-foreground">
@@ -413,19 +427,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                             {item.name} {item.count > 1 ? `(x${item.count})` : ''}
                                                             {isTranslated && <span className="text-accent ml-1">({item.translatedName})</span>}
                                                         </span>
-                                                        <span><DualCurrencyDisplay baseValue={item.value} /></span>
+                                                        <span><DualCurrencyDisplay baseValue={item.value * fxRate} /></span>
                                                     </div>
                                                 )
                                             })}
                                             {hasAdjustments && (
                                                 <div className="space-y-1 pt-1 mt-1 border-t border-border">
-                                                    {breakdown.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span><DualCurrencyDisplay baseValue={breakdown.discount} sign="-" className="text-red-600"/></span></div>}
-                                                    {breakdown.serviceCharge > 0 && <div className="flex justify-between"><span>{taxes.serviceCharge.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.serviceCharge} sign="+"/></span></div>}
-                                                    {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat} sign="+"/></span></div>}
-                                                    {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax} sign="+"/></span></div>}
-                                                    {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
-                                                    {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip} sign="+" className="text-blue-600"/></span></div>}
-                                                    {breakdown.deposit > 0 && <div className="flex justify-between text-red-600"><span>Deposit:</span><span><DualCurrencyDisplay baseValue={breakdown.deposit} sign="-" className="text-red-600"/></span></div>}
+                                                    {breakdown.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span><DualCurrencyDisplay baseValue={breakdown.discount * fxRate} sign="-" className="text-red-600"/></span></div>}
+                                                    {breakdown.serviceCharge > 0 && <div className="flex justify-between"><span>{taxes.serviceCharge.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.serviceCharge * fxRate} sign="+"/></span></div>}
+                                                    {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat * fxRate} sign="+"/></span></div>}
+                                                    {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax * fxRate} sign="+"/></span></div>}
+                                                    {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
+                                                    {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600"/></span></div>}
+                                                    {breakdown.deposit > 0 && <div className="flex justify-between text-red-600"><span>Deposit:</span><span><DualCurrencyDisplay baseValue={breakdown.deposit * fxRate} sign="-" className="text-red-600"/></span></div>}
                                                 </div>
                                             )}
                                         </div>
@@ -441,47 +455,47 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                              {splitMode === 'item' ? (
                                 <div className="flex justify-between items-center">
                                     <span>Assigned Items Subtotal:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.subtotal} displayMode="stacked" />
+                                    <DualCurrencyDisplay baseValue={calculations.subtotal * fxRate} displayMode="stacked" />
                                 </div>
                              ) : (
                                 <div className="flex justify-between items-center">
                                     <span>Receipt Subtotal:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.subtotal} displayMode="stacked" />
+                                    <DualCurrencyDisplay baseValue={calculations.subtotal * fxRate} displayMode="stacked" />
                                 </div>
                              )}
                             {calculations.globalDiscountAmount > 0 && (
                                 <div className="flex justify-between items-center text-red-600">
                                     <span>Global Discount:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.globalDiscountAmount} sign="-" displayMode="stacked" className="text-red-600" />
+                                    <DualCurrencyDisplay baseValue={calculations.globalDiscountAmount * fxRate} sign="-" displayMode="stacked" className="text-red-600" />
                                 </div>
                             )}
                             {taxes.serviceCharge.isEnabled && (
                                 <div className="flex justify-between items-center">
                                     <span>{taxes.serviceCharge.name}:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.serviceChargeAmount} sign="+" displayMode="stacked" />
+                                    <DualCurrencyDisplay baseValue={calculations.serviceChargeAmount * fxRate} sign="+" displayMode="stacked" />
                                 </div>
                             )}
                             {taxes.vat.isEnabled && (
                                 <div className="flex justify-between items-center">
                                     <span>{taxes.vat.name}:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.vatAmount} sign="+" displayMode="stacked" />
+                                    <DualCurrencyDisplay baseValue={calculations.vatAmount * fxRate} sign="+" displayMode="stacked" />
                                 </div>
                             )}
                             {taxes.otherTax.isEnabled && (
                                 <div className="flex justify-between items-center">
                                     <span>{taxes.otherTax.name}:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.otherTaxAmount} sign="+" displayMode="stacked" />
+                                    <DualCurrencyDisplay baseValue={calculations.otherTaxAmount * fxRate} sign="+" displayMode="stacked" />
                                 </div>
                             )}
                             <div className="flex justify-between items-center font-bold border-t mt-1 pt-1 border-border">
                                 <span>Calculated Total:</span>
-                                <DualCurrencyDisplay baseValue={calculations.calculatedTotal} displayMode="stacked" className="font-bold text-foreground"/>
+                                <DualCurrencyDisplay baseValue={calculations.calculatedTotal * fxRate} displayMode="stacked" className="font-bold text-foreground"/>
                             </div>
                             {Math.abs(calculations.adjustment) > 0.01 && (
                                 <div className="flex justify-between items-center text-blue-600">
                                     <span>Adjustment (to match receipt):</span>
                                     <DualCurrencyDisplay 
-                                        baseValue={calculations.adjustment} 
+                                        baseValue={calculations.adjustment * fxRate} 
                                         sign={calculations.adjustment > 0 ? '+' : ''} 
                                         displayMode="stacked" 
                                         className="text-blue-600"
@@ -491,13 +505,13 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                              {tip > 0 && (
                                 <div className="flex justify-between items-center text-blue-600 font-medium border-t mt-1 pt-1 border-border">
                                     <span>Total Tip:</span>
-                                    <DualCurrencyDisplay baseValue={tip} sign="+" displayMode="stacked" className="text-blue-600 font-medium" />
+                                    <DualCurrencyDisplay baseValue={tip * fxRate} sign="+" displayMode="stacked" className="text-blue-600 font-medium" />
                                 </div>
                             )}
                             {calculations.totalDeposit > 0 && (
                                 <div className="flex justify-between items-center text-red-600 font-medium border-t mt-1 pt-1 border-border">
                                     <span>Total Deposit:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.totalDeposit} sign="-" displayMode="stacked" className="text-red-600 font-medium" />
+                                    <DualCurrencyDisplay baseValue={calculations.totalDeposit * fxRate} sign="-" displayMode="stacked" className="text-red-600 font-medium" />
                                 </div>
                             )}
                         </div>
