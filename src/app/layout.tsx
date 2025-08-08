@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: 'https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png',
-    apple: '/apple-touch-icon.png',
+    apple: 'https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png',
   }
 };
 

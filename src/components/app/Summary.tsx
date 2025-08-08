@@ -73,7 +73,7 @@ async function generateImage(element: HTMLElement, filename: string) {
     element.classList.add('capturing');
 
     // Add a delay to ensure images are loaded
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
         const dataUrl = await toPng(element, {
