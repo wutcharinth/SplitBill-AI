@@ -2,26 +2,14 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2, Mail, Lock, UserPlus } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-    AlertDialog,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 
 const fireConfetti = () => {
@@ -117,14 +105,6 @@ async function generateImage(element: HTMLElement, filename: string) {
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
-    const { toast } = useToast();
-    const { user, login, signUp, logout, sendPasswordReset } = useAuth();
-    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-    const [loginEmail, setLoginEmail] = useState('');
-    const [loginPassword, setLoginPassword] = useState('');
-    const [registerEmail, setRegisterEmail] = useState('');
-    const [registerPassword, setRegisterPassword] = useState('');
-    const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
 
     const handleShareSummary = async () => {
         const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
@@ -297,60 +277,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
-    
-     const handleSignInClick = () => {
-        setIsAuthDialogOpen(true);
-    };
-
-    const handleLoginSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await login(loginEmail, loginPassword);
-            toast({ title: 'Signed in successfully!' });
-            setIsAuthDialogOpen(false);
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Sign In Failed', description: error.message });
-        }
-    };
-
-    const handleRegisterSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (registerPassword !== registerConfirmPassword) {
-            toast({ variant: 'destructive', title: 'Registration Failed', description: "Passwords do not match." });
-            return;
-        }
-        try {
-            await signUp(registerEmail, registerPassword);
-            toast({ title: 'Registration successful!', description: 'You are now signed in.' });
-            setIsAuthDialogOpen(false);
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
-        }
-    };
-
-    const handleForgotPassword = async () => {
-        if (!loginEmail) {
-            toast({
-                variant: 'destructive',
-                title: 'Email Required',
-                description: 'Please enter your email address to reset your password.',
-            });
-            return;
-        }
-        try {
-            await sendPasswordReset(loginEmail);
-            toast({
-                title: 'Password Reset Email Sent',
-                description: 'Check your inbox for instructions to reset your password.',
-            });
-        } catch (error: any) {
-            toast({
-                variant: 'destructive',
-                title: 'Password Reset Failed',
-                description: error.message,
-            });
-        }
-    };
 
     return (
         <div className="border-t pt-4 border-border">
@@ -619,90 +545,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </div>
             
              <div className="mt-4 grid grid-cols-1 gap-3">
-                {user ? (
-                    <Button onClick={handleShareSummary} className="w-full font-bold">
-                        <Download size={18} />
-                        <span>Download as PNG</span>
-                    </Button>
-                ) : (
-                    <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
-                        <AlertDialogTrigger asChild>
-                             <Button className="w-full font-bold" onClick={handleSignInClick}>
-                                <Lock size={16} />
-                                <span>Sign in to Download</span>
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                             <Tabs defaultValue="signin" className="w-full">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <TabsTrigger value="signin">Sign In</TabsTrigger>
-                                    <TabsTrigger value="register">Register</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="signin">
-                                    <form onSubmit={handleLoginSubmit}>
-                                        <AlertDialogHeader className="mt-4 mb-2">
-                                            <AlertDialogTitle>Sign In</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Sign in with your email account to continue.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <div className="space-y-4 py-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="login-email">Email</Label>
-                                                <Input id="login-email" type="email" placeholder="you@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="login-password">Password</Label>
-                                                <Input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
-                                            </div>
-                                            <div className="text-right">
-                                                <Button type="button" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={handleForgotPassword}>
-                                                    Forgot Password?
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <AlertDialogFooter className="mt-4">
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <Button type="submit">
-                                                <Lock className="mr-2 h-4 w-4"/> Sign In
-                                            </Button>
-                                        </AlertDialogFooter>
-                                    </form>
-                                </TabsContent>
-                                <TabsContent value="register">
-                                    <form onSubmit={handleRegisterSubmit}>
-                                         <AlertDialogHeader className="mt-4 mb-2">
-                                            <AlertDialogTitle>Create an Account</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Register to save your bills and access more features.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <div className="space-y-4 py-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="register-email">Email</Label>
-                                                <Input id="register-email" type="email" placeholder="you@example.com" value={registerEmail} onChange={e => setRegisterEmail(e.target.value)} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="register-password">Password</Label>
-                                                <Input id="register-password" type="password" value={registerPassword} onChange={e => setRegisterPassword(e.target.value)} required />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="register-confirm-password">Confirm Password</Label>
-                                                <Input id="register-confirm-password" type="password" value={registerConfirmPassword} onChange={e => setRegisterConfirmPassword(e.target.value)} required />
-                                            </div>
-                                        </div>
-                                        <AlertDialogFooter className="mt-4">
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <Button type="submit">
-                                                <UserPlus className="mr-2 h-4 w-4"/> Register
-                                            </Button>
-                                        </AlertDialogFooter>
-                                    </form>
-                                </TabsContent>
-                            </Tabs>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                )}
+                <Button onClick={handleShareSummary} className="w-full font-bold">
+                    <Download size={18} />
+                    <span>Download as PNG</span>
+                </Button>
             </div>
         </div>
     );
