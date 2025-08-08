@@ -59,6 +59,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogle = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();
+    // Explicitly setting the auth domain can help resolve issues in some environments.
+    provider.setCustomParameters({
+      'auth_domain': 'billzai.firebaseapp.com'
+    });
     try {
       return await signInWithPopup(auth, provider);
     } finally {
