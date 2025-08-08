@@ -252,18 +252,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 const personVat = proportionOfBill * vatAmount;
                 const personOtherTax = proportionOfBill * otherTaxAmount;
                 const personAdjustment = proportionOfBill * adjustment;
+                const personTip = tipSplitMode === 'equally' ? tip / people.length : proportionOfBill * tip;
                 
                 const personDeposit = deposits.reduce((sum: number, deposit: Deposit) => {
                     return deposit.paidBy === person.id ? sum + deposit.amount : sum;
                 }, 0);
 
-                const totalWithoutTip = personSub - personGlobalDiscount + personServiceCharge + personVat + personOtherTax + personAdjustment;
-                const personTip = tipSplitMode === 'equally' ? tip / people.length : proportionOfBill * tip;
-                const total = totalWithoutTip + personTip - personDeposit;
+                const totalShare = personSub - personGlobalDiscount + personServiceCharge + personVat + personOtherTax + personAdjustment + personTip;
+                const finalTotal = totalShare - personDeposit;
 
                 return {
                     ...person,
-                    total,
+                    totalShare,
+                    finalTotal,
                     items: personSubtotals[index].items,
                     breakdown: {
                         subtotal: personSub,
@@ -278,12 +279,15 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 };
             });
         } else { // Evenly
-            const totalPerPerson = calculations.grandTotalWithTipAndDeposit / peopleCountEvenly;
+            const totalSharePerPerson = calculations.grandTotalWithTip / peopleCountEvenly;
+            const finalTotalPerPerson = calculations.grandTotalWithTipAndDeposit / peopleCountEvenly;
+            
             for(let i=0; i < peopleCountEvenly; i++) {
                 perPersonData.push({ 
                     id: `even-${i}`, 
                     name: `P${i+1}`, 
-                    total: totalPerPerson, 
+                    totalShare: totalSharePerPerson,
+                    finalTotal: finalTotalPerPerson,
                     color: PERSON_COLORS[i % PERSON_COLORS.length]
                 });
             }
@@ -291,7 +295,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         return perPersonData;
     }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly, deposits]);
     
-    const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.total, 0), [perPersonResults]);
+    const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.finalTotal, 0), [perPersonResults]);
 
     const DualCurrencyDisplay: React.FC<{
         baseValue: number, 
@@ -323,16 +327,16 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         );
     };
 
-    const PersonTotalDisplay: React.FC<{person: any}> = ({ person }) => {
-        const isOwed = person.total < 0;
-        const displayValue = Math.abs(person.total);
+    const FinalAmountDisplay: React.FC<{person: any}> = ({ person }) => {
+        const isOwed = person.finalTotal < 0;
+        const displayValue = Math.abs(person.finalTotal);
         const textColor = isOwed ? 'text-green-600' : 'text-primary';
+        const labelText = isOwed ? 'Is Owed' : 'Owes';
 
         return (
-            <div className="text-right">
+             <div className="text-right">
                 <span className={`font-bold text-sm ${textColor}`}>
-                    {isOwed ? 'Is Owed: ' : 'Owes: '}
-                    {currencySymbol}{formatNumber(displayValue * fxRate)}
+                    {labelText}: {currencySymbol}{formatNumber(displayValue * fxRate)}
                 </span>
                  {baseCurrency !== displayCurrency && (
                     <div className="text-xs text-muted-foreground font-normal">
@@ -342,6 +346,22 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </div>
         );
     }
+    
+    const TotalShareDisplay: React.FC<{person: any}> = ({ person }) => {
+        return (
+            <div className="text-right">
+                <span className="font-semibold text-xs text-muted-foreground">
+                    Total Share: {currencySymbol}{formatNumber(person.totalShare * fxRate)}
+                </span>
+                 {baseCurrency !== displayCurrency && (
+                    <div className="text-[10px] text-muted-foreground/80 font-normal">
+                        ({baseCurrencySymbol}{formatNumber(person.totalShare)})
+                    </div>
+                )}
+            </div>
+        );
+    }
+
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
@@ -408,9 +428,12 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             return (
                                 <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                                     <div className="p-3">
-                                        <div className="flex justify-between items-center">
+                                        <div className="flex justify-between items-start">
                                             <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
-                                            <PersonTotalDisplay person={person} />
+                                            <div className="flex flex-col gap-1">
+                                                <TotalShareDisplay person={person} />
+                                                <FinalAmountDisplay person={person} />
+                                            </div>
                                         </div>
                                         {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
                                             <ul className="list-disc list-inside mt-2 text-xs text-muted-foreground">
@@ -634,3 +657,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
