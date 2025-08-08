@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2, Mail } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail, Loader2 } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti'
@@ -68,7 +68,7 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void[]> => {
     const images = Array.from(element.getElementsByTagName('img'));
     const promises = images.map(img => {
         return new Promise<void>((resolve, reject) => {
-            if (img.complete) {
+            if (img.complete && img.naturalHeight !== 0) {
                 resolve();
             } else {
                 img.onload = () => resolve();
@@ -80,19 +80,16 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void[]> => {
 };
 
 
-async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void) {
+async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
     if (!element) {
         console.error('Element for image generation not found');
-        return;
+        return false;
     }
     
     element.classList.add('capturing');
 
     try {
-        // Wait for all images inside the summary component to load
         await waitForImagesToLoad(element);
-
-        // Small delay after images load before capturing
         await new Promise(resolve => setTimeout(resolve, 100));
 
         const dataUrl = await toPng(element, {
@@ -102,29 +99,27 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
-                // This filter helps prevent some browser-specific rendering issues,
-                // especially in Firefox, by excluding problematic elements.
-                if (node.tagName?.toLowerCase() === 'button') return false;
-                return true;
+                return node.tagName?.toLowerCase() !== 'button';
             },
-            cacheBust: true, // Add cacheBust option
-            }
-        );
+            cacheBust: true,
+        });
 
         const link = document.createElement('a');
         link.download = filename;
         link.href = dataUrl;
         link.click();
         
-        fireConfetti();
+        return true;
 
     } catch (err) {
         console.error('Failed to generate summary image:', err);
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
         toast({
             variant: 'destructive',
             title: 'Image Generation Error',
-            description: 'Sorry, there was an error creating the summary image. Please try again.',
+            description: `Sorry, there was an error creating the summary image. Please try again. Details: ${errorMessage}`,
         });
+        return false;
     } finally {
         element.classList.remove('capturing');
     }
@@ -150,8 +145,16 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const timePart = now.toTimeString().slice(0, 8).replace(/:/g, '-');
         const restaurantPart = restaurantName.replace(/[^a-zA-Z0-9]/g, ' ').trim().replace(/\s+/g, '-');
         const filename = `SplitBill-AI-${datePart}${restaurantPart ? `-${restaurantPart}` : ''}-${timePart}.png`;
+        
         if (summaryRef.current) {
-            await generateImage(summaryRef.current, filename, toast);
+            const success = await generateImage(summaryRef.current, filename, toast);
+            if (success) {
+                fireConfetti();
+                toast({
+                    title: "Summary Saved!",
+                    description: "Your summary image has been downloaded. Please check your downloads folder.",
+                });
+            }
         }
         setIsDownloading(false);
     };
@@ -582,9 +585,18 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </div>
             
              <div className="mt-4 grid grid-cols-1 gap-3">
-                <Button onClick={handleShareSummary} className="w-full font-bold" disabled={isDownloading}>
-                    {isDownloading ? 'Preparing...' : <Download size={18} />}
-                    <span>{isDownloading ? 'Preparing...' : 'Download as PNG'}</span>
+                 <Button onClick={handleShareSummary} className="w-full font-bold" disabled={isDownloading}>
+                    {isDownloading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>Creating your masterpiece...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Download size={18} />
+                            <span>Download as PNG</span>
+                        </>
+                    )}
                 </Button>
             </div>
         </div>
@@ -592,3 +604,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
