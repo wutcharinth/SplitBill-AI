@@ -6,6 +6,12 @@ import { CURRENCIES } from '../constants';
 import { Plus, X, CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
 import { Person } from '../types';
 
+const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (parseFloat(e.target.value) === 0) {
+      e.target.value = '';
+    }
+};
+
 const AdjustmentRow: React.FC<{ label: React.ReactNode; children: React.ReactNode }> = ({ label, children }) => (
     <div className="flex justify-between items-center py-2">
         <label className="font-semibold text-gray-700 text-xs">{label}</label>
@@ -42,7 +48,8 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
             <input
                 type="number"
                 id={`${tax.id}-amount`}
-                value={tax.amount ? (tax.amount * fxRate).toFixed(2) : '0'}
+                value={tax.amount ? (tax.amount * fxRate).toFixed(2) : '0.00'}
+                onFocus={handleFocus}
                 onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, amount: Number(e.target.value) / fxRate }})}
                 className="w-20 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-xs text-gray-900"
             />
@@ -76,7 +83,8 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                             <div className="flex items-center space-x-2">
                                 <input 
                                     type="number" 
-                                    value={discount.type === 'fixed' ? (discount.value * fxRate).toFixed(2) : discount.value} 
+                                    value={discount.type === 'fixed' ? (discount.value * fxRate).toFixed(2) : discount.value}
+                                    onFocus={handleFocus}
                                     onChange={e => {
                                         const val = Number(e.target.value);
                                         const newDiscountValue = discount.type === 'fixed' ? val / fxRate : val;
@@ -160,7 +168,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     <AdjustmentRow label="Amount">
                          <div className="flex items-center">
                             <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
-                            <input type="number" value={(tip * fxRate).toFixed(2)} onChange={e => dispatch({ type: 'UPDATE_TIP', payload: Number(e.target.value) / fxRate })} className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs" />
+                            <input type="number" value={(tip * fxRate).toFixed(2)} onFocus={handleFocus} onChange={e => dispatch({ type: 'UPDATE_TIP', payload: Number(e.target.value) / fxRate })} className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs" />
                         </div>
                     </AdjustmentRow>
                     <div className="mt-3 pt-3 border-t border-gray-200">

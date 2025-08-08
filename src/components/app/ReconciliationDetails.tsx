@@ -10,6 +10,12 @@ const DetailRow: React.FC<{ label: React.ReactNode; children: React.ReactNode; c
     </div>
 );
 
+const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (parseFloat(e.target.value) === 0) {
+      e.target.value = '';
+    }
+};
+
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   const { items, billTotal, discount, taxes, splitMode, tip } = state;
 
@@ -56,7 +62,8 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                     <span className="mr-2 text-gray-600 text-sm">{currencySymbol}</span>
                     <input 
                         type="number" 
-                        value={billTotal > 0 ? (billTotal * fxRate).toFixed(2) : ''} 
+                        value={billTotal > 0 ? (billTotal * fxRate).toFixed(2) : ''}
+                        onFocus={handleFocus}
                         onChange={e => dispatch({type: 'UPDATE_BILL_TOTAL', payload: Number(e.target.value) / fxRate})} 
                         className="w-24 text-right bg-card border border-border rounded-md p-1 font-mono text-sm text-foreground"
                         placeholder="Enter total"

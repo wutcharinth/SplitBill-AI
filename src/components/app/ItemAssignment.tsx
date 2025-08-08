@@ -64,6 +64,12 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
     }
   };
 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (parseFloat(e.target.value) === 0) {
+      e.target.value = '';
+    }
+  };
+
   return (
     <div className="mt-4">
       <div>
@@ -94,6 +100,7 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                             key={`${itemIndex}-${fxRate}`} // Re-mount if fxRate changes for correct defaultValue
                             type="number"
                             defaultValue={(item.price * fxRate).toFixed(2)}
+                            onFocus={handleFocus}
                             onBlur={(e) => {
                                 const value = e.target.value;
                                 const newPrice = parseFloat(value);
