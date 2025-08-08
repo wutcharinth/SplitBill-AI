@@ -28,7 +28,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
       <div className="space-y-6 mt-12">
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="text-base font-bold mb-1 text-primary font-headline">1. Split Mode</h2>
-          <p className="text-xs text-muted-foreground mb-4">Choose whether to split the bill by individual items or divide the total evenly.</p>
+          <p className="text-xs text-muted-foreground mb-4">First, choose how you'd like to divide the bill.</p>
           <SplitModeToggle mode={state.splitMode} setMode={(mode: SplitMode) => dispatch({ type: 'SET_SPLIT_MODE', payload: mode })} />
         </div>
 
