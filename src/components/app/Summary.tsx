@@ -119,7 +119,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
-    const { user, login, signUp, loginWithGoogle } = useAuth();
+    const { user, login, signUp } = useAuth();
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
     const [registerEmail, setRegisterEmail] = useState('');
@@ -135,10 +135,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     };
     
     useEffect(() => {
-        if (user && sessionStorage.getItem('pending_action') === 'download') {
-            sessionStorage.removeItem('pending_action');
+        if (user) {
             setIsAuthDialogOpen(false);
-            handleShareSummary();
         }
     }, [user]);
 
@@ -153,16 +151,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         }
     }
     
-    const handleGoogleSignIn = async () => {
-        try {
-            sessionStorage.setItem('pending_action', 'download');
-            await loginWithGoogle();
-        } catch (error: any) {
-             sessionStorage.removeItem('pending_action');
-             toast({ variant: 'destructive', title: "Google Sign-In Failed", description: "There was a problem signing in with Google. Please try again later." });
-        }
-    }
-
     const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (registerPassword !== registerConfirmPassword) {
@@ -633,7 +621,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                         <AlertDialogHeader className="mt-4 mb-2">
                                             <AlertDialogTitle>Sign In</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Sign in with your email or Google account to continue.
+                                                Sign in with your email account to continue.
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <div className="space-y-4 py-4">
@@ -645,20 +633,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                 <Label htmlFor="login-password">Password</Label>
                                                 <Input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
                                             </div>
-                                            <div className="relative">
-                                                <div className="absolute inset-0 flex items-center">
-                                                    <span className="w-full border-t" />
-                                                </div>
-                                                <div className="relative flex justify-center text-xs uppercase">
-                                                    <span className="bg-background px-2 text-muted-foreground">
-                                                    Or continue with
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <Button type="button" variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-                                                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 172.9 56.2L381.2 150.1C344.3 117.7 298.6 97.2 248 97.2c-83.8 0-152.3 68.5-152.3 152.8s68.5 152.8 152.3 152.8c88.6 0 125.8-64.4 130.6-95.2H248v-65.1h236.3c2.3 12.7 3.7 26.1 3.7 40.2z"></path></svg>
-                                                Sign in with Google
-                                            </Button>
                                         </div>
                                         <AlertDialogFooter className="mt-4">
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -708,5 +682,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    
