@@ -440,7 +440,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                     {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax * fxRate} sign="+"/></span></div>}
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
                                                     {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600"/></span></div>}
-                                                    {breakdown.deposit > 0 && <div className="flex justify-between text-red-600"><span>Deposit:</span><span><DualCurrencyDisplay baseValue={breakdown.deposit * fxRate} sign="-" className="text-red-600"/></span></div>}
+                                                    {breakdown.deposit > 0 && <div className="flex justify-between text-red-600"><span>Payment:</span><span><DualCurrencyDisplay baseValue={breakdown.deposit * fxRate} sign="-" className="text-red-600"/></span></div>}
                                                 </div>
                                             )}
                                         </div>
@@ -511,7 +511,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             )}
                             {calculations.totalDeposit > 0 && (
                                 <div className="flex justify-between items-center text-red-600 font-medium border-t mt-1 pt-1 border-border">
-                                    <span>Total Deposit:</span>
+                                    <span>Total Payments:</span>
                                     <DualCurrencyDisplay baseValue={calculations.totalDeposit * fxRate} sign="-" displayMode="stacked" className="text-red-600 font-medium" />
                                 </div>
                             )}

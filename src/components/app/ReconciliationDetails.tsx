@@ -123,7 +123,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
             
             {totalDeposit > 0 && (
                 <div className="flex justify-between items-center pt-1 text-sm font-semibold">
-                    <h4 className="text-red-600">Deposit</h4>
+                    <h4 className="text-red-600">Payments</h4>
                     <span className="font-mono text-red-600">- {currencySymbol}{(totalDeposit * fxRate).toFixed(2)}</span>
                 </div>
             )}

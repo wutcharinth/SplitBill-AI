@@ -124,7 +124,7 @@ const DepositInput: React.FC<{
                     <option value="">Select Person</option>
                     {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
-                <span className="text-xs text-gray-600">paid a deposit of</span>
+                <span className="text-xs text-gray-600">paid an amount of</span>
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-gray-500 text-xs">{currencySymbol}</span>
@@ -364,7 +364,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 
         {/* Deposit Section */}
         <div className="border-t pt-4 mt-4 border-gray-200 space-y-2">
-            <h4 className="font-semibold text-xs text-gray-800">Deposits</h4>
+            <h4 className="font-semibold text-xs text-gray-800">Payments / Deposits</h4>
             {deposits.map((deposit: Deposit) => (
                 <DepositInput
                     key={deposit.id}
@@ -380,7 +380,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                 className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center space-x-2 transition-colors"
             >
                 <Plus size={14} />
-                <span className="text-xs font-medium">Add Deposit (Deduct from Total)</span>
+                <span className="text-xs font-medium">Add Payment / Deposit</span>
             </button>
         </div>
     </div>
