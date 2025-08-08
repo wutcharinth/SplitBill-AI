@@ -11,9 +11,9 @@ const DetailRow: React.FC<{ label: React.ReactNode; children: React.ReactNode; c
 );
 
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, billTotal, discount, taxes, splitMode } = state;
+  const { items, billTotal, discount, taxes, splitMode, tip } = state;
 
-  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment } = useMemo(() => {
+  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTip } = useMemo(() => {
     const sub = items.reduce((sum: number, item: any) => sum + item.price, 0);
     
     let baseForCharges = sub;
@@ -31,6 +31,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
 
     const calcTotal = subAfterDiscount + scAmount + vAmount + otAmount;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
+    const gTotalWithTip = calcTotal + adj + tip;
 
     return { 
         subtotal: sub,
@@ -39,9 +40,10 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
         vatAmount: vAmount,
         otherTaxAmount: otAmount,
         calculatedTotal: calcTotal,
-        adjustment: adj
+        adjustment: adj,
+        grandTotalWithTip: gTotalWithTip,
     };
-}, [items, billTotal, discount, taxes, splitMode]);
+}, [items, billTotal, discount, taxes, splitMode, tip]);
 
 
   return (
@@ -100,6 +102,18 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 <span className={`font-mono ${adjustment >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
                     {adjustment >= 0 ? '+' : '-'} {currencySymbol}{Math.abs(adjustment * fxRate).toFixed(2)}
                 </span>
+            </div>
+            
+             {tip > 0 && (
+                <div className="flex justify-between items-center pt-1 text-sm font-semibold">
+                    <h4 className="text-blue-600">Tip</h4>
+                    <span className="font-mono text-blue-600">+ {currencySymbol}{(tip * fxRate).toFixed(2)}</span>
+                </div>
+            )}
+
+            <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
+                <h4 className="text-gray-900">Grand Total</h4>
+                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTip * fxRate).toFixed(2)}</span>
             </div>
         </div>
     </div>
