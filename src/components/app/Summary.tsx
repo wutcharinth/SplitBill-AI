@@ -119,7 +119,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
-    const { user, login, signUp } = useAuth();
+    const { user, login, signUp, sendPasswordReset } = useAuth();
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
     const [registerEmail, setRegisterEmail] = useState('');
@@ -137,6 +137,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     useEffect(() => {
         if (user) {
             setIsAuthDialogOpen(false);
+            const pendingAction = sessionStorage.getItem('pending_action');
+            if (pendingAction === 'download-summary') {
+                handleShareSummary();
+                sessionStorage.removeItem('pending_action');
+            }
         }
     }, [user]);
 
@@ -162,6 +167,30 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             toast({ title: "Registration Successful" });
         } catch (error: any) {
              toast({ variant: 'destructive', title: "Registration Failed", description: error.message });
+        }
+    }
+
+    const handleForgotPassword = async () => {
+        if (!loginEmail) {
+            toast({
+                variant: 'destructive',
+                title: 'Email Required',
+                description: 'Please enter your email address to reset your password.',
+            });
+            return;
+        }
+        try {
+            await sendPasswordReset(loginEmail);
+            toast({
+                title: 'Password Reset Email Sent',
+                description: `If an account exists for ${loginEmail}, you will receive an email with instructions to reset your password.`,
+            });
+        } catch (error: any) {
+             toast({
+                variant: 'destructive',
+                title: 'Error Sending Reset Email',
+                description: "There was a problem sending the password reset email. Please try again.",
+            });
         }
     }
     
@@ -329,6 +358,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
+
+    const handleSignInClick = () => {
+        sessionStorage.setItem('pending_action', 'download-summary');
+        // The AlertDialogTrigger will open the dialog
+    }
     
     return (
         <div className="border-t pt-4 border-border">
@@ -598,14 +632,14 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             
              <div className="mt-4 grid grid-cols-1 gap-3">
                 {user ? (
-                    <Button onClick={handleShareSummary} className="w-full font-bold bg-green-500 hover:bg-green-600 text-white">
+                    <Button onClick={handleShareSummary} className="w-full font-bold">
                         <Download size={18} />
                         <span>Download as PNG</span>
                     </Button>
                 ) : (
                     <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
                         <AlertDialogTrigger asChild>
-                            <Button className="w-full font-bold">
+                             <Button className="w-full font-bold" onClick={handleSignInClick}>
                                 <Lock size={16} />
                                 <span>Sign in to Download</span>
                             </Button>
@@ -632,6 +666,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                             <div className="space-y-2">
                                                 <Label htmlFor="login-password">Password</Label>
                                                 <Input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
+                                            </div>
+                                            <div className="text-right">
+                                                <Button type="button" variant="link" className="text-xs h-auto p-0 text-muted-foreground" onClick={handleForgotPassword}>
+                                                    Forgot Password?
+                                                </Button>
                                             </div>
                                         </div>
                                         <AlertDialogFooter className="mt-4">

@@ -9,6 +9,10 @@ import {
     createUserWithEmailAndPassword,
     signOut,
     User,
+    GoogleAuthProvider,
+    signInWithRedirect,
+    getRedirectResult,
+    sendPasswordResetEmail,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/config';
 import { useToast } from './use-toast';
@@ -19,10 +23,12 @@ interface AuthContextType {
   signUp: (email: string, pass: string) => Promise<any>;
   login: (email: string, pass: string) => Promise<any>;
   logout: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,6 +40,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(user);
         setLoading(false);
     });
+
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          toast({
+            title: 'Sign In Successful',
+            description: `Welcome back, ${result.user.displayName || result.user.email}!`,
+          });
+        }
+      })
+      .catch((error) => {
+        // Handle Errors here.
+        console.error("Error getting redirect result:", error);
+        toast({
+          variant: 'destructive',
+          title: 'Sign In Failed',
+          description: error.message,
+        });
+      }).finally(() => {
+        setLoading(false);
+      });
 
     return () => unsubscribe();
   }, [toast]);
@@ -60,15 +87,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return await signOut(auth);
   };
 
+  const sendPasswordReset = async (email: string) => {
+    return await sendPasswordResetEmail(auth, email);
+  }
+
   const value = {
     user,
     loading,
     signUp,
     login,
     logout,
+    sendPasswordReset,
   };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
