@@ -115,7 +115,9 @@ const reducer = (state: AppState, action: Action): AppState => {
           ...item,
           shares: [...item.shares, 0]
       }));
-      return { ...state, people: newPeopleArray, items: itemsWithNewPerson };
+      // Also add a default deposit for the new person
+      const newDepositsArray = [...state.deposits, {id: newPerson.id, amount: 0, paidBy: newPerson.id}];
+      return { ...state, people: newPeopleArray, items: itemsWithNewPerson, deposits: newDepositsArray };
 
     case 'REMOVE_PERSON': {
       const { personId } = action.payload;
@@ -132,7 +134,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       // Also remove person from discount shares
       const newDiscountShares = state.discount.shares.filter(id => id !== personId);
       // And from deposits
-      const newDeposits = state.deposits.map(d => d.paidBy === personId ? {...d, paidBy: null} : d);
+      const newDeposits = state.deposits.filter(d => d.paidBy !== personId);
 
       return {
           ...state,
@@ -244,13 +246,25 @@ const reducer = (state: AppState, action: Action): AppState => {
     }
 
     case 'UPDATE_DEPOSIT': {
-      const { id, ...updateData } = action.payload;
-      const newDeposits = state.deposits.map(d => {
-        if (d.id === id) {
-          return { ...d, ...updateData };
-        }
-        return d;
-      });
+      const { paidBy, amount } = action.payload;
+      if (!paidBy) return state;
+
+      const existingDepositIndex = state.deposits.findIndex(d => d.paidBy === paidBy);
+      let newDeposits;
+
+      if (existingDepositIndex > -1) {
+          // Update existing deposit for the person
+          newDeposits = state.deposits.map((d, index) => {
+              if (index === existingDepositIndex) {
+                  return { ...d, amount: amount ?? d.amount };
+              }
+              return d;
+          });
+      } else {
+          // Add new deposit for the person
+          newDeposits = [...state.deposits, { id: paidBy, paidBy, amount: amount ?? 0 }];
+      }
+
       return { ...state, deposits: newDeposits };
     }
 

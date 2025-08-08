@@ -101,6 +101,12 @@ function AppContent({ modelName }: { modelName: string }) {
             { id: `p${Date.now()}-2`, name: 'P2', color: PERSON_COLORS[1] }
         ];
 
+        const initialDeposits = initialPeople.map(person => ({
+            id: person.id,
+            amount: 0,
+            paidBy: person.id,
+        }));
+
         const newBillData: BillData = {
             items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
@@ -112,7 +118,7 @@ function AppContent({ modelName }: { modelName: string }) {
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
             tipSplitMode: 'proportionally',
-            deposits: [],
+            deposits: initialDeposits,
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
             restaurantName: data?.restaurantName || '',
