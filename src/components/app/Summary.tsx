@@ -78,7 +78,7 @@ async function generateImage(element: HTMLElement, filename: string) {
     try {
         const dataUrl = await toPng(element, {
             quality: 0.95,
-            pixelRatio: 1.5,
+            pixelRatio: 1.0,
             style: {
                 fontFamily: "'Inter', sans-serif",
             },
