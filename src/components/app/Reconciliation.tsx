@@ -59,11 +59,11 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
                         <h4 className="font-bold text-indigo-800 text-sm">
-                            Let's Get Started!
+                            Ready to Split
                             <span className="font-mono text-xs ml-2 text-muted-foreground">({matchPercentage.toFixed(1)}% Match)</span>
                         </h4>
                         <p className="text-xs text-indigo-700 mt-1">
-                            Tap the person icons below each item to start assigning shares.
+                           Assign items to people below to see the breakdown.
                         </p>
                     </div>
                 </div>
