@@ -46,12 +46,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     }
 
     const MatchProgress = () => (
-        <div className="mt-2">
+        <div className="mt-2 w-full">
             <div className="flex justify-between items-center mb-1">
                 <span className="text-xs font-semibold text-muted-foreground">Match Progress</span>
                 <span className="text-xs font-bold text-foreground">{matchPercentage.toFixed(1)}%</span>
             </div>
-            <Progress value={matchPercentage} indicatorClassName={getProgressColor()} />
+            <Progress value={matchPercentage} indicatorClassName={getProgressColor()} className="w-full" />
         </div>
     );
     
@@ -88,9 +88,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         
         if (unassignedItemsCount > 0) {
              return (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 w-full">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
+                    <div className="flex-grow">
                         <h4 className="font-bold text-indigo-800 text-base">
                             Keep Going!
                         </h4>
@@ -108,9 +108,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         
         if (isReconciled) {
             return (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 w-full">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
+                    <div className="flex-grow">
                         <h4 className="font-bold text-green-800 text-base">
                             Perfect Match!
                         </h4>
@@ -125,9 +125,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         
         if (isNearlyReconciled) {
             return (
-                 <div className="flex items-start gap-3">
+                 <div className="flex items-start gap-3 w-full">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
+                    <div className="flex-grow">
                         <h4 className="font-bold text-green-800 text-base">
                             Almost There!
                         </h4>
@@ -142,9 +142,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
 
         if (matchPercentage < 90) {
             return (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 w-full">
                     <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
+                    <div className="flex-grow">
                         <h4 className="font-bold text-yellow-800 text-base">
                             Large Difference Detected
                         </h4>
@@ -159,9 +159,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         
         if (adjustment > 0) { // Shortfall
             return (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 w-full">
                     <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
+                    <div className="flex-grow">
                         <h4 className="font-bold text-yellow-800 text-base">
                             Shortfall Detected
                         </h4>
@@ -182,9 +182,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
 
         if (taxLikeSurplus) {
             return (
-                 <div className="flex items-start gap-3">
+                 <div className="flex items-start gap-3 w-full">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
+                    <div className="flex-grow">
                         <h4 className="font-bold text-indigo-800 text-base">Surplus Found!</h4>
                         <p className="text-sm text-indigo-700 mt-1">
                             The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
@@ -197,9 +197,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         }
 
         return (
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 w-full">
                 <PartyPopper className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                <div>
+                <div className="flex-grow">
                     <h4 className="font-bold text-indigo-800 text-base">
                         Surplus Found!
                     </h4>
