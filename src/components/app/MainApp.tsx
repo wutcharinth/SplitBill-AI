@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useReducer, useEffect } from 'react';
-import { BillData, BillItem, Person, Tax, Discount, SplitMode } from '../../types';
+import { BillData, BillItem, Person, Tax, Discount, SplitMode, Deposit } from '../../types';
 import { CURRENCIES } from '../constants';
 import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
@@ -64,7 +64,9 @@ type Action =
   | { type: 'UPDATE_DISCOUNT'; payload: Partial<Discount> }
   | { type: 'TOGGLE_DISCOUNT_SHARE'; payload: { personId: string } }
   | { type: 'UPDATE_TIP'; payload: number }
-  | { type: 'UPDATE_DEPOSIT'; payload: number }
+  | { type: 'ADD_DEPOSIT' }
+  | { type: 'REMOVE_DEPOSIT'; payload: { id: string } }
+  | { type: 'UPDATE_DEPOSIT'; payload: { id: string, amount?: number, paidBy?: string | null } }
   | { type: 'UPDATE_TIP_SPLIT_MODE'; payload: 'proportionally' | 'equally' }
   | { type: 'UPDATE_BILL_TOTAL'; payload: number }
   | { type: 'UPDATE_RESTAURANT_NAME'; payload: string }
@@ -128,11 +130,15 @@ const reducer = (state: AppState, action: Action): AppState => {
       });
       // Also remove person from discount shares
       const newDiscountShares = state.discount.shares.filter(id => id !== personId);
+      // And from deposits
+      const newDeposits = state.deposits.map(d => d.paidBy === personId ? {...d, paidBy: null} : d);
+
       return {
           ...state,
           people: filteredPeople,
           items: itemsWithPersonRemoved,
-          discount: { ...state.discount, shares: newDiscountShares }
+          discount: { ...state.discount, shares: newDiscountShares },
+          deposits: newDeposits
       };
     }
 
@@ -223,8 +229,29 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'UPDATE_TIP':
         return { ...state, tip: action.payload };
 
-    case 'UPDATE_DEPOSIT':
-        return { ...state, deposit: action.payload };
+    case 'ADD_DEPOSIT': {
+      const newDeposit: Deposit = {
+        id: `d${Date.now()}`,
+        amount: 0,
+        paidBy: null
+      };
+      return { ...state, deposits: [...state.deposits, newDeposit] };
+    }
+
+    case 'REMOVE_DEPOSIT': {
+      return { ...state, deposits: state.deposits.filter(d => d.id !== action.payload.id) };
+    }
+
+    case 'UPDATE_DEPOSIT': {
+      const { id, ...updateData } = action.payload;
+      const newDeposits = state.deposits.map(d => {
+        if (d.id === id) {
+          return { ...d, ...updateData };
+        }
+        return d;
+      });
+      return { ...state, deposits: newDeposits };
+    }
 
     case 'UPDATE_TIP_SPLIT_MODE':
         return { ...state, tipSplitMode: action.payload };

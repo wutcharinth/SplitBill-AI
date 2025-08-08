@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Deposit } from '@/lib/types';
 
 
 const fireConfetti = () => {
@@ -132,7 +133,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [isDownloading, setIsDownloading] = useState(false);
 
     const {
-        items, people, discount, taxes, tip, tipSplitMode, billTotal, deposit,
+        items, people, discount, taxes, tip, tipSplitMode, billTotal, deposits,
         splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
         restaurantName, billDate, qrCodeImage, notes,
         includeReceiptInSummary, uploadedReceipt
@@ -194,15 +195,16 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
         const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
         const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
+        const totalDeposit = deposits.reduce((sum: number, deposit: Deposit) => sum + deposit.amount, 0);
 
         const calculatedTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
         const adjustment = billTotal > 0 ? billTotal - calculatedTotal : 0;
         const grandTotal = calculatedTotal + adjustment;
         const grandTotalWithTip = grandTotal + tip;
-        const grandTotalWithTipAndDeposit = grandTotalWithTip - deposit;
+        const grandTotalWithTipAndDeposit = grandTotalWithTip - totalDeposit;
         
-        return { subtotal, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment, grandTotal, grandTotalWithTip, grandTotalWithTipAndDeposit, itemDiscountsTotal, globalDiscountAmount, calculatedTotal };
-    }, [items, discount, taxes, tip, billTotal, splitMode, deposit]);
+        return { subtotal, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment, grandTotal, grandTotalWithTip, grandTotalWithTipAndDeposit, itemDiscountsTotal, globalDiscountAmount, calculatedTotal, totalDeposit };
+    }, [items, discount, taxes, tip, billTotal, splitMode, deposits]);
     
     const perPersonResults = useMemo(() => {
         const { globalDiscountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment } = calculations;
@@ -248,10 +250,13 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 const personVat = proportionOfBill * vatAmount;
                 const personOtherTax = proportionOfBill * otherTaxAmount;
                 const personAdjustment = proportionOfBill * adjustment;
+                
+                const personDeposit = deposits.reduce((sum: number, deposit: Deposit) => {
+                    return deposit.paidBy === person.id ? sum + deposit.amount : sum;
+                }, 0);
 
                 const totalWithoutTip = personSub - personGlobalDiscount + personServiceCharge + personVat + personOtherTax + personAdjustment;
                 const personTip = tipSplitMode === 'equally' ? tip / people.length : proportionOfBill * tip;
-                const personDeposit = proportionOfBill * deposit;
                 const total = totalWithoutTip + personTip - personDeposit;
 
                 return {
@@ -266,7 +271,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         otherTax: personOtherTax,
                         adjustment: personAdjustment,
                         tip: personTip,
-                        deposit: personDeposit
+                        deposit: personDeposit,
                     }
                 };
             });
@@ -282,7 +287,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             }
         }
         return perPersonData;
-    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly, deposit]);
+    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly, deposits]);
     
     const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.total, 0), [perPersonResults]);
 
@@ -489,10 +494,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     <DualCurrencyDisplay baseValue={tip} sign="+" displayMode="stacked" className="text-blue-600 font-medium" />
                                 </div>
                             )}
-                            {deposit > 0 && (
+                            {calculations.totalDeposit > 0 && (
                                 <div className="flex justify-between items-center text-red-600 font-medium border-t mt-1 pt-1 border-border">
                                     <span>Total Deposit:</span>
-                                    <DualCurrencyDisplay baseValue={deposit} sign="-" displayMode="stacked" className="text-red-600 font-medium" />
+                                    <DualCurrencyDisplay baseValue={calculations.totalDeposit} sign="-" displayMode="stacked" className="text-red-600 font-medium" />
                                 </div>
                             )}
                         </div>

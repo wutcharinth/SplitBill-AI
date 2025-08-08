@@ -17,7 +17,7 @@ export interface BillItem {
 
 export interface Tax {
     id: 'serviceCharge' | 'vat' | 'otherTax';
-    name: string;
+    name:string;
     translatedName?: string | null;
     amount: number;
     isEnabled: boolean;
@@ -27,6 +27,12 @@ export interface Discount {
     value: number;
     type: 'percentage' | 'fixed';
     shares: string[]; // Person IDs sharing the discount
+}
+
+export interface Deposit {
+    id: string;
+    amount: number;
+    paidBy: string | null; // Person ID
 }
 
 export interface BillData {
@@ -40,7 +46,7 @@ export interface BillData {
   discount: Discount;
   tip: number;
   tipSplitMode: 'proportionally' | 'equally';
-  deposit: number;
+  deposits: Deposit[];
   billTotal: number;
   baseCurrency: string;
   restaurantName: string;

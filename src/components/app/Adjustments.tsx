@@ -3,8 +3,8 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { CURRENCIES } from '../constants';
-import { Plus, X, CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
-import { Person } from '../types';
+import { Plus, X, CheckCircle2, AlertCircle, PartyPopper, Info, User } from 'lucide-react';
+import { Person, Deposit } from '../types';
 
 const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     if (parseFloat(e.target.value) === 0) {
@@ -92,35 +92,59 @@ const TipInput: React.FC<{
 };
 
 const DepositInput: React.FC<{
-    deposit: number;
+    deposit: Deposit;
+    people: Person[];
     fxRate: number;
     dispatch: React.Dispatch<any>;
-}> = ({ deposit, fxRate, dispatch }) => {
-    const [localDeposit, setLocalDeposit] = useState((deposit * fxRate).toFixed(2));
+    currencySymbol: string;
+}> = ({ deposit, people, fxRate, dispatch, currencySymbol }) => {
+    const [localAmount, setLocalAmount] = useState((deposit.amount * fxRate).toFixed(2));
 
     useEffect(() => {
-        setLocalDeposit((deposit * fxRate).toFixed(2));
-    }, [deposit, fxRate]);
+        setLocalAmount((deposit.amount * fxRate).toFixed(2));
+    }, [deposit.amount, fxRate]);
 
     const handleBlur = () => {
-        const numericValue = parseFloat(localDeposit);
+        const numericValue = parseFloat(localAmount);
         if (!isNaN(numericValue)) {
-            dispatch({ type: 'UPDATE_DEPOSIT', payload: numericValue / fxRate });
+            dispatch({ type: 'UPDATE_DEPOSIT', payload: { id: deposit.id, amount: numericValue / fxRate } });
         } else {
-            setLocalDeposit((deposit * fxRate).toFixed(2));
+            setLocalAmount((deposit.amount * fxRate).toFixed(2)); // Reset on invalid input
         }
     };
 
     return (
-        <input
-            type="number"
-            value={localDeposit}
-            onChange={(e) => setLocalDeposit(e.target.value)}
-            onBlur={handleBlur}
-            onFocus={handleFocus}
-            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs"
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2">
+                <select
+                    value={deposit.paidBy || ''}
+                    onChange={e => dispatch({ type: 'UPDATE_DEPOSIT', payload: { id: deposit.id, paidBy: e.target.value } })}
+                    className="bg-white rounded-md p-1 text-xs border border-gray-300 text-gray-900"
+                >
+                    <option value="">Select Person</option>
+                    {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <span className="text-xs text-gray-600">paid a deposit of</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="text-gray-500 text-xs">{currencySymbol}</span>
+                <input
+                    type="number"
+                    value={localAmount}
+                    onChange={(e) => setLocalAmount(e.target.value)}
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                    className="w-24 text-right bg-white border border-gray-300 rounded-md p-1 font-mono text-xs text-gray-900"
+                />
+                <button 
+                    onClick={() => dispatch({ type: 'REMOVE_DEPOSIT', payload: { id: deposit.id } })}
+                    className="text-gray-500 hover:text-red-500"
+                >
+                    <X size={16}/>
+                </button>
+            </div>
+        </div>
     );
 };
 
@@ -207,9 +231,8 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
 
 
 const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, discount, taxes, tip, deposit, billTotal, splitMode, tipSplitMode } = state;
+  const { items, discount, taxes, tip, deposits, billTotal, splitMode, tipSplitMode } = state;
   const [showTipInput, setShowTipInput] = useState(state.tip > 0);
-  const [showDepositInput, setShowDepositInput] = useState(state.deposit > 0);
   const [showDiscountInput, setShowDiscountInput] = useState(state.discount.value > 0);
   
   const showOtherTax = useMemo(() => taxes.otherTax.isEnabled || taxes.otherTax.amount > 0, [taxes.otherTax]);
@@ -340,31 +363,25 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
         </div>
 
         {/* Deposit Section */}
-        <div className="border-t pt-4 mt-4 border-gray-200">
-            {showDepositInput ? (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex justify-between items-center mb-1">
-                        <h4 className="font-semibold text-xs text-gray-800">Deposit</h4>
-                         <button onClick={() => { setShowDepositInput(false); dispatch({ type: 'UPDATE_DEPOSIT', payload: 0 }); }} className="text-gray-500 hover:text-gray-700" aria-label="Cancel deposit">
-                            <X size={16} />
-                        </button>
-                    </div>
-                    <AdjustmentRow label="Amount">
-                         <div className="flex items-center">
-                            <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
-                            <DepositInput deposit={deposit} fxRate={fxRate} dispatch={dispatch} />
-                        </div>
-                    </AdjustmentRow>
-                </div>
-            ) : (
-                <button 
-                    onClick={() => setShowDepositInput(true)}
-                    className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center space-x-2 transition-colors"
-                >
-                    <Plus size={14} />
-                    <span className="text-xs font-medium">Add Deposit (Deduct from Total)</span>
-                </button>
-            )}
+        <div className="border-t pt-4 mt-4 border-gray-200 space-y-2">
+            <h4 className="font-semibold text-xs text-gray-800">Deposits</h4>
+            {deposits.map((deposit: Deposit) => (
+                <DepositInput
+                    key={deposit.id}
+                    deposit={deposit}
+                    people={state.people}
+                    fxRate={fxRate}
+                    dispatch={dispatch}
+                    currencySymbol={currencySymbol}
+                />
+            ))}
+            <button 
+                onClick={() => dispatch({ type: 'ADD_DEPOSIT' })}
+                className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 flex items-center justify-center space-x-2 transition-colors"
+            >
+                <Plus size={14} />
+                <span className="text-xs font-medium">Add Deposit (Deduct from Total)</span>
+            </button>
         </div>
     </div>
   );
