@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BillItem, Person } from '../types';
 import { Plus, Trash2, X } from 'lucide-react';
 
@@ -12,6 +12,56 @@ interface ItemAssignmentProps {
   fxRate: number;
   dispatch: React.Dispatch<any>;
 }
+
+const ItemPriceInput: React.FC<{
+    itemIndex: number;
+    price: number;
+    fxRate: number;
+    dispatch: React.Dispatch<any>;
+}> = ({ itemIndex, price, fxRate, dispatch }) => {
+    const [localPrice, setLocalPrice] = useState((price * fxRate).toFixed(2));
+
+    useEffect(() => {
+        setLocalPrice((price * fxRate).toFixed(2));
+    }, [price, fxRate]);
+
+    const handleBlur = () => {
+        const numericValue = parseFloat(localPrice);
+        if (!isNaN(numericValue)) {
+            dispatch({ type: 'UPDATE_ITEM_PRICE', payload: { itemIndex, price: numericValue / fxRate } });
+        } else {
+            setLocalPrice((price * fxRate).toFixed(2));
+        }
+    };
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        if (parseFloat(e.target.value) === 0) {
+            e.target.value = '';
+        }
+        setLocalPrice(e.target.value);
+    };
+    
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            (e.target as HTMLInputElement).blur();
+        }
+    };
+
+    return (
+        <input
+            type="number"
+            value={localPrice}
+            onChange={(e) => setLocalPrice(e.target.value)}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            onKeyDown={handleKeyDown}
+            step="0.01"
+            placeholder="0.00"
+            className="w-20 text-right p-1 bg-transparent font-mono text-xs text-gray-800 rounded-md border border-gray-300 focus:border-agoda-blue focus:outline-none focus:ring-1 focus:ring-agoda-blue"
+        />
+    );
+};
+
 
 const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currencySymbol, fxRate, dispatch }) => {
   const [manualItemName, setManualItemName] = useState('');
@@ -96,26 +146,11 @@ const ItemAssignment: React.FC<ItemAssignmentProps> = ({ items, people, currency
                     </div>
                     <div className="flex items-center flex-shrink-0">
                         <span className="font-mono text-xs text-gray-500">{currencySymbol}</span>
-                        <input
-                            key={`${itemIndex}-${fxRate}`} // Re-mount if fxRate changes for correct defaultValue
-                            type="number"
-                            defaultValue={(item.price * fxRate).toFixed(2)}
-                            onFocus={handleFocus}
-                            onBlur={(e) => {
-                                const value = e.target.value;
-                                const newPrice = parseFloat(value);
-                                if (value === '' || isNaN(newPrice)) {
-                                    dispatch({ type: 'UPDATE_ITEM_PRICE', payload: { itemIndex, price: 0 } });
-                                } else {
-                                    dispatch({ type: 'UPDATE_ITEM_PRICE', payload: { itemIndex, price: newPrice / fxRate } });
-                                }
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                            }}
-                            className="w-20 text-right p-1 bg-transparent font-mono text-xs text-gray-800 rounded-md border border-gray-300 focus:border-agoda-blue focus:outline-none focus:ring-1 focus:ring-agoda-blue"
-                            step="0.01"
-                            placeholder="0.00"
+                        <ItemPriceInput 
+                          itemIndex={itemIndex}
+                          price={item.price}
+                          fxRate={fxRate}
+                          dispatch={dispatch}
                         />
                          <button onClick={() => dispatch({ type: 'REMOVE_ITEM', payload: { itemIndex } })} className="ml-2 text-gray-400 hover:text-red-500 transition-colors" aria-label="Remove item">
                             <Trash2 size={16} />

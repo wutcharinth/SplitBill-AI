@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { CURRENCIES } from '../constants';
 import { Plus, X, CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
 import { Person } from '../types';
@@ -11,6 +11,123 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       e.target.value = '';
     }
 };
+
+const TaxInput: React.FC<{
+    value: number;
+    fxRate: number;
+    onUpdate: (newValue: number) => void;
+}> = ({ value, fxRate, onUpdate }) => {
+    const [localValue, setLocalValue] = useState((value * fxRate).toFixed(2));
+
+    useEffect(() => {
+        // Update local state if the prop value changes from outside
+        setLocalValue((value * fxRate).toFixed(2));
+    }, [value, fxRate]);
+
+    const handleBlur = () => {
+        const numericValue = parseFloat(localValue);
+        if (!isNaN(numericValue)) {
+            onUpdate(numericValue / fxRate);
+        } else {
+            // Reset to original value if input is invalid
+            setLocalValue((value * fxRate).toFixed(2));
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLocalValue(e.target.value);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            (e.target as HTMLInputElement).blur();
+        }
+    };
+
+    return (
+        <input
+            type="number"
+            value={localValue}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            onKeyDown={handleKeyDown}
+            step="0.01"
+            className="w-20 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-xs text-gray-900"
+        />
+    );
+}
+
+const TipInput: React.FC<{
+    tip: number;
+    fxRate: number;
+    dispatch: React.Dispatch<any>;
+}> = ({ tip, fxRate, dispatch }) => {
+    const [localTip, setLocalTip] = useState((tip * fxRate).toFixed(2));
+
+    useEffect(() => {
+        setLocalTip((tip * fxRate).toFixed(2));
+    }, [tip, fxRate]);
+
+    const handleBlur = () => {
+        const numericValue = parseFloat(localTip);
+        if (!isNaN(numericValue)) {
+            dispatch({ type: 'UPDATE_TIP', payload: numericValue / fxRate });
+        } else {
+            setLocalTip((tip * fxRate).toFixed(2));
+        }
+    };
+
+    return (
+        <input
+            type="number"
+            value={localTip}
+            onChange={(e) => setLocalTip(e.target.value)}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs"
+        />
+    );
+};
+
+const DiscountInput: React.FC<{
+    discount: { value: number, type: string };
+    fxRate: number;
+    dispatch: React.Dispatch<any>;
+}> = ({ discount, fxRate, dispatch }) => {
+    const isFixed = discount.type === 'fixed';
+    const initialValue = isFixed ? (discount.value * fxRate).toFixed(2) : discount.value.toString();
+    const [localValue, setLocalValue] = useState(initialValue);
+
+    useEffect(() => {
+        const updatedValue = isFixed ? (discount.value * fxRate).toFixed(2) : discount.value.toString();
+        setLocalValue(updatedValue);
+    }, [discount.value, discount.type, fxRate]);
+
+    const handleBlur = () => {
+        const numericValue = parseFloat(localValue);
+        if (!isNaN(numericValue)) {
+            const newDiscountValue = isFixed ? numericValue / fxRate : numericValue;
+            dispatch({ type: 'UPDATE_DISCOUNT', payload: { value: newDiscountValue } });
+        } else {
+            setLocalValue(initialValue); // Reset on invalid input
+        }
+    };
+
+    return (
+        <input
+            type="number"
+            value={localValue}
+            onChange={(e) => setLocalValue(e.target.value)}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+            className="w-20 text-right bg-transparent border border-gray-300 rounded-md p-1 font-mono text-xs text-gray-900"
+        />
+    );
+};
+
 
 const AdjustmentRow: React.FC<{ label: React.ReactNode; children: React.ReactNode }> = ({ label, children }) => (
     <div className="flex justify-between items-center py-2">
@@ -45,13 +162,10 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
         </div>
         <div className="flex items-center">
             <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
-            <input
-                type="number"
-                id={`${tax.id}-amount`}
-                value={tax.amount ? (tax.amount * fxRate).toFixed(2) : '0.00'}
-                onFocus={handleFocus}
-                onChange={(e) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, amount: Number(e.target.value) / fxRate }})}
-                className="w-20 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-xs text-gray-900"
+            <TaxInput 
+                value={tax.amount} 
+                fxRate={fxRate}
+                onUpdate={(newAmount) => dispatch({ type: 'UPDATE_TAX', payload: { id: tax.id, amount: newAmount }})}
             />
         </div>
     </div>
@@ -81,17 +195,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                         </div>
                         <AdjustmentRow label="Amount">
                             <div className="flex items-center space-x-2">
-                                <input 
-                                    type="number" 
-                                    value={discount.type === 'fixed' ? (discount.value * fxRate).toFixed(2) : discount.value}
-                                    onFocus={handleFocus}
-                                    onChange={e => {
-                                        const val = Number(e.target.value);
-                                        const newDiscountValue = discount.type === 'fixed' ? val / fxRate : val;
-                                        dispatch({type: 'UPDATE_DISCOUNT', payload: {value: newDiscountValue}})
-                                    }} 
-                                    className="w-20 text-right bg-transparent border border-gray-300 rounded-md p-1 font-mono text-xs text-gray-900" 
-                                />
+                                <DiscountInput discount={discount} fxRate={fxRate} dispatch={dispatch} />
                                 <select 
                                     value={discount.type} 
                                     onChange={e => dispatch({type: 'UPDATE_DISCOUNT', payload: {type: e.target.value}})} 
@@ -168,7 +272,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     <AdjustmentRow label="Amount">
                          <div className="flex items-center">
                             <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
-                            <input type="number" value={(tip * fxRate).toFixed(2)} onFocus={handleFocus} onChange={e => dispatch({ type: 'UPDATE_TIP', payload: Number(e.target.value) / fxRate })} className="w-24 text-right bg-transparent border border-gray-200 rounded-md p-1 font-mono text-gray-900 text-xs" />
+                            <TipInput tip={tip} fxRate={fxRate} dispatch={dispatch} />
                         </div>
                     </AdjustmentRow>
                     <div className="mt-3 pt-3 border-t border-gray-200">
