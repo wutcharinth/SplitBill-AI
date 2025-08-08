@@ -73,7 +73,7 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
 
       <div className="absolute bottom-6 text-xs text-muted-foreground flex items-center gap-1.5">
         <Zap size={12} />
-        <span>Powered by Gemini 2.5 Flash</span>
+        <span>Powered by Gemini 1.5 Flash</span>
       </div>
     </div>
   );
