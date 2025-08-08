@@ -59,10 +59,10 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (splitMode !== 'item') {
             return (
                 <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-base">Splitting Evenly</h4>
-                        <p className="text-sm text-indigo-700 mt-1">
+                        <h4 className="font-bold text-foreground text-base">Splitting Evenly</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
                             The total will be divided equally among the number of people you select below.
                         </p>
                     </div>
@@ -73,12 +73,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (totalShares === 0) {
             return (
                 <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-base">
+                        <h4 className="font-bold text-foreground text-base">
                             Let's Get Started!
                         </h4>
-                         <p className="text-sm text-indigo-700 mt-1">
+                         <p className="text-sm text-muted-foreground mt-1">
                             Assign items below to see the calculation match the receipt total.
                         </p>
                     </div>
@@ -89,12 +89,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (unassignedItemsCount > 0) {
              return (
                 <div className="flex items-start gap-3 w-full">
-                    <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div className="flex-grow">
-                        <h4 className="font-bold text-indigo-800 text-base">
+                        <h4 className="font-bold text-foreground text-base">
                             Keep Going!
                         </h4>
-                        <p className="text-sm text-indigo-700 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                             You have {unassignedItemsCount} item(s) left to assign.
                         </p>
                         <MatchProgress />
@@ -183,10 +183,10 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (taxLikeSurplus) {
             return (
                  <div className="flex items-start gap-3 w-full">
-                    <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div className="flex-grow">
-                        <h4 className="font-bold text-indigo-800 text-base">Surplus Found!</h4>
-                        <p className="text-sm text-indigo-700 mt-1">
+                        <h4 className="font-bold text-foreground text-base">Surplus Found!</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
                             The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
                             Could the AI have mistaken this tax for a line item? Please review the items list above.
                         </p>
@@ -198,12 +198,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
 
         return (
             <div className="flex items-start gap-3 w-full">
-                <PartyPopper className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <PartyPopper className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                 <div className="flex-grow">
-                    <h4 className="font-bold text-indigo-800 text-base">
+                    <h4 className="font-bold text-foreground text-base">
                         Surplus Found!
                     </h4>
-                    <p className="text-sm text-indigo-700 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
                     </p>
                     <MatchProgress />
@@ -223,7 +223,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         if (adjustment > 0 || (matchPercentage < 90 && totalShares > 0)) {
             return `${baseClass} bg-yellow-500/10 border-yellow-500/20`;
         }
-        return `${baseClass} bg-indigo-500/10 border-indigo-500/20`;
+        return `${baseClass} bg-accent/10 border-accent/20`;
     };
 
 
