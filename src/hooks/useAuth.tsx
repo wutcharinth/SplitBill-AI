@@ -11,6 +11,7 @@ import {
     User,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
     getRedirectResult,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase/config';
@@ -38,6 +39,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(user);
         setLoading(false);
     });
+    
+    // Handle the redirect result
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // This is the signed-in user
+          const user = result.user;
+          setUser(user);
+          toast({
+            title: "Signed In Successfully",
+            description: `Welcome back, ${user.displayName || user.email}!`,
+          })
+        }
+      }).catch((error) => {
+        console.error("Error getting redirect result:", error);
+        toast({
+          variant: "destructive",
+          title: "Sign-in Failed",
+          description: "There was a problem signing in with Google. Please try again."
+        })
+      }).finally(() => {
+        setLoading(false);
+      });
 
     return () => unsubscribe();
   }, [toast]);
@@ -63,11 +87,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithGoogle = async () => {
     setLoading(true);
     const provider = new GoogleAuthProvider();
-    try {
-        return await signInWithPopup(auth, provider);
-    } finally {
-        setLoading(false);
-    }
+    // Use signInWithRedirect for better mobile compatibility
+    return signInWithRedirect(auth, provider);
   };
 
   const logout = async () => {
