@@ -218,12 +218,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         const isReconciled = absAdjustment < 0.01;
 
         if (isReconciled || isNearlyReconciled) {
-            return `${baseClass} bg-green-500/10 border-green-500/20`;
+            return `${baseClass} bg-green-500/20 border-green-500/30`;
         }
         if (adjustment > 0 || (matchPercentage < 90 && totalShares > 0)) {
-            return `${baseClass} bg-yellow-500/10 border-yellow-500/20`;
+            return `${baseClass} bg-yellow-500/20 border-yellow-500/30`;
         }
-        return `${baseClass} bg-accent/10 border-accent/20`;
+        return `${baseClass} bg-accent/20 border-accent/30`;
     };
 
 
