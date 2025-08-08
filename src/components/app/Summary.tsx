@@ -127,25 +127,27 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
     const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
-    useEffect(() => {
-        if(user && isAuthDialogOpen) {
-            handleShareSummary();
-            setIsAuthDialogOpen(false);
-        }
-    }, [user, isAuthDialogOpen]);
-
-
     const handleShareSummary = async () => {
         const filename = `billz-summary-${new Date().toISOString().slice(0, 10)}.png`;
-        await generateImage(summaryRef.current!, filename);
+        if (summaryRef.current) {
+            await generateImage(summaryRef.current, filename);
+        }
     };
+    
+    useEffect(() => {
+        if (user && sessionStorage.getItem('pending_action') === 'download') {
+            sessionStorage.removeItem('pending_action');
+            setIsAuthDialogOpen(false);
+            handleShareSummary();
+        }
+    }, [user]);
+
 
     const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await login(loginEmail, loginPassword);
             toast({ title: "Login Successful" });
-            // The useEffect will handle closing the dialog and triggering the download
         } catch (error: any) {
             toast({ variant: 'destructive', title: "Login Failed", description: "The email or password you entered is incorrect. Please try again." });
         }
@@ -153,9 +155,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     
     const handleGoogleSignIn = async () => {
         try {
+            sessionStorage.setItem('pending_action', 'download');
             await loginWithGoogle();
-            toast({ title: "Login Successful"});
         } catch (error: any) {
+             sessionStorage.removeItem('pending_action');
              toast({ variant: 'destructive', title: "Google Sign-In Failed", description: "There was a problem signing in with Google. Please try again later." });
         }
     }
@@ -169,7 +172,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         try {
             await signUp(registerEmail, registerPassword);
             toast({ title: "Registration Successful" });
-             // The useEffect will handle closing the dialog and triggering the download
         } catch (error: any) {
              toast({ variant: 'destructive', title: "Registration Failed", description: error.message });
         }
