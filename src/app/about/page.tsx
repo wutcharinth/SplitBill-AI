@@ -60,7 +60,7 @@ export default function AboutPage() {
                         </div>
                         <div className="flex flex-col items-center">
                             <StepIcon icon={<Share2 size={32} />} />
-                            <h3 className="mt-4 text-xl font-bold font-headline">3. Done</h3>
+                            <h3 className="mt-4 text-xl font-bold font-headline">3. Share!</h3>
                             <p className="mt-2 text-muted-foreground text-sm">Generate a beautiful, crystal-clear summary showing exactly who owes what. Share it as an image with your friends via any messaging app to settle up instantly.</p>
                         </div>
                     </div>
@@ -124,5 +124,3 @@ export default function AboutPage() {
         </PolicyPageLayout>
     );
 }
-
-    

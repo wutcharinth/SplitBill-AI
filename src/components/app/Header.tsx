@@ -247,5 +247,3 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
 };
 
 export default Header;
-
-    
