@@ -153,7 +153,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                          {user && <UserMenu user={user} />}
                     </div>
 
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center justify-between mt-2 space-x-2">
                         <div className="flex items-center space-x-1 bg-muted p-1 rounded-lg">
                             <button
                                 onClick={() => setActivePage('setup')}
@@ -169,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                             </button>
                         </div>
                         
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center">
                             <div className="flex flex-col gap-1.5 relative items-center">
                                 <CurrencySelector
                                     id="base-currency-select"
@@ -188,7 +188,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
                             </div>
                             <button 
                                 onClick={() => setIsModalOpen(true)}
-                                className="p-1.5 self-stretch rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+                                className="p-1.5 self-stretch rounded-lg text-muted-foreground hover:bg-muted transition-colors ml-1"
                                 aria-label="Manage pinned currencies"
                                 title="Manage pinned currencies"
                             >
