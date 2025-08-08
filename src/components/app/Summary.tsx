@@ -116,13 +116,22 @@ async function generateImage(element: HTMLElement, filename: string) {
     }
 }
 
+const GoogleIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+      <path fill="#4285F4" d="M17.64 9.2045c0-.6327-.0564-.1.1718-.1841H9.1818v3.4818h4.7909c-.2073 1.1182-.8227 2.0727-1.7455 2.7055v2.2582h2.9091c1.7018-1.5682 2.6864-3.8727 2.6864-6.6455z"/>
+      <path fill="#34A853" d="M9.1818 18c2.43 0 4.4727-.81 5.9618-2.1818l-2.9091-2.2582c-.8018.5455-1.8218.8727-2.0509.8727-2.3182 0-4.2818-1.5682-4.98-3.6682H1.2727v2.3318C2.7618 16.0364 5.7273 18 9.1818 18z"/>
+      <path fill="#FBBC05" d="M4.2018 10.8818c-.1445-.4364-.2273-.9091-.2273-1.3818s.0827-.9455.2273-1.3818V5.7818H1.2727C.4855 7.2727 0 9.0909 0 11s.4855 3.7273 1.2727 5.2182l2.9291-2.3364z"/>
+      <path fill="#EA4335" d="M9.1818 3.6364c1.3182 0 2.5091.4545 3.4409 1.3455l2.5818-2.5818C13.6545.9182 11.6118 0 9.1818 0 5.7273 0 2.7618 1.9636 1.2727 4.5455l2.9291 2.3364c.7-2.1 2.6618-3.6682 4.98-3.6682z"/>
+    </svg>
+);
+
 
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     const { monthlyUses, USAGE_LIMIT } = useUsage();
-    const { user, login, signUp } = useAuth();
+    const { user, login, signUp, loginWithGoogle } = useAuth();
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
     const [registerEmail, setRegisterEmail] = useState('');
@@ -151,6 +160,15 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             // The useEffect will handle closing the dialog and triggering the download
         } catch (error: any) {
             toast({ variant: 'destructive', title: "Login Failed", description: error.message });
+        }
+    }
+    
+    const handleGoogleSignIn = async () => {
+        try {
+            await loginWithGoogle();
+            toast({ title: "Login Successful"});
+        } catch (error: any) {
+             toast({ variant: 'destructive', title: "Google Sign-In Failed", description: error.message });
         }
     }
 
@@ -638,7 +656,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                 <Input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
                                             </div>
                                         </div>
-                                        <AlertDialogFooter>
+                                        <div className="relative my-4">
+                                          <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t" />
+                                          </div>
+                                          <div className="relative flex justify-center text-xs uppercase">
+                                            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                                          </div>
+                                        </div>
+                                        <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
+                                            <GoogleIcon />
+                                            <span className="ml-2">Sign in with Google</span>
+                                        </Button>
+                                        <AlertDialogFooter className="mt-4">
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                                             <Button type="submit">
                                                 <Lock className="mr-2 h-4 w-4"/> Sign In
@@ -668,7 +698,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                 <Input id="register-confirm-password" type="password" value={registerConfirmPassword} onChange={e => setRegisterConfirmPassword(e.target.value)} required />
                                             </div>
                                         </div>
-                                        <AlertDialogFooter>
+                                         <div className="relative my-4">
+                                          <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t" />
+                                          </div>
+                                          <div className="relative flex justify-center text-xs uppercase">
+                                            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                                          </div>
+                                        </div>
+                                        <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
+                                            <GoogleIcon />
+                                            <span className="ml-2">Sign up with Google</span>
+                                        </Button>
+                                        <AlertDialogFooter className="mt-4">
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                                             <Button type="submit">
                                                 <UserPlus className="mr-2 h-4 w-4"/> Register
