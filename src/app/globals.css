@@ -144,6 +144,6 @@
 
 @media (max-width: 768px) {
     .sticky-reconciliation-container {
-        top: 162px; /* Adjusted for mobile view */
+        top: 200px; /* Adjusted for mobile view */
     }
 }

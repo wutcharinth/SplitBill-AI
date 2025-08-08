@@ -341,7 +341,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             {activePage === 'summary' && (
                 <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
                     <h2 className="text-sm font-bold mb-4 text-primary font-headline">Final Summary</h2>
-                    <Summary state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
+                    <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
                 </div>
             )}
 
@@ -372,3 +372,5 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 };
 
 export default MainApp;
+
+    
