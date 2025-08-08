@@ -424,11 +424,11 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 
         {/* Payment Section */}
         <div className="border-t pt-4 mt-4 border-gray-200 space-y-2">
-            <h3 className="text-sm font-bold mb-2 text-gray-700">Record Payments</h3>
+            <h3 className="text-sm font-bold mb-2 text-gray-700">Record Payments (Optional)</h3>
             <p className="text-xs text-muted-foreground">Enter the total amount each person paid to the restaurant (including any pre-paid deposits).</p>
-            <div className="p-4 bg-primary/10 rounded-lg text-center">
-                <p className="text-sm font-medium text-primary">Remaining Amount to be Paid:</p>
-                <p className="text-3xl font-bold text-primary tracking-tight">{currencySymbol}{formatNumber(remainingAmount * fxRate)}</p>
+            <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg text-primary">
+                <span className="text-sm font-medium">Remaining:</span>
+                <span className="text-xl font-bold tracking-tight">{currencySymbol}{formatNumber(remainingAmount * fxRate)}</span>
             </div>
             <div className="space-y-2">
                 {people.map((person: Person) => {
