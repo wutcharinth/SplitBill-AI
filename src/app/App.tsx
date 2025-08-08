@@ -159,8 +159,8 @@ function AppContent() {
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap. Split. Done.</p>
                             
-                             <div className="space-y-3">
-                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                             <div className="space-y-4">
+                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''} block mb-4`}>
                                      <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
@@ -170,7 +170,7 @@ function AppContent() {
                                 </label>
                                 <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
                                 
-                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''} block`}>
                                     <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
@@ -275,5 +275,3 @@ export default function App() {
         </UsageProvider>
     )
 }
-
-    

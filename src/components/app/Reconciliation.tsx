@@ -44,8 +44,8 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-sm">Splitting Evenly</h4>
-                        <p className="text-xs text-indigo-700 mt-1">
+                        <h4 className="font-bold text-indigo-800 text-base">Splitting Evenly</h4>
+                        <p className="text-sm text-indigo-700 mt-1">
                             The total will be divided equally among the number of people you select below.
                         </p>
                     </div>
@@ -58,7 +58,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-sm">
+                        <h4 className="font-bold text-indigo-800 text-base">
                             Let's Get Started!
                         </h4>
                     </div>
@@ -71,11 +71,11 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-sm">
+                        <h4 className="font-bold text-indigo-800 text-base">
                             Keep Going!
                             <span className="font-mono text-xs ml-2 text-muted-foreground">({matchPercentage.toFixed(1)}% Match)</span>
                         </h4>
-                        <p className="text-xs text-indigo-700 mt-1">
+                        <p className="text-sm text-indigo-700 mt-1">
                             You have {unassignedItemsCount} item(s) left to assign.
                         </p>
                     </div>
@@ -91,11 +91,11 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-green-800 text-sm">
+                        <h4 className="font-bold text-green-800 text-base">
                             Perfect Match!
                             <span className="font-mono text-xs ml-2">({matchPercentage.toFixed(2)}% Match)</span>
                         </h4>
-                        <p className="text-xs text-green-700 mt-1">
+                        <p className="text-sm text-green-700 mt-1">
                             The calculated total matches the bill total from the receipt.
                         </p>
                     </div>
@@ -108,11 +108,11 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                  <div className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-green-800 text-sm">
+                        <h4 className="font-bold text-green-800 text-base">
                             Almost There!
                             <span className="font-mono text-xs ml-2">({matchPercentage.toFixed(2)}% Match)</span>
                         </h4>
-                        <p className="text-xs text-green-700 mt-1">
+                        <p className="text-sm text-green-700 mt-1">
                             The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
                         </p>
                     </div>
@@ -125,11 +125,11 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-yellow-800 text-sm">
+                        <h4 className="font-bold text-yellow-800 text-base">
                             Large Difference Detected
                             <span className="font-mono text-xs ml-2 text-red-600">({matchPercentage.toFixed(2)}% Match)</span>
                         </h4>
-                        <p className="text-xs text-yellow-700 mt-1">
+                        <p className="text-sm text-yellow-700 mt-1">
                             The calculated total is off by <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. Please review items and adjustments carefully.
                         </p>
                     </div>
@@ -144,11 +144,11 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-yellow-800 text-sm">
+                        <h4 className="font-bold text-yellow-800 text-base">
                             Shortfall Detected
                             <span className={`font-mono text-xs ml-2 ${matchClass}`}>({matchPercentage.toFixed(2)}% Match)</span>
                         </h4>
-                        <p className="text-xs text-yellow-700 mt-1">
+                        <p className="text-sm text-yellow-700 mt-1">
                             There's a difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. This will be split among everyone.
                         </p>
                     </div>
@@ -167,8 +167,8 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                  <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                     <div>
-                        <h4 className="font-bold text-indigo-800 text-sm">Surplus Found!</h4>
-                        <p className="text-xs text-indigo-700 mt-1">
+                        <h4 className="font-bold text-indigo-800 text-base">Surplus Found!</h4>
+                        <p className="text-sm text-indigo-700 mt-1">
                             The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
                             Could the AI have mistaken this tax for a line item? Please review the items list above.
                         </p>
@@ -181,11 +181,11 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
             <div className="flex items-start gap-3">
                 <PartyPopper className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                 <div>
-                    <h4 className="font-bold text-indigo-800 text-sm">
+                    <h4 className="font-bold text-indigo-800 text-base">
                         Surplus Found!
                         <span className={`font-mono text-xs ml-2 ${matchClass}`}>({matchPercentage.toFixed(2)}% Match)</span>
                     </h4>
-                    <p className="text-xs text-indigo-700 mt-1">
+                    <p className="text-sm text-indigo-700 mt-1">
                         Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
                     </p>
                 </div>
