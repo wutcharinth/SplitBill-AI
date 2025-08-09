@@ -67,7 +67,7 @@ const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: strin
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   const { items, billTotal, discount, taxes, splitMode, tip, payments } = state;
 
-  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTip } = useMemo(() => {
+  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotal } = useMemo(() => {
     const sub = items.reduce((sum: number, item: any) => sum + item.price, 0);
     
     let baseForCharges = sub;
@@ -85,7 +85,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
 
     const calcTotal = subAfterDiscount + scAmount + vAmount + otAmount;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
-    const gTotalWithTip = calcTotal + adj + tip;
+    const gTotal = calcTotal + adj;
 
     return { 
         subtotal: sub,
@@ -95,9 +95,9 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
         otherTaxAmount: otAmount,
         calculatedTotal: calcTotal,
         adjustment: adj,
-        grandTotalWithTip: gTotalWithTip,
+        grandTotal: gTotal,
     };
-}, [items, billTotal, discount, taxes, splitMode, tip]);
+}, [items, billTotal, discount, taxes, splitMode]);
 
 
   return (
@@ -157,18 +157,19 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                     {adjustment >= 0 ? '+' : '-'} {currencySymbol}{Math.abs(adjustment * fxRate).toFixed(2)}
                 </span>
             </div>
-            
-             {tip > 0 && (
-                <div className="flex justify-between items-center pt-1 text-sm font-semibold">
+
+            <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
+                <h4 className="text-gray-900">Bill Grand Total</h4>
+                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotal * fxRate).toFixed(2)}</span>
+            </div>
+
+            {tip > 0 && (
+                <div className="flex justify-between items-center pt-1 text-sm font-bold">
                     <h4 className="text-blue-600">Tip</h4>
                     <span className="font-mono text-blue-600">+ {currencySymbol}{(tip * fxRate).toFixed(2)}</span>
                 </div>
             )}
             
-            <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
-                <h4 className="text-gray-900">Bill Grand Total</h4>
-                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTip * fxRate).toFixed(2)}</span>
-            </div>
         </div>
          <ReconciliationStatus adjustment={adjustment} currencySymbol={currencySymbol} formatNumber={formatNumber} fxRate={fxRate} />
     </div>
