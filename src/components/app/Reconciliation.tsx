@@ -132,7 +132,14 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         );
     }
     
-    if (isNearlyReconciled) {
+    if (isNearlyReconciled || matchPercentage > 99) {
+        let message;
+        if (adjustment > 0) {
+            message = `The totals are off by a tiny amount, likely due to rounding. The difference of ${currencySymbol}${formatNumber(adjustment * fxRate)} will be automatically split to ensure everything matches perfectly.`;
+        } else {
+            message = `The surplus of ${currencySymbol}${formatNumber(absAdjustment * fxRate)} is tiny and will be distributed back to everyone.`
+        }
+
         return (
              <div className="flex items-start gap-3 w-full">
                 <CheckCircle2 className={`h-5 w-5 ${getIconColor("text-green-500")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
@@ -141,7 +148,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                         Almost There!
                     </h4>
                     <p className={`text-xs ${getMutedTextColor("text-green-600")} mt-1`}>
-                        The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
+                        {message}
                     </p>
                      <MatchProgress />
                 </div>

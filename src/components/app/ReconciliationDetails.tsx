@@ -32,11 +32,11 @@ const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: strin
         );
     }
     
-    if (isNearlyPerfect) {
-        let message = `Tiny difference of ${currencySymbol}${formatNumber(absAdjustment * fxRate)} will be auto-adjusted.`;
+    if (isNearlyPerfect || matchPercentage > 99) {
+        let message;
         if (adjustment > 0) {
              message = `Shortfall of ${currencySymbol}${formatNumber(adjustment * fxRate)} will be split.`;
-        } else if (adjustment < 0) {
+        } else {
             message = `Surplus of ${currencySymbol}${formatNumber(absAdjustment * fxRate)} will be distributed.`;
         }
          return (
