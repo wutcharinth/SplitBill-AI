@@ -15,7 +15,7 @@ const getFxRateApi = async (from: string, to: string): Promise<{rate: number, da
     if (!from || !to || from.toUpperCase() === to.toUpperCase()) {
         return { rate: 1, date: new Date().toISOString().split('T')[0] };
     }
-    const API_BASE_URL = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies';
+    const API_BASE_URL = 'https://latest.currency-api.pages.dev/v1/currencies';
     try {
         const response = await fetch(`${API_BASE_URL}/${from.toLowerCase()}.json`);
         if (!response.ok) throw new Error('Network response was not ok');
@@ -434,5 +434,3 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 };
 
 export default MainApp;
-
-    
