@@ -334,7 +334,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const labelText = isOwed ? 'Gets' : 'Pays';
 
         return (
-            <div className="text-right flex-shrink-0 ml-2">
+            <div className="text-right ml-2">
                 <span className={`font-bold text-sm whitespace-nowrap ${textColor}`}>
                     {labelText}: {currencySymbol}{formatNumber(displayValue * fxRate)}
                 </span>
