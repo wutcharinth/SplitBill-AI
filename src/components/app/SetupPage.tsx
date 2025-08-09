@@ -28,7 +28,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
   
   const { items, billTotal, splitMode, discount, taxes, uploadedReceipt } = state;
 
-  const { totalShares, adjustment, absAdjustment, unassignedItemsCount } = useMemo(() => {
+  const { totalShares, adjustment, absAdjustment, unassignedItemsCount, matchPercentage } = useMemo(() => {
     let sharesTotal = 0;
     let unassignedCount = 0;
 
@@ -51,18 +51,21 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
     const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
     const calcTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
+    const absAdj = Math.abs(adj);
+    const match = billTotal > 0 ? Math.max(0, (1 - absAdj / billTotal) * 100) : (sharesTotal > 0 ? 0 : 100);
     
     return { 
       totalShares: sharesTotal, 
       adjustment: adj, 
-      absAdjustment: Math.abs(adj),
+      absAdjustment: absAdj,
       unassignedItemsCount: unassignedCount,
+      matchPercentage: match
     };
   }, [items, discount, taxes, billTotal]);
   
   const getDynamicContent = () => {
-      const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
       const isReconciled = absAdjustment < 0.01;
+      const isNearlyReconciled = matchPercentage > 99 && !isReconciled;
       
       let buttonClass = "bg-primary hover:bg-primary/90";
       let balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-primary border-primary-foreground/50";
@@ -107,7 +110,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
        <DraggableReconciliation 
           state={state} 
           currencySymbol={currencySymbol} 
-          fxRate={fxRate} 
+          fxRate={state.fxRate} 
           formatNumber={formatNumber}
           isVisible={isGuideVisible}
           onClose={() => setIsGuideVisible(false)}

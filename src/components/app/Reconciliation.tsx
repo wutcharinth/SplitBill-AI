@@ -94,26 +94,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
             </div>
         );
     }
-    
-    if (unassignedItemsCount > 0) {
-         return (
-            <div className="flex items-start gap-3 w-full">
-                <Info className={`h-5 w-5 ${getIconColor("text-accent")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
-                <div className="flex-grow">
-                    <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>
-                        Keep Going!
-                    </h4>
-                    <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
-                        You have {unassignedItemsCount} item(s) left to assign.
-                    </p>
-                    <MatchProgress />
-                </div>
-            </div>
-        );
-    }
 
-    const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
     const isReconciled = absAdjustment < 0.01;
+    const isNearlyReconciled = matchPercentage > 99 && !isReconciled;
     
     if (isReconciled) {
         return (
@@ -132,7 +115,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         );
     }
     
-    if (isNearlyReconciled || matchPercentage > 99) {
+    if (isNearlyReconciled) {
         let message;
         if (adjustment > 0) {
             message = `The totals are off by a tiny amount, likely due to rounding. The difference of ${currencySymbol}${formatNumber(adjustment * fxRate)} will be automatically split to ensure everything matches perfectly.`;
@@ -154,6 +137,23 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 </div>
             </div>
         )
+    }
+
+    if (unassignedItemsCount > 0) {
+         return (
+            <div className="flex items-start gap-3 w-full">
+                <Info className={`h-5 w-5 ${getIconColor("text-accent")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
+                <div className="flex-grow">
+                    <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>
+                        Keep Going!
+                    </h4>
+                    <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
+                        You have {unassignedItemsCount} item(s) left to assign.
+                    </p>
+                    <MatchProgress />
+                </div>
+            </div>
+        );
     }
 
     if (matchPercentage < 90) {
