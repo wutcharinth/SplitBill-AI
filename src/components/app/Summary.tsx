@@ -429,9 +429,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     <div className="p-3">
                                         <div className="flex justify-between items-start gap-2">
                                             <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm flex-grow" disabled={splitMode === 'evenly'}/>
-                                            <div className="flex-shrink-0 flex flex-col items-end">
-                                                <FinalAmountDisplay person={person} />
-                                            </div>
+                                            <FinalAmountDisplay person={person} />
                                         </div>
                                         {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
                                             <ul className="list-disc list-inside mt-1 text-xs text-muted-foreground">
@@ -657,5 +655,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    
