@@ -54,22 +54,22 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
   const absAdjustment = Math.abs(adjustment);
 
   const getWrapperClass = () => {
-    const baseClass = "bg-card rounded-xl shadow-lg p-3 sm:p-4 border-2";
+    const baseClass = "bg-primary text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2";
     
     if (totalShares === 0 && splitMode === 'item') {
-        return `${baseClass} border-border`;
+        return `${baseClass} border-primary-foreground/50`;
     }
 
     const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
     const isReconciled = absAdjustment < 0.01;
 
     if (isReconciled || isNearlyReconciled) {
-        return `${baseClass} border-green-500`;
+        return `${baseClass} border-green-300`;
     }
     if (adjustment > 0) { // Shortfall
-        return `${baseClass} border-yellow-500`;
+        return `${baseClass} border-yellow-300`;
     }
-    return `${baseClass} border-accent`;
+    return `${baseClass} border-orange-300`;
   };
 
   if (!isVisible) {
@@ -99,15 +99,16 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
                             currencySymbol={currencySymbol} 
                             fxRate={fxRate} 
                             formatNumber={formatNumber}
+                            isBalloon={true}
                         />
                     </div>
                     <div className="flex items-center pl-2">
-                        <div className="drag-handle p-1 text-muted-foreground hover:text-foreground">
+                        <div className="drag-handle p-1 text-primary-foreground/80 hover:text-primary-foreground">
                             <GripVertical size={20} />
                         </div>
                         <button 
                             onClick={onClose} 
-                            className="p-1 text-muted-foreground hover:text-destructive transition-colors ml-1"
+                            className="p-1 text-primary-foreground/80 hover:text-white transition-colors ml-1"
                             title="Close guide"
                         >
                             <X size={20} />

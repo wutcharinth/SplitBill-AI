@@ -5,7 +5,7 @@ import React, { useMemo } from 'react';
 import { CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, currencySymbol, fxRate, formatNumber }) => {
+const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: number, formatNumber: (num: number) => string, isBalloon?: boolean }> = ({ state, currencySymbol, fxRate, formatNumber, isBalloon=false }) => {
     const { items, discount, taxes, billTotal, splitMode } = state;
 
     const { unassignedItemsCount, totalShares, assignedSubtotal } = useMemo(() => {
@@ -40,28 +40,38 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     const matchPercentage = billTotal > 0 ? Math.max(0, (1 - absAdjustment / billTotal) * 100) : (totalShares > 0 ? 0 : 100);
 
     const getProgressColor = () => {
+        if (isBalloon) return "bg-primary-foreground/50";
         if (matchPercentage > 99) return "bg-green-500";
         if (matchPercentage > 90) return "bg-yellow-500";
         return "bg-destructive";
     }
+    
+    const getTextColor = (baseClass: string) => isBalloon ? "text-primary-foreground" : baseClass;
+    const getMutedTextColor = (baseClass: string) => isBalloon ? "text-primary-foreground/80" : baseClass;
+    const getIconColor = (baseClass: string) => isBalloon ? "text-primary-foreground" : baseClass;
+
 
     const MatchProgress = () => (
         <div className="mt-2 w-full">
             <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-semibold text-muted-foreground">Match Progress</span>
-                <span className="text-xs font-bold text-foreground">{matchPercentage.toFixed(1)}%</span>
+                <span className={`text-xs font-semibold ${getMutedTextColor("text-muted-foreground")}`}>Match Progress</span>
+                <span className={`text-xs font-bold ${getTextColor("text-foreground")}`}>{matchPercentage.toFixed(1)}%</span>
             </div>
-            <Progress value={matchPercentage} indicatorClassName={getProgressColor()} className="w-full" />
+            <Progress 
+              value={matchPercentage} 
+              indicatorClassName={getProgressColor()} 
+              className={`w-full ${isBalloon ? 'bg-primary-foreground/20' : ''}`}
+            />
         </div>
     );
     
     if (splitMode !== 'item') {
         return (
             <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <Info className={`h-5 w-5 ${getIconColor("text-accent")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div>
-                    <h4 className="font-bold text-foreground text-sm">Splitting Evenly</h4>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>Splitting Evenly</h4>
+                    <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
                         The total will be divided equally among the number of people you select below.
                     </p>
                 </div>
@@ -72,12 +82,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     if (totalShares === 0) {
         return (
             <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <Info className={`h-5 w-5 ${getIconColor("text-accent")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div>
-                    <h4 className="font-bold text-foreground text-sm">
+                    <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>
                         Let's Get Started!
                     </h4>
-                     <p className="text-xs text-muted-foreground mt-1">
+                     <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
                         Assign items below to see the calculation match the receipt total.
                     </p>
                 </div>
@@ -88,12 +98,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     if (unassignedItemsCount > 0) {
          return (
             <div className="flex items-start gap-3 w-full">
-                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <Info className={`h-5 w-5 ${getIconColor("text-accent")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div className="flex-grow">
-                    <h4 className="font-bold text-foreground text-sm">
+                    <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>
                         Keep Going!
                     </h4>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
                         You have {unassignedItemsCount} item(s) left to assign.
                     </p>
                     <MatchProgress />
@@ -108,12 +118,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     if (isReconciled) {
         return (
             <div className="flex items-start gap-3 w-full">
-                <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <CheckCircle2 className={`h-5 w-5 ${getIconColor("text-green-500")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div className="flex-grow">
-                    <h4 className="font-bold text-green-700 text-sm">
+                    <h4 className={`font-bold ${getTextColor("text-green-700")} text-sm`}>
                         Perfect Match!
                     </h4>
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className={`text-xs ${getMutedTextColor("text-green-600")} mt-1`}>
                         The calculated total matches the bill total from the receipt.
                     </p>
                     <MatchProgress />
@@ -125,12 +135,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     if (isNearlyReconciled) {
         return (
              <div className="flex items-start gap-3 w-full">
-                <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <CheckCircle2 className={`h-5 w-5 ${getIconColor("text-green-500")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div className="flex-grow">
-                    <h4 className="font-bold text-green-700 text-sm">
+                    <h4 className={`font-bold ${getTextColor("text-green-700")} text-sm`}>
                         Almost There!
                     </h4>
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className={`text-xs ${getMutedTextColor("text-green-600")} mt-1`}>
                         The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
                     </p>
                      <MatchProgress />
@@ -142,12 +152,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     if (matchPercentage < 90) {
         return (
             <div className="flex items-start gap-3 w-full">
-                <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <AlertCircle className={`h-5 w-5 ${getIconColor("text-yellow-500")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div className="flex-grow">
-                    <h4 className="font-bold text-yellow-800 text-sm">
+                    <h4 className={`font-bold ${getTextColor("text-yellow-800")} text-sm`}>
                         Large Difference Detected
                     </h4>
-                    <p className="text-xs text-yellow-700 mt-1">
+                    <p className={`text-xs ${getMutedTextColor("text-yellow-700")} mt-1`}>
                         The calculated total is off by <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. Please review items and adjustments carefully.
                     </p>
                     <MatchProgress />
@@ -159,12 +169,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     if (adjustment > 0) { // Shortfall
         return (
             <div className="flex items-start gap-3 w-full">
-                <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <AlertCircle className={`h-5 w-5 ${getIconColor("text-yellow-500")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div className="flex-grow">
-                    <h4 className="font-bold text-yellow-800 text-sm">
+                    <h4 className={`font-bold ${getTextColor("text-yellow-800")} text-sm`}>
                         Shortfall Detected
                     </h4>
-                    <p className="text-xs text-yellow-700 mt-1">
+                    <p className={`text-xs ${getMutedTextColor("text-yellow-700")} mt-1`}>
                         There's a difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. This will be split among everyone.
                     </p>
                     <MatchProgress />
@@ -182,10 +192,10 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     if (taxLikeSurplus) {
         return (
              <div className="flex items-start gap-3 w-full">
-                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <Info className={`h-5 w-5 ${getIconColor("text-accent")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div className="flex-grow">
-                    <h4 className="font-bold text-foreground text-sm">Surplus Found!</h4>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>Surplus Found!</h4>
+                    <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
                         The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
                         Could the AI have mistaken this tax for a line item? Please review the items list above.
                     </p>
@@ -197,12 +207,12 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
 
     return (
         <div className="flex items-start gap-3 w-full">
-            <PartyPopper className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+            <PartyPopper className={`h-5 w-5 ${getIconColor("text-accent")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
             <div className="flex-grow">
-                <h4 className="font-bold text-foreground text-sm">
+                <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>
                     Surplus Found!
                 </h4>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
                     Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
                 </p>
                 <MatchProgress />

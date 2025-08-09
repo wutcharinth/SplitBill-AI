@@ -10,7 +10,7 @@ import ReconciliationDetails from './ReconciliationDetails';
 import { SplitMode } from '../types';
 import DraggableReconciliation from './DraggableReconciliation';
 import { Button } from '../ui/button';
-import { MessageSquarePlus } from 'lucide-react';
+import { Wand2 } from 'lucide-react';
 
 interface SetupPageProps {
   state: any;
@@ -41,8 +41,8 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
               className="rounded-full shadow-lg"
               size="lg"
             >
-              <MessageSquarePlus className="mr-2 h-5 w-5" />
-              Show Guide
+              <Wand2 className="mr-2 h-5 w-5" />
+              Help me Reconcile
             </Button>
           </div>
         )}
