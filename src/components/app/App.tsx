@@ -98,17 +98,34 @@ function AppContent() {
             { id: `p${Date.now()}-2`, name: 'P2', color: PERSON_COLORS[1] }
         ];
 
+        const initialPayments = initialPeople.map(person => ({
+            id: person.id,
+            amount: 0,
+            paidBy: person.id,
+        }));
+        
+        const serviceChargeName = data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge';
+        const serviceChargeOriginalName = data?.serviceCharge?.name && serviceChargeName !== data.serviceCharge.name ? data.serviceCharge.name : null;
+
+        const vatName = data?.vat?.translatedName || data?.vat?.name || 'VAT';
+        const vatOriginalName = data?.vat?.name && vatName !== data.vat.name ? data.vat.name : null;
+
+        const otherTaxName = data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax';
+        const otherTaxOriginalName = data?.otherTax?.name && otherTaxName !== data.otherTax.name ? data.otherTax.name : null;
+
+
         const newBillData: BillData = {
             items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
             taxes: {
-                serviceCharge: { id: 'serviceCharge', name: data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge', translatedName: data?.serviceCharge?.name !== data?.serviceCharge?.translatedName ? data?.serviceCharge?.name : null, amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
-                vat: { id: 'vat', name: data?.vat?.translatedName || data?.vat?.name || 'VAT', translatedName: data?.vat?.name !== data?.vat?.translatedName ? data?.vat?.name : null, amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
-                otherTax: { id: 'otherTax', name: data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax', translatedName: data?.otherTax?.name !== data?.otherTax?.translatedName ? data?.otherTax?.name : null, amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
+                serviceCharge: { id: 'serviceCharge', name: serviceChargeName, translatedName: serviceChargeOriginalName, amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
+                vat: { id: 'vat', name: vatName, translatedName: vatOriginalName, amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
+                otherTax: { id: 'otherTax', name: otherTaxName, translatedName: otherTaxOriginalName, amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
             },
             discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
             tip: 0,
             tipSplitMode: 'proportionally',
+            payments: initialPayments,
             deposits: [],
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
