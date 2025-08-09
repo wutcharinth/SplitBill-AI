@@ -101,7 +101,6 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
-                // Ensure the node is an element and has getAttribute method
                 if (typeof node.getAttribute !== 'function') {
                     return true;
                 }
@@ -434,22 +433,22 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     )}
 
-                    <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
-                         <h3 className="text-sm font-bold text-foreground font-headline">Split Summary</h3>
+                    <div className="mb-3">
                         <div className="flex items-center justify-end flex-wrap gap-2">
-                             {hasAnyTranslatedItems && splitMode === 'item' && (
-                                <button data-summary-toggle="true" onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md">
+                            {hasAnyTranslatedItems && splitMode === 'item' && (
+                                <div data-summary-toggle="true" onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer">
                                     <Languages size={14} />
                                     <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
-                                </button>
+                                </div>
                             )}
                             {splitMode === 'item' && (
-                                 <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
+                                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
                                     <div data-summary-toggle="true" onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
                                     <div data-summary-toggle="true" onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
                                 </div>
                             )}
                         </div>
+                        <h3 className="text-sm font-bold text-foreground font-headline mt-2">Split Summary</h3>
                     </div>
                     
                     <div className="space-y-3">
