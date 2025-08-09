@@ -54,22 +54,24 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
   const absAdjustment = Math.abs(adjustment);
 
   const getWrapperClass = () => {
-    const baseClass = "bg-primary text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2";
-    
-    if (totalShares === 0 && splitMode === 'item') {
-        return `${baseClass} border-primary-foreground/50`;
-    }
-
     const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
     const isReconciled = absAdjustment < 0.01;
 
-    if (isReconciled || isNearlyReconciled) {
-        return `${baseClass} border-green-300`;
+    let bgClass = "bg-primary";
+    let borderClass = "border-primary-foreground/50";
+
+    if (totalShares === 0 && splitMode === 'item') {
+        // Initial state, no specific color feedback needed yet
+    } else if (isReconciled || isNearlyReconciled) {
+        bgClass = "bg-green-600";
+        borderClass = "border-green-300";
+    } else if (adjustment > 0) { // Shortfall
+        borderClass = "border-yellow-300";
+    } else { // Surplus
+        borderClass = "border-orange-300";
     }
-    if (adjustment > 0) { // Shortfall
-        return `${baseClass} border-yellow-300`;
-    }
-    return `${baseClass} border-orange-300`;
+    
+    return `text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 ${bgClass} ${borderClass}`;
   };
 
   if (!isVisible) {

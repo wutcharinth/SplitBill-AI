@@ -424,8 +424,9 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 
         {/* Payment Section */}
         <div className="border-t pt-4 mt-4 border-gray-200 space-y-2">
-            <h3 className="text-sm font-bold mb-2 text-gray-700">Record Payments (Optional)</h3>
-            <p className="text-xs text-muted-foreground">Enter the total amount each person paid to the restaurant (including any pre-paid deposits).</p>
+            <h3 className="text-sm font-bold text-gray-700">Settle Up (Optional)</h3>
+            <p className="text-xs text-muted-foreground -mt-1">Enter who paid the restaurant to see who owes who.</p>
+
             <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg text-primary">
                 <span className="text-sm font-medium">Remaining:</span>
                 <span className="text-xl font-bold tracking-tight">{currencySymbol}{formatNumber(remainingAmount * fxRate)}</span>
