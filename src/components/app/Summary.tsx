@@ -440,8 +440,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             )}
                             {splitMode === 'item' && (
                                 <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
-                                    <button onClick={() => setSummaryViewMode('detailed')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</button>
-                                    <button onClick={() => setSummaryViewMode('compact')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</button>
+                                    <div onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
+                                    <div onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
                                 </div>
                             )}
                         </div>
@@ -495,7 +495,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
                                                     <div className="flex justify-between font-semibold border-t mt-1 pt-1"><span>Bill Share:</span><span><DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold"/></span></div>>
                                                     {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600"/></span></div>}
-                                                    <div className="flex justify-between font-bold border-t mt-1 pt-1"><span>Total Share:</span><span><DualCurrencyDisplay baseValue={person.totalShare * fxRate} className="font-bold"/></span></div>
+                                                    <div className="flex justify-between font-bold border-t mt-1 pt-1"><span>Total Share:</span><span><DualCurrencyDisplay baseValue={person.totalShare * fxRate} className="font-bold"/></span></div>>
                                                     {breakdown.payment > 0 && <div className="flex justify-between text-red-600"><span>Payment:</span><span><DualCurrencyDisplay baseValue={breakdown.payment * fxRate} sign="-" className="text-red-600"/></span></div>}
                                                 </div>
                                             )}

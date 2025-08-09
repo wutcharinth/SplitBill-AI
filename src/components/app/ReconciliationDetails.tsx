@@ -18,8 +18,10 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     }
 };
 
-const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: string, formatNumber: (num: number) => string, fxRate: number }> = ({ adjustment, currencySymbol, formatNumber, fxRate }) => {
+const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: string, formatNumber: (num: number) => string, fxRate: number, billTotal: number }> = ({ adjustment, currencySymbol, formatNumber, fxRate, billTotal }) => {
     const absAdjustment = Math.abs(adjustment);
+    const matchPercentage = billTotal > 0 ? (1 - absAdjustment / billTotal) * 100 : 0;
+    const isNearlyPerfect = matchPercentage >= 99 && matchPercentage < 100;
 
     if (absAdjustment < 0.01) {
         return (
@@ -30,13 +32,17 @@ const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: strin
         );
     }
     
-    if (absAdjustment < 0.1) {
-        return (
-            <div className="mt-3 p-2 text-sm flex items-center gap-2 rounded-lg bg-yellow-500/10 text-yellow-800 border border-yellow-500/20">
+    if (isNearlyPerfect) {
+        let message = `Tiny difference of ${currencySymbol}${formatNumber(absAdjustment * fxRate)} will be auto-adjusted.`;
+        if (adjustment > 0) {
+             message = `Shortfall of ${currencySymbol}${formatNumber(adjustment * fxRate)} will be split.`;
+        } else if (adjustment < 0) {
+            message = `Surplus of ${currencySymbol}${formatNumber(absAdjustment * fxRate)} will be distributed.`;
+        }
+         return (
+            <div className="mt-3 p-2 text-sm flex items-center gap-2 rounded-lg bg-green-500/10 text-green-700 border border-green-500/20">
                 <AlertCircle size={16} />
-                <p className="font-medium">
-                    Tiny difference of {currencySymbol}{formatNumber(absAdjustment * fxRate)} will be auto-adjusted.
-                </p>
+                <p className="font-medium">{message}</p>
             </div>
         )
     }
@@ -171,7 +177,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
             )}
             
         </div>
-         <ReconciliationStatus adjustment={adjustment} currencySymbol={currencySymbol} formatNumber={formatNumber} fxRate={fxRate} />
+         <ReconciliationStatus adjustment={adjustment} currencySymbol={currencySymbol} formatNumber={formatNumber} fxRate={fxRate} billTotal={billTotal}/>
     </div>
   );
 };
