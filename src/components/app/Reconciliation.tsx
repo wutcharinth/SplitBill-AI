@@ -55,186 +55,158 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
         </div>
     );
     
-    const renderContent = () => {
-        if (splitMode !== 'item') {
-            return (
-                <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
-                        <h4 className="font-bold text-foreground text-base">Splitting Evenly</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            The total will be divided equally among the number of people you select below.
-                        </p>
-                    </div>
-                </div>
-            );
-        }
-
-        if (totalShares === 0) {
-            return (
-                <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div>
-                        <h4 className="font-bold text-foreground text-base">
-                            Let's Get Started!
-                        </h4>
-                         <p className="text-sm text-muted-foreground mt-1">
-                            Assign items below to see the calculation match the receipt total.
-                        </p>
-                    </div>
-                </div>
-            );
-        }
-        
-        if (unassignedItemsCount > 0) {
-             return (
-                <div className="flex items-start gap-3 w-full">
-                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div className="flex-grow">
-                        <h4 className="font-bold text-foreground text-base">
-                            Keep Going!
-                        </h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            You have {unassignedItemsCount} item(s) left to assign.
-                        </p>
-                        <MatchProgress />
-                    </div>
-                </div>
-            );
-        }
-
-        const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
-        const isReconciled = absAdjustment < 0.01;
-        
-        if (isReconciled) {
-            return (
-                <div className="flex items-start gap-3 w-full">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div className="flex-grow">
-                        <h4 className="font-bold text-green-700 text-base">
-                            Perfect Match!
-                        </h4>
-                        <p className="text-sm text-green-600 mt-1">
-                            The calculated total matches the bill total from the receipt.
-                        </p>
-                        <MatchProgress />
-                    </div>
-                </div>
-            );
-        }
-        
-        if (isNearlyReconciled) {
-            return (
-                 <div className="flex items-start gap-3 w-full">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div className="flex-grow">
-                        <h4 className="font-bold text-green-700 text-base">
-                            Almost There!
-                        </h4>
-                        <p className="text-sm text-green-600 mt-1">
-                            The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
-                        </p>
-                         <MatchProgress />
-                    </div>
-                </div>
-            )
-        }
-
-        if (matchPercentage < 90) {
-            return (
-                <div className="flex items-start gap-3 w-full">
-                    <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div className="flex-grow">
-                        <h4 className="font-bold text-yellow-800 text-base">
-                            Large Difference Detected
-                        </h4>
-                        <p className="text-sm text-yellow-700 mt-1">
-                            The calculated total is off by <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. Please review items and adjustments carefully.
-                        </p>
-                        <MatchProgress />
-                    </div>
-                </div>
-            )
-        }
-        
-        if (adjustment > 0) { // Shortfall
-            return (
-                <div className="flex items-start gap-3 w-full">
-                    <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div className="flex-grow">
-                        <h4 className="font-bold text-yellow-800 text-base">
-                            Shortfall Detected
-                        </h4>
-                        <p className="text-sm text-yellow-700 mt-1">
-                            There's a difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. This will be split among everyone.
-                        </p>
-                        <MatchProgress />
-                    </div>
-                </div>
-            );
-        }
-        
-        // Surplus
-        const surplus = absAdjustment;
-        const taxLikeSurplus = [taxes.serviceCharge, taxes.vat, taxes.otherTax].find(tax => 
-            tax.isEnabled && Math.abs(surplus - tax.amount) / tax.amount < 0.1 // Within 10%
-        );
-
-        if (taxLikeSurplus) {
-            return (
-                 <div className="flex items-start gap-3 w-full">
-                    <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                    <div className="flex-grow">
-                        <h4 className="font-bold text-foreground text-base">Surplus Found!</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
-                            Could the AI have mistaken this tax for a line item? Please review the items list above.
-                        </p>
-                         <MatchProgress />
-                    </div>
-                </div>
-            );
-        }
-
+    if (splitMode !== 'item') {
         return (
-            <div className="flex items-start gap-3 w-full">
-                <PartyPopper className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
-                <div className="flex-grow">
-                    <h4 className="font-bold text-foreground text-base">
-                        Surplus Found!
+            <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div>
+                    <h4 className="font-bold text-foreground text-sm">Splitting Evenly</h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        The total will be divided equally among the number of people you select below.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (totalShares === 0) {
+        return (
+            <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div>
+                    <h4 className="font-bold text-foreground text-sm">
+                        Let's Get Started!
                     </h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
+                     <p className="text-xs text-muted-foreground mt-1">
+                        Assign items below to see the calculation match the receipt total.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+    
+    if (unassignedItemsCount > 0) {
+         return (
+            <div className="flex items-start gap-3 w-full">
+                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex-grow">
+                    <h4 className="font-bold text-foreground text-sm">
+                        Keep Going!
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        You have {unassignedItemsCount} item(s) left to assign.
                     </p>
                     <MatchProgress />
                 </div>
             </div>
         );
-    };
+    }
 
-    const getWrapperClass = () => {
-        const baseClass = "bg-card rounded-xl shadow-card p-3 sm:p-4 border";
-        
-        if (totalShares === 0 && splitMode === 'item') {
-            return `${baseClass} border-border`;
-        }
+    const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
+    const isReconciled = absAdjustment < 0.01;
+    
+    if (isReconciled) {
+        return (
+            <div className="flex items-start gap-3 w-full">
+                <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex-grow">
+                    <h4 className="font-bold text-green-700 text-sm">
+                        Perfect Match!
+                    </h4>
+                    <p className="text-xs text-green-600 mt-1">
+                        The calculated total matches the bill total from the receipt.
+                    </p>
+                    <MatchProgress />
+                </div>
+            </div>
+        );
+    }
+    
+    if (isNearlyReconciled) {
+        return (
+             <div className="flex items-start gap-3 w-full">
+                <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex-grow">
+                    <h4 className="font-bold text-green-700 text-sm">
+                        Almost There!
+                    </h4>
+                    <p className="text-xs text-green-600 mt-1">
+                        The totals are off by a tiny amount, likely due to rounding. The difference of <strong className="font-mono">{currencySymbol}{formatNumber(adjustment * fxRate)}</strong> will be automatically split to ensure everything matches perfectly.
+                    </p>
+                     <MatchProgress />
+                </div>
+            </div>
+        )
+    }
 
-        const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
-        const isReconciled = absAdjustment < 0.01;
+    if (matchPercentage < 90) {
+        return (
+            <div className="flex items-start gap-3 w-full">
+                <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex-grow">
+                    <h4 className="font-bold text-yellow-800 text-sm">
+                        Large Difference Detected
+                    </h4>
+                    <p className="text-xs text-yellow-700 mt-1">
+                        The calculated total is off by <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. Please review items and adjustments carefully.
+                    </p>
+                    <MatchProgress />
+                </div>
+            </div>
+        )
+    }
+    
+    if (adjustment > 0) { // Shortfall
+        return (
+            <div className="flex items-start gap-3 w-full">
+                <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex-grow">
+                    <h4 className="font-bold text-yellow-800 text-sm">
+                        Shortfall Detected
+                    </h4>
+                    <p className="text-xs text-yellow-700 mt-1">
+                        There's a difference of <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong>. This will be split among everyone.
+                    </p>
+                    <MatchProgress />
+                </div>
+            </div>
+        );
+    }
+    
+    // Surplus
+    const surplus = absAdjustment;
+    const taxLikeSurplus = [taxes.serviceCharge, taxes.vat, taxes.otherTax].find(tax => 
+        tax.isEnabled && Math.abs(surplus - tax.amount) / tax.amount < 0.1 // Within 10%
+    );
 
-        if (isReconciled || isNearlyReconciled) {
-            return `${baseClass} border-green-500`;
-        }
-        if (adjustment > 0 || (matchPercentage < 90 && totalShares > 0)) {
-            return `${baseClass} border-yellow-500`;
-        }
-        return `${baseClass} border-accent`;
-    };
-
+    if (taxLikeSurplus) {
+        return (
+             <div className="flex items-start gap-3 w-full">
+                <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex-grow">
+                    <h4 className="font-bold text-foreground text-sm">Surplus Found!</h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
+                        Could the AI have mistaken this tax for a line item? Please review the items list above.
+                    </p>
+                     <MatchProgress />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className={getWrapperClass()}>
-            {renderContent()}
+        <div className="flex items-start gap-3 w-full">
+            <PartyPopper className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+            <div className="flex-grow">
+                <h4 className="font-bold text-foreground text-sm">
+                    Surplus Found!
+                </h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                    Extra <strong className="font-mono">{currencySymbol}{formatNumber(absAdjustment * fxRate)}</strong> will be distributed back.
+                </p>
+                <MatchProgress />
+            </div>
         </div>
     );
 };

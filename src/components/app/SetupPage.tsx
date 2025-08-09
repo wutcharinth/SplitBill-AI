@@ -1,14 +1,16 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import SplitModeToggle from './SplitModeToggle';
 import ManagePeople from './ManagePeople';
 import ItemAssignment from './ItemAssignment';
 import Adjustments from './Adjustments';
-import Reconciliation from './Reconciliation';
 import ReconciliationDetails from './ReconciliationDetails';
 import { SplitMode } from '../types';
+import DraggableReconciliation from './DraggableReconciliation';
+import { Button } from '../ui/button';
+import { MessageSquarePlus } from 'lucide-react';
 
 interface SetupPageProps {
   state: any;
@@ -19,13 +21,34 @@ interface SetupPageProps {
 }
 
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
+  const [isGuideVisible, setIsGuideVisible] = useState(true);
+  
   return (
     <div>
-      <div className="sticky-reconciliation-container z-30">
-        <Reconciliation state={state} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
-      </div>
+       <DraggableReconciliation 
+          state={state} 
+          currencySymbol={currencySymbol} 
+          fxRate={fxRate} 
+          formatNumber={formatNumber}
+          isVisible={isGuideVisible}
+          onClose={() => setIsGuideVisible(false)}
+        />
 
-      <div className="space-y-3 mt-20">
+        {!isGuideVisible && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <Button
+              onClick={() => setIsGuideVisible(true)}
+              className="rounded-full shadow-lg"
+              size="lg"
+            >
+              <MessageSquarePlus className="mr-2 h-5 w-5" />
+              Show Guide
+            </Button>
+          </div>
+        )}
+
+
+      <div className="space-y-3 mt-4">
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="text-base font-bold mb-4 text-primary font-headline">1. Split Mode</h2>
           <SplitModeToggle mode={state.splitMode} setMode={(mode: SplitMode) => dispatch({ type: 'SET_SPLIT_MODE', payload: mode })} />

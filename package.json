@@ -57,7 +57,8 @@
     "html-to-image": "^1.11.11",
     "canvas-confetti": "^1.9.3",
     "browser-image-compression": "^2.0.2",
-    "firebase": "^10.12.3"
+    "firebase": "^10.12.3",
+    "react-draggable": "^4.4.6"
   },
   "devDependencies": {
     "@types/node": "^20",
