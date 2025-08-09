@@ -10,7 +10,7 @@ import ReconciliationDetails from './ReconciliationDetails';
 import { SplitMode } from '../types';
 import DraggableReconciliation from './DraggableReconciliation';
 import { Button } from '../ui/button';
-import { Wand2 } from 'lucide-react';
+import { Wand2, Info, CheckCircle2, AlertCircle, PartyPopper } from 'lucide-react';
 
 interface SetupPageProps {
   state: any;
@@ -25,18 +25,24 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
   
   const { items, billTotal, splitMode, discount, taxes } = state;
 
-  const { totalShares, adjustment, absAdjustment } = useMemo(() => {
+  const { totalShares, adjustment, absAdjustment, unassignedItemsCount, assignedSubtotal } = useMemo(() => {
     let sharesTotal = 0;
+    let unassignedCount = 0;
+
     items.forEach((item: any) => {
-        sharesTotal += item.shares.reduce((a: number, b: number) => a + b, 0);
+        const currentItemShares = item.shares.reduce((a: number, b: number) => a + b, 0);
+        if (currentItemShares === 0) {
+            unassignedCount++;
+        }
+        sharesTotal += currentItemShares;
     });
 
-    const assignedSubtotal = items
+    const subtotalOfAssigned = items
         .filter((item: any) => item.shares.reduce((a: number, b: number) => a + b, 0) > 0)
         .reduce((sum: number, item: any) => sum + item.price, 0);
 
-    const discountAmount = discount.type === 'percentage' ? assignedSubtotal * (discount.value / 100) : discount.value;
-    const subtotalAfterDiscount = assignedSubtotal - discountAmount;
+    const discountAmount = discount.type === 'percentage' ? subtotalOfAssigned * (discount.value / 100) : discount.value;
+    const subtotalAfterDiscount = subtotalOfAssigned - discountAmount;
     const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
     const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
     const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
@@ -46,34 +52,53 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
     return { 
       totalShares: sharesTotal, 
       adjustment: adj, 
-      absAdjustment: Math.abs(adj) 
+      absAdjustment: Math.abs(adj),
+      unassignedItemsCount: unassignedCount,
+      assignedSubtotal: subtotalOfAssigned,
     };
   }, [items, discount, taxes, billTotal]);
+  
+  const getDynamicContent = () => {
+      const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
+      const isReconciled = absAdjustment < 0.01;
+      
+      let buttonClass = "bg-primary hover:bg-primary/90";
+      let balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-primary border-primary-foreground/50";
+      let text = "Help me Reconcile";
+      let Icon = Wand2;
 
-  const getDynamicClasses = () => {
-    const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
-    const isReconciled = absAdjustment < 0.01;
-
-    let bgClass = "bg-primary hover:bg-primary/90"; // For Button
-    let balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-primary border-primary-foreground/50";
-
-    if (totalShares === 0 && splitMode === 'item') {
-        // Initial state, use default colors
-    } else if (isReconciled || isNearlyReconciled) {
-        bgClass = "bg-green-600 hover:bg-green-600/90";
-        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-green-600 border-green-300";
-    } else if (adjustment > 0) { // Shortfall
-        bgClass = "bg-yellow-600 hover:bg-yellow-600/90";
-        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
-    } else { // Surplus
-        bgClass = "bg-orange-500 hover:bg-orange-500/90";
-        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-orange-500 border-orange-300";
-    }
-    
-    return { buttonClass: bgClass, balloonWrapperClass };
+      if (splitMode !== 'item') {
+          return { buttonClass, balloonWrapperClass, text, Icon };
+      }
+      
+      if (totalShares === 0) {
+          text = "Assign Items to Start";
+      } else if (isReconciled || isNearlyReconciled) {
+          buttonClass = "bg-green-600 hover:bg-green-600/90";
+          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-green-600 border-green-300";
+          text = isReconciled ? "Perfect Match!" : "Almost There!";
+          Icon = CheckCircle2;
+      } else if (unassignedItemsCount > 0) {
+          buttonClass = "bg-yellow-600 hover:bg-yellow-600/90";
+          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
+          text = "Keep Going!";
+          Icon = Info;
+      } else if (adjustment > 0) { // Shortfall
+          buttonClass = "bg-yellow-600 hover:bg-yellow-600/90";
+          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
+          text = "Shortfall Detected";
+          Icon = AlertCircle;
+      } else { // Surplus
+          buttonClass = "bg-orange-500 hover:bg-orange-500/90";
+          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-orange-500 border-orange-300";
+          text = "Surplus Found";
+          Icon = PartyPopper;
+      }
+      
+      return { buttonClass, balloonWrapperClass, text, Icon };
   };
 
-  const { buttonClass, balloonWrapperClass } = getDynamicClasses();
+  const { buttonClass, balloonWrapperClass, text, Icon } = getDynamicContent();
   
   return (
     <div>
@@ -94,8 +119,8 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
               className={`rounded-full shadow-lg ${buttonClass}`}
               size="lg"
             >
-              <Wand2 className="mr-2 h-5 w-5" />
-              Help me Reconcile
+              <Icon className="mr-2 h-5 w-5" />
+              {text}
             </Button>
           </div>
         )}
