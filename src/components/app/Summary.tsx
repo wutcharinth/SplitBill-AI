@@ -329,18 +329,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const FinalAmountDisplay: React.FC<{person: any}> = ({ person }) => {
         const isOwed = person.finalTotal < 0;
-        const displayValue = Math.abs(person.finalTotal);
+        const displayValue = Math.abs(person.finalTotal * fxRate);
+        const originalValue = Math.abs(person.finalTotal);
         const textColor = isOwed ? 'text-green-600' : 'text-primary';
         const labelText = isOwed ? 'Gets' : 'Pays';
 
         return (
-            <div className={`font-bold text-sm whitespace-nowrap ${textColor} text-right`}>
+            <div className={`text-right font-bold text-sm whitespace-nowrap ${textColor}`}>
                  <div className="flex flex-col">
                      <span>
-                         {labelText}: {currencySymbol}{formatNumber(displayValue * fxRate)}
+                         {labelText}: {currencySymbol}{formatNumber(displayValue)}
                      </span>
                      {baseCurrency !== displayCurrency && (
-                         <span className="text-[10px] text-muted-foreground font-normal">({baseCurrencySymbol}{formatNumber(displayValue)})</span>
+                         <span className="text-[10px] text-muted-foreground font-normal">({baseCurrencySymbol}{formatNumber(originalValue)})</span>
                      )}
                  </div>
             </div>
