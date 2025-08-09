@@ -102,13 +102,14 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, state, dispa
     }, []);
 
     const sortedCurrencies = useMemo(() => {
-        const pinned = pinnedCurrencies
-            .map(code => ([code, ALLOWED_CURRENCIES[code]]))
-            .filter(entry => entry[1]); // Ensure the currency exists in our list
+        const allAllowedCurrencies = Object.entries(ALLOWED_CURRENCIES);
 
-        const others = Object.entries(ALLOWED_CURRENCIES)
+        const pinned = pinnedCurrencies
+            .map(code => allAllowedCurrencies.find(([c]) => c === code))
+            .filter((entry): entry is [string, string] => !!entry);
+
+        const others = allAllowedCurrencies
             .filter(([code]) => !pinnedCurrencies.includes(code))
-            // Sort by currency code (e.g., AUD, BRL, CAD) instead of name.
             .sort(([codeA], [codeB]) => codeA.localeCompare(codeB));
 
         return { pinned, others };
