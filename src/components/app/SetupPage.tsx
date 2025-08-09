@@ -11,6 +11,7 @@ import { SplitMode } from '../types';
 import DraggableReconciliation from './DraggableReconciliation';
 import { Button } from '../ui/button';
 import { Wand2, Info, CheckCircle2, AlertCircle, PartyPopper } from 'lucide-react';
+import SettleUp from './SettleUp';
 
 interface SetupPageProps {
   state: any;
@@ -169,11 +170,17 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5" id="adjustments-section">
           <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Review & Adjust</h2>
-          <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
+          <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
         </div>
 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-           <ReconciliationDetails state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate} formatNumber={formatNumber} />
+            <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '5' : '4'}. Reconciliation Details</h2>
+           <ReconciliationDetails state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
+        </div>
+
+        <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+            <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '6' : '5'}. Settle Up (Optional)</h2>
+           <SettleUp state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
         </div>
         
         {state.uploadedReceipt && (

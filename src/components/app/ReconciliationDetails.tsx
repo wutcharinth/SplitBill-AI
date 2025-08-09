@@ -20,7 +20,7 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   const { items, billTotal, discount, taxes, splitMode, tip, payments } = state;
 
-  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTipAndPayment, totalPayment } = useMemo(() => {
+  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTip, totalPayment } = useMemo(() => {
     const sub = items.reduce((sum: number, item: any) => sum + item.price, 0);
     
     let baseForCharges = sub;
@@ -39,7 +39,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
 
     const calcTotal = subAfterDiscount + scAmount + vAmount + otAmount;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
-    const gTotalWithTipAndPayment = calcTotal + adj + tip - paymentAmount;
+    const gTotalWithTip = calcTotal + adj + tip;
 
     return { 
         subtotal: sub,
@@ -49,7 +49,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
         otherTaxAmount: otAmount,
         calculatedTotal: calcTotal,
         adjustment: adj,
-        grandTotalWithTipAndPayment: gTotalWithTipAndPayment,
+        grandTotalWithTip: gTotalWithTip,
         totalPayment: paymentAmount
     };
 }, [items, billTotal, discount, taxes, splitMode, tip, payments]);
@@ -57,7 +57,6 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
 
   return (
     <div>
-        <h2 className="text-base font-bold mb-4 text-primary font-headline">Reconciliation Details</h2>
         <div className="space-y-1 pt-2 bg-muted/50 p-3 rounded-lg border">
             <div className="flex justify-between items-center py-2 border-b mb-2">
                 <label className="font-semibold text-gray-800 text-sm">Receipt Total</label>
@@ -121,16 +120,9 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 </div>
             )}
             
-            {totalPayment > 0 && (
-                <div className="flex justify-between items-center pt-1 text-sm font-semibold">
-                    <h4 className="text-red-600">Payments</h4>
-                    <span className="font-mono text-red-600">- {currencySymbol}{(totalPayment * fxRate).toFixed(2)}</span>
-                </div>
-            )}
-
             <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
-                <h4 className="text-gray-900">Amount to Settle</h4>
-                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTipAndPayment * fxRate).toFixed(2)}</span>
+                <h4 className="text-gray-900">Bill Grand Total</h4>
+                <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTip * fxRate).toFixed(2)}</span>
             </div>
         </div>
     </div>

@@ -91,64 +91,6 @@ const TipInput: React.FC<{
     );
 };
 
-const PaymentInput: React.FC<{
-    payment: Payment;
-    people: Person[];
-    fxRate: number;
-    dispatch: React.Dispatch<any>;
-    currencySymbol: string;
-}> = ({ payment, people, fxRate, dispatch, currencySymbol }) => {
-    const [localAmount, setLocalAmount] = useState((payment.amount * fxRate).toFixed(2));
-
-    useEffect(() => {
-        setLocalAmount((payment.amount * fxRate).toFixed(2));
-    }, [payment.amount, fxRate]);
-
-    const handleBlur = () => {
-        const numericValue = parseFloat(localAmount);
-        if (!isNaN(numericValue)) {
-            dispatch({ type: 'UPDATE_PAYMENT', payload: { id: payment.id, amount: numericValue / fxRate } });
-        } else {
-            setLocalAmount((payment.amount * fxRate).toFixed(2)); // Reset on invalid input
-        }
-    };
-
-    return (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2">
-                <select
-                    value={payment.paidBy || ''}
-                    onChange={e => dispatch({ type: 'UPDATE_PAYMENT', payload: { id: payment.id, paidBy: e.target.value } })}
-                    className="bg-white rounded-md p-1 text-xs border border-gray-300 text-gray-900"
-                >
-                    <option value="">Select Person</option>
-                    {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <span className="text-xs text-gray-600">paid an amount of</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-xs">{currencySymbol}</span>
-                <input
-                    type="number"
-                    value={localAmount}
-                    onChange={(e) => setLocalAmount(e.target.value)}
-                    onBlur={handleBlur}
-                    onFocus={handleFocus}
-                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                    className="w-24 text-right bg-white border border-gray-300 rounded-md p-1 font-mono text-xs text-gray-900"
-                />
-                <button 
-                    onClick={() => dispatch({ type: 'REMOVE_PAYMENT', payload: { id: payment.id } })}
-                    className="text-gray-500 hover:text-red-500"
-                >
-                    <X size={16}/>
-                </button>
-            </div>
-        </div>
-    );
-};
-
-
 const DiscountInput: React.FC<{
     discount: { value: number, type: string };
     fxRate: number;
@@ -185,52 +127,6 @@ const DiscountInput: React.FC<{
         />
     );
 };
-
-const SinglePersonPaymentInput: React.FC<{ person: Person; payment: Payment | undefined, fxRate: number; dispatch: React.Dispatch<any>; currencySymbol: string }> = ({ person, payment, fxRate, dispatch, currencySymbol }) => {
-    const paymentAmount = payment ? payment.amount : 0;
-    const [localAmount, setLocalAmount] = useState((paymentAmount * fxRate).toFixed(2));
-  
-    useEffect(() => {
-        setLocalAmount((paymentAmount * fxRate).toFixed(2));
-    }, [paymentAmount, fxRate]);
-  
-    const handleBlur = () => {
-      const numericValue = parseFloat(localAmount);
-      if (!isNaN(numericValue)) {
-        dispatch({ type: 'UPDATE_PERSON_PAYMENT', payload: { paidBy: person.id, amount: numericValue / fxRate } });
-      } else {
-        setLocalAmount((paymentAmount * fxRate).toFixed(2));
-      }
-    };
-  
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setLocalAmount(e.target.value);
-    };
-  
-    return (
-      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: person.color }}>
-            {person.name.substring(0, 2).toUpperCase()}
-          </div>
-          <span className="font-medium text-sm text-gray-800">{person.name}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500 font-medium">{currencySymbol}</span>
-          <input
-            type="number"
-            value={localAmount}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            onFocus={handleFocus}
-            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            className="w-28 text-right bg-white border border-gray-300 rounded-md p-2 font-mono text-sm text-gray-900"
-          />
-        </div>
-      </div>
-    );
-};
-  
 
 const AdjustmentRow: React.FC<{ label: React.ReactNode; children: React.ReactNode }> = ({ label, children }) => (
     <div className="flex justify-between items-center py-2">
@@ -281,21 +177,6 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
   const [showDiscountInput, setShowDiscountInput] = useState(state.discount.value > 0);
   
   const showOtherTax = useMemo(() => taxes.otherTax.isEnabled || taxes.otherTax.amount > 0, [taxes.otherTax]);
-
-  const { grandTotalWithTip, remainingAmount } = useMemo(() => {
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.price, 0);
-    const discountAmount = discount.type === 'percentage' ? subtotal * (discount.value / 100) : discount.value;
-    const subtotalAfterDiscount = subtotal - discountAmount;
-    const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
-    const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
-    const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
-    const calculatedTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
-    const adjustment = billTotal > 0 ? billTotal - calculatedTotal : 0;
-    const totalWithTip = calculatedTotal + adjustment + tip;
-    const totalPayments = payments.reduce((sum: number, p: Payment) => sum + p.amount, 0);
-    const remaining = totalWithTip - totalPayments;
-    return { grandTotalWithTip: totalWithTip, remainingAmount: remaining };
-  }, [items, discount, taxes, tip, billTotal, payments]);
 
   return (
     <div className="space-y-4">
@@ -420,23 +301,6 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                     <span className="text-xs font-medium">Add a Tip</span>
                 </button>
             )}
-        </div>
-
-        {/* Payment Section */}
-        <div className="border-t pt-4 mt-4 border-gray-200 space-y-2">
-            <h3 className="text-sm font-bold text-gray-700">Settle Up (Optional)</h3>
-            <p className="text-xs text-muted-foreground -mt-1">Enter who paid the restaurant to see who owes who.</p>
-
-            <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg text-primary">
-                <span className="text-sm font-medium">Remaining:</span>
-                <span className="text-xl font-bold tracking-tight">{currencySymbol}{formatNumber(remainingAmount * fxRate)}</span>
-            </div>
-            <div className="space-y-2">
-                {people.map((person: Person) => {
-                    const payment = payments.find((d: Payment) => d.paidBy === person.id);
-                    return <SinglePersonPaymentInput key={person.id} person={person} payment={payment} fxRate={fxRate} dispatch={dispatch} currencySymbol={currencySymbol} />
-                })}
-            </div>
         </div>
     </div>
   );
