@@ -305,17 +305,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             });
         } else { // Evenly
             const grandTotalWithTip = calculations.grandTotal + tip;
-            const amountToSettle = grandTotalWithTip - calculations.totalPayment;
             const totalSharePerPerson = grandTotalWithTip / peopleCountEvenly;
-            const finalTotalPerPerson = amountToSettle / peopleCountEvenly;
-            
+
             for(let i=0; i < peopleCountEvenly; i++) {
+                const person = people[i] || { id: `even-${i}`, name: `P${i+1}`, color: PERSON_COLORS[i % PERSON_COLORS.length] };
+                const personPayment = payments.reduce((sum: number, payment: Payment) => {
+                    return payment.paidBy === person.id ? sum + payment.amount : sum;
+                }, 0);
+                const finalTotalPerPerson = totalSharePerPerson - personPayment;
+
                 perPersonData.push({ 
-                    id: `even-${i}`, 
-                    name: `P${i+1}`, 
+                    ...person,
                     totalShare: totalSharePerPerson,
                     finalTotal: finalTotalPerPerson,
-                    color: PERSON_COLORS[i % PERSON_COLORS.length]
                 });
             }
         }
@@ -705,3 +707,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
