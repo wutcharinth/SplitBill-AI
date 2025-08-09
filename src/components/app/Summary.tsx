@@ -334,11 +334,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const labelText = isOwed ? 'Gets' : 'Pays';
 
         return (
-             <div className="text-right">
-                <span className={`font-bold text-xs ${textColor}`}>
+            <div className="text-right flex-shrink-0 ml-2">
+                <span className={`font-bold text-sm whitespace-nowrap ${textColor}`}>
                     {labelText}: {currencySymbol}{formatNumber(displayValue * fxRate)}
                 </span>
-                 {baseCurrency !== displayCurrency && (
+                {baseCurrency !== displayCurrency && (
                     <div className="text-[10px] text-muted-foreground font-normal">
                         ({baseCurrencySymbol}{formatNumber(displayValue)})
                     </div>
@@ -430,9 +430,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     <div className="p-3">
                                         <div className="flex justify-between items-start gap-2">
                                             <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
-                                            <div className="flex flex-col items-end">
-                                                <FinalAmountDisplay person={person} />
-                                            </div>
+                                            <FinalAmountDisplay person={person} />
                                         </div>
                                         {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
                                             <ul className="list-disc list-inside mt-2 text-xs text-muted-foreground">
@@ -542,7 +540,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     </div>
 
                     <div className="mt-4 pt-3 border-t-2 border-border flex justify-between font-bold text-base text-foreground">
-                        <span>Grand Total:</span>
+                        <span>Amount to Settle:</span>
                         <div className="text-right">
                             <span>{currencySymbol}{formatNumber(calculations.grandTotalWithTipAndPayment * fxRate)}</span>
                             {baseCurrency !== displayCurrency && (
@@ -555,7 +553,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
                     <div className="mt-2 text-green-600 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
                         <div className="flex justify-between items-center font-bold text-xs">
-                             <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> Total of Individual Payments:</span>
+                             <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> Total of Individual Balances:</span>
                              <div className="text-right">
                                  <span>{currencySymbol}{formatNumber(totalFromIndividuals * fxRate)}</span>
                                  {baseCurrency !== displayCurrency && (
@@ -658,3 +656,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
