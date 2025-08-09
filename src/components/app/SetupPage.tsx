@@ -32,17 +32,16 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
     let sharesTotal = 0;
     let unassignedCount = 0;
 
-    items.forEach((item: any) => {
+    const assignedItems = items.filter((item: any) => {
         const currentItemShares = item.shares.reduce((a: number, b: number) => a + b, 0);
         if (currentItemShares === 0) {
             unassignedCount++;
         }
         sharesTotal += currentItemShares;
+        return currentItemShares > 0;
     });
 
-    const subtotalOfAssigned = items
-        .filter((item: any) => item.shares.reduce((a: number, b: number) => a + b, 0) > 0)
-        .reduce((sum: number, item: any) => sum + item.price, 0);
+    const subtotalOfAssigned = assignedItems.reduce((sum: number, item: any) => sum + item.price, 0);
 
     const discountAmount = discount.type === 'percentage' ? subtotalOfAssigned * (discount.value / 100) : discount.value;
     const subtotalAfterDiscount = subtotalOfAssigned - discountAmount;
@@ -61,7 +60,18 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
       unassignedItemsCount: unassignedCount,
       matchPercentage: match
     };
-  }, [items, discount, taxes, billTotal]);
+  }, [
+    items.map((i: any) => [i.price, i.shares]), 
+    discount.value, 
+    discount.type, 
+    taxes.serviceCharge.amount, 
+    taxes.serviceCharge.isEnabled, 
+    taxes.vat.amount, 
+    taxes.vat.isEnabled, 
+    taxes.otherTax.amount, 
+    taxes.otherTax.isEnabled, 
+    billTotal
+  ]);
   
   const getDynamicContent = () => {
     const isReconciled = absAdjustment < 0.01;

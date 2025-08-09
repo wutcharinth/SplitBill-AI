@@ -66,7 +66,6 @@ type Action =
   | { type: 'UPDATE_TIP'; payload: number }
   | { type: 'ADD_PAYMENT' }
   | { type: 'REMOVE_PAYMENT'; payload: { id: string } }
-  | { type: 'UPDATE_PAYMENT'; payload: { id: string, amount?: number, paidBy?: string | null } }
   | { type: 'UPDATE_PERSON_PAYMENT'; payload: { paidBy: string, amount: number } }
   | { type: 'ADD_DEPOSIT' }
   | { type: 'REMOVE_DEPOSIT'; payload: { id: string } }
@@ -252,16 +251,6 @@ const reducer = (state: AppState, action: Action): AppState => {
       return { ...state, payments: state.payments.filter(d => d.id !== action.payload.id) };
     }
 
-    case 'UPDATE_PAYMENT': {
-        const updatedPayments = state.payments.map(p => {
-            if (p.id === action.payload.id) {
-                return { ...p, ...action.payload };
-            }
-            return p;
-        });
-        return { ...state, payments: updatedPayments };
-    }
-
     case 'UPDATE_PERSON_PAYMENT': {
         const { paidBy, amount } = action.payload;
         if (!paidBy) return state;
@@ -398,6 +387,26 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
     };
     fetchRate();
   }, [state.baseCurrency, state.displayCurrency]);
+
+  useEffect(() => {
+    // Preload images for summary page to avoid flash of missing images
+    const imagesToPreload: string[] = [];
+    if (state.uploadedReceipt) {
+      imagesToPreload.push(`data:image/png;base64,${state.uploadedReceipt}`);
+    }
+    if (state.qrCodeImage) {
+        imagesToPreload.push(state.qrCodeImage);
+    }
+
+    imagesToPreload.forEach(src => {
+        try {
+            const img = new Image();
+            img.src = src;
+        } catch (error) {
+            console.warn(`Failed to preload image: ${src}`, error);
+        }
+    });
+  }, [state.uploadedReceipt, state.qrCodeImage]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

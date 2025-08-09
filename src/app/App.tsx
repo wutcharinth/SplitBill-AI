@@ -17,6 +17,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import AuthForm from '@/components/app/AuthForm';
 
+const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
+    const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
+    const typeClasses = {
+        primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
+        secondary: 'bg-card text-card-foreground border border-border hover:bg-muted hover:shadow-lg hover:scale-105',
+        ghost: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg hover:scale-105'
+    };
+    const disabledClasses = "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none";
+
+    return (
+        <Component id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses} ${className}`}>
+            {icon}
+            <span>{text}</span>
+        </Component>
+    )
+}
 
 function AppContent({ modelName }: { modelName: string }) {
     const [view, setView] = useState<'auth' | 'upload' | 'loading' | 'main' | 'error'>('upload');
@@ -157,23 +173,6 @@ function AppContent({ modelName }: { modelName: string }) {
         setBillData(null);
         setErrorMessage('');
     };
-
-    const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
-        const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
-        const typeClasses = {
-            primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
-            secondary: 'bg-card text-card-foreground border border-border hover:bg-muted hover:shadow-lg hover:scale-105',
-            ghost: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg hover:scale-105'
-        };
-        const disabledClasses = "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none";
-
-        return (
-            <Component id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses} ${className}`}>
-                {icon}
-                <span>{text}</span>
-            </Component>
-        )
-    }
 
     const renderContent = () => {
         switch (view) {
