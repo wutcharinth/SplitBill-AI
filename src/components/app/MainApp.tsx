@@ -139,7 +139,7 @@ const reducer = (state: AppState, action: Action): AppState => {
       // Also remove person from discount shares
       const newDiscountShares = state.discount.shares.filter(id => id !== personId);
       // And from payments
-      const newPayments = state.payments.filter(d => d.paidBy !== personId);
+      const newPayments = state.payments.filter(p => p.paidBy !== personId);
       const newDeposits = state.deposits.filter(d => d.paidBy !== personId);
 
       return {
@@ -463,3 +463,5 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 };
 
 export default MainApp;
+
+    
