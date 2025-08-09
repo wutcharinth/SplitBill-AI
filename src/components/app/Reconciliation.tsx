@@ -128,7 +128,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                 <CheckCircle2 className={`h-5 w-5 ${getIconColor("text-green-500")} flex-shrink-0 mt-0.5`} strokeWidth={2.5} />
                 <div className="flex-grow">
                     <h4 className={`font-bold ${getTextColor("text-green-700")} text-sm`}>
-                        Almost There!
+                        Looks Good!
                     </h4>
                     <p className={`text-xs ${getMutedTextColor("text-green-600")} mt-1`}>
                         {message}

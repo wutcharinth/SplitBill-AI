@@ -64,43 +64,48 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
   }, [items, discount, taxes, billTotal]);
   
   const getDynamicContent = () => {
-      const isReconciled = absAdjustment < 0.01;
-      const isNearlyReconciled = matchPercentage > 99 && !isReconciled;
-      
-      let buttonClass = "bg-primary hover:bg-primary/90";
-      let balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-primary border-primary-foreground/50";
-      let text = "Help me Reconcile";
-      let Icon = Wand2;
+    const isReconciled = absAdjustment < 0.01;
+    const isNearlyReconciled = matchPercentage > 99 && !isReconciled;
+    
+    let buttonClass = "bg-primary hover:bg-primary/90";
+    let balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-primary border-primary-foreground/50";
+    let text = "Help me Reconcile";
+    let Icon = Wand2;
 
-      if (splitMode !== 'item') {
-          return { buttonClass, balloonWrapperClass, text, Icon };
-      }
-      
-      if (totalShares === 0) {
-          text = "Assign Items to Start";
-      } else if (isReconciled || isNearlyReconciled) {
-          buttonClass = "bg-green-600 hover:bg-green-600/90";
-          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-green-600 border-green-300";
-          text = isReconciled ? "Perfect Match!" : "Almost There!";
-          Icon = CheckCircle2;
-      } else if (unassignedItemsCount > 0) {
-          buttonClass = "bg-yellow-600 hover:bg-yellow-600/90";
-          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
-          text = "Keep Going!";
-          Icon = Info;
-      } else if (adjustment > 0) { // Shortfall
-          buttonClass = "bg-yellow-600 hover:bg-yellow-600/90";
-          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
-          text = "Shortfall Detected";
-          Icon = AlertCircle;
-      } else { // Surplus
-          buttonClass = "bg-orange-500 hover:bg-orange-500/90";
-          balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-orange-500 border-orange-300";
-          text = "Surplus Found";
-          Icon = PartyPopper;
-      }
-      
-      return { buttonClass, balloonWrapperClass, text, Icon };
+    if (splitMode !== 'item') {
+        return { buttonClass, balloonWrapperClass, text, Icon };
+    }
+    
+    if (totalShares === 0) {
+        text = "Assign Items to Start";
+    } else if (isReconciled) {
+        buttonClass = "bg-green-600 hover:bg-green-600/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-green-600 border-green-300";
+        text = "Perfect Match!";
+        Icon = CheckCircle2;
+    } else if (isNearlyReconciled) {
+        buttonClass = "bg-green-600 hover:bg-green-600/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-green-600 border-green-300";
+        text = "Looks Good!";
+        Icon = CheckCircle2;
+    } else if (unassignedItemsCount > 0) {
+        buttonClass = "bg-yellow-600 hover:bg-yellow-600/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
+        text = "Keep Going!";
+        Icon = Info;
+    } else if (adjustment > 0) { // Shortfall
+        buttonClass = "bg-yellow-600 hover:bg-yellow-600/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
+        text = "Shortfall Detected";
+        Icon = AlertCircle;
+    } else { // Surplus
+        buttonClass = "bg-orange-500 hover:bg-orange-500/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-orange-500 border-orange-300";
+        text = "Surplus Found";
+        Icon = PartyPopper;
+    }
+    
+    return { buttonClass, balloonWrapperClass, text, Icon };
   };
 
   const { buttonClass, balloonWrapperClass, text, Icon } = getDynamicContent();
