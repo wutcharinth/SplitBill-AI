@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import Draggable from 'react-draggable';
 import Reconciliation from './Reconciliation';
 import { GripVertical, X } from 'lucide-react';
@@ -23,6 +23,7 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
   isVisible,
   onClose,
 }) => {
+  const nodeRef = useRef(null);
   const { items, billTotal, splitMode } = state;
 
   const { totalShares } = useMemo(() => {
@@ -78,8 +79,9 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
       axis="y"
       handle=".drag-handle"
       bounds="parent"
+      nodeRef={nodeRef}
     >
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl z-40 cursor-grab">
+        <div ref={nodeRef} className="fixed top-24 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl z-40 cursor-grab">
             <div className={getWrapperClass()}>
                 <div className="flex items-start justify-between">
                     <div className="flex-grow">
