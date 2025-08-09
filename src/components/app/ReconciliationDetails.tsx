@@ -20,7 +20,12 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
 
 const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: string, formatNumber: (num: number) => string, fxRate: number, billTotal: number }> = ({ adjustment, currencySymbol, formatNumber, fxRate, billTotal }) => {
     const absAdjustment = Math.abs(adjustment);
-    const matchPercentage = billTotal > 0 ? (1 - absAdjustment / billTotal) * 100 : 0;
+    
+    if (billTotal <= 0) {
+        return null; // Don't show status if there's no bill total to reconcile against
+    }
+
+    const matchPercentage = (1 - absAdjustment / billTotal) * 100;
     const isNearlyPerfect = matchPercentage >= 99 && matchPercentage < 100;
 
     if (absAdjustment < 0.01) {
@@ -63,7 +68,7 @@ const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: strin
         <div className="mt-3 p-2 text-sm flex items-center gap-2 rounded-lg bg-blue-500/10 text-blue-800 border border-blue-500/20">
             <AlertCircle size={16} />
             <p className="font-medium">
-                Surplus of {currencySymbol}{formatNumber(absAdjustment * fxRate)} will be distributed.
+                Surplus of ${currencySymbol}${formatNumber(absAdjustment * fxRate)} will be distributed.
             </p>
         </div>
     );
@@ -157,12 +162,14 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 <span className="font-mono text-foreground">{currencySymbol}{(calculatedTotal * fxRate).toFixed(2)}</span>
             </div>
 
-            <div className="flex justify-between items-center pt-1 text-sm font-semibold">
-                <h4 className="text-blue-600">Difference</h4>
-                <span className={`font-mono ${adjustment >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                    {adjustment >= 0 ? '+' : '-'} {currencySymbol}{Math.abs(adjustment * fxRate).toFixed(2)}
-                </span>
-            </div>
+            {billTotal > 0 && (
+                <div className="flex justify-between items-center pt-1 text-sm font-semibold">
+                    <h4 className="text-blue-600">Difference</h4>
+                    <span className={`font-mono ${adjustment >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                        {adjustment >= 0 ? '+' : '-'} {currencySymbol}{Math.abs(adjustment * fxRate).toFixed(2)}
+                    </span>
+                </div>
+            )}
 
             <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
                 <h4 className="text-gray-900">Bill Grand Total</h4>
