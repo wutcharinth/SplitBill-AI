@@ -429,9 +429,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     )}
 
-                    <div className="flex justify-between items-center mb-3">
+                    <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
                         <h3 className="text-sm font-bold text-foreground font-headline">Split Summary</h3>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center justify-end flex-wrap gap-2">
                              {hasAnyTranslatedItems && splitMode === 'item' && (
                                 <button onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md">
                                     <Languages size={14} />
@@ -463,7 +463,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             return (
                                 <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                                     <div className="p-3">
-                                        <div className="flex justify-between items-start gap-2">
+                                        <div className="flex justify-between items-start gap-4">
                                             <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm w-full" disabled={splitMode === 'evenly'}/>
                                             <FinalAmountDisplay person={person} />
                                         </div>
@@ -505,8 +505,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             );
                         })}
                     </div>
-
-                    <div className="mt-4 pt-4 border-t border-border bg-card rounded-lg shadow-sm p-3">
+                    
+                    <div className="mt-4 bg-card rounded-lg shadow-sm p-3">
                         <h3 className="text-sm font-bold text-foreground mb-2 font-headline">Reconciliation</h3>
                         <div className="space-y-1 text-xs bg-muted p-3 rounded-lg text-foreground border border-border">
                              {splitMode === 'item' ? (
@@ -695,5 +695,3 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
-
-    
