@@ -21,7 +21,7 @@ interface SetupPageProps {
 }
 
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const [isGuideVisible, setIsGuideVisible] = useState(true);
+  const [isGuideVisible, setIsGuideVisible] = useState(false);
   
   return (
     <div>
