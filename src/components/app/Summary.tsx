@@ -334,19 +334,18 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const labelText = isOwed ? 'Gets' : 'Pays';
 
         return (
-            <div className="text-right ml-2 flex-shrink-0">
-                <span className={`font-bold text-sm whitespace-nowrap ${textColor}`}>
-                    {labelText}: {currencySymbol}{formatNumber(displayValue * fxRate)}
-                </span>
-                {baseCurrency !== displayCurrency && (
-                    <div className="text-[10px] text-muted-foreground font-normal">
-                        ({baseCurrencySymbol}{formatNumber(displayValue)})
-                    </div>
-                )}
+            <div className={`font-bold text-sm whitespace-nowrap ${textColor} text-right`}>
+                 <div className="flex flex-col">
+                     <span>
+                         {labelText}: {currencySymbol}{formatNumber(displayValue * fxRate)}
+                     </span>
+                     {baseCurrency !== displayCurrency && (
+                         <span className="text-[10px] text-muted-foreground font-normal">({baseCurrencySymbol}{formatNumber(displayValue)})</span>
+                     )}
+                 </div>
             </div>
         );
     }
-    
     const TotalShareDisplay: React.FC<{person: any}> = ({ person }) => {
         return (
             <div className="text-right">
@@ -427,21 +426,19 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
                             return (
                                 <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
-                                    <div className="p-3">
+                                    <div className="p-3 pb-2">
                                         <div className="flex justify-between items-start gap-2">
-                                            <div className="flex-grow">
-                                                <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
-                                            </div>
+                                            <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm flex-grow" disabled={splitMode === 'evenly'}/>
                                             <FinalAmountDisplay person={person} />
                                         </div>
                                         {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
-                                            <ul className="list-disc list-inside mt-2 text-xs text-muted-foreground">
+                                            <ul className="list-disc list-inside mt-1 text-xs text-muted-foreground">
                                                 {person.items.map((item: any, i: number) => <li key={i}>{item.name} {item.count > 1 ? `(x${item.count})` : ''}</li>)}
                                             </ul>
                                         )}
                                     </div>
                                     {splitMode === 'item' && summaryViewMode === 'detailed' && breakdown && (
-                                        <div className="text-xs mt-2 pt-2 border-t border-border space-y-1 text-foreground bg-muted/50 p-3">
+                                        <div className="text-xs pt-2 border-t border-border space-y-1 text-foreground bg-muted/50 p-3">
                                             {person.items.map((item:any, i:number) => {
                                                 const isTranslated = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase();
                                                 return (
