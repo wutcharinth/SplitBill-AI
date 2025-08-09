@@ -66,8 +66,10 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
         bgClass = "bg-green-600";
         borderClass = "border-green-300";
     } else if (adjustment > 0) { // Shortfall
+        bgClass = "bg-yellow-600";
         borderClass = "border-yellow-300";
     } else { // Surplus
+        bgClass = "bg-orange-500";
         borderClass = "border-orange-300";
     }
     
