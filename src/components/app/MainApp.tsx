@@ -68,6 +68,9 @@ type Action =
   | { type: 'REMOVE_PAYMENT'; payload: { id: string } }
   | { type: 'UPDATE_PAYMENT'; payload: { id: string, amount?: number, paidBy?: string | null } }
   | { type: 'UPDATE_PERSON_PAYMENT'; payload: { paidBy: string, amount: number } }
+  | { type: 'ADD_DEPOSIT' }
+  | { type: 'REMOVE_DEPOSIT'; payload: { id: string } }
+  | { type: 'UPDATE_DEPOSIT'; payload: { id: string, amount?: number, paidBy?: string | null } }
   | { type: 'UPDATE_TIP_SPLIT_MODE'; payload: 'proportionally' | 'equally' }
   | { type: 'UPDATE_BILL_TOTAL'; payload: number }
   | { type: 'UPDATE_RESTAURANT_NAME'; payload: string }
@@ -92,6 +95,7 @@ const getStoredQrCode = (): string | null => {
 const createInitialState = (billData: BillData, uploadedReceipt: string | null): AppState => ({
     ...billData,
     payments: billData.payments || [],
+    deposits: billData.deposits || [],
     splitMode: 'item', 
     peopleCountEvenly: 2,
     displayCurrency: billData.baseCurrency,
@@ -136,13 +140,15 @@ const reducer = (state: AppState, action: Action): AppState => {
       const newDiscountShares = state.discount.shares.filter(id => id !== personId);
       // And from payments
       const newPayments = state.payments.filter(d => d.paidBy !== personId);
+      const newDeposits = state.deposits.filter(d => d.paidBy !== personId);
 
       return {
           ...state,
           people: filteredPeople,
           items: itemsWithPersonRemoved,
           discount: { ...state.discount, shares: newDiscountShares },
-          payments: newPayments
+          payments: newPayments,
+          deposits: newDeposits
       };
     }
 
@@ -235,7 +241,7 @@ const reducer = (state: AppState, action: Action): AppState => {
 
     case 'ADD_PAYMENT': {
       const newPayment: Payment = {
-        id: `d${Date.now()}`,
+        id: `p${Date.now()}`,
         amount: 0,
         paidBy: null
       };
@@ -278,6 +284,29 @@ const reducer = (state: AppState, action: Action): AppState => {
   
         return { ...state, payments: newPayments };
       }
+    
+    case 'ADD_DEPOSIT': {
+        const newDeposit: Payment = {
+            id: `d${Date.now()}`,
+            amount: 0,
+            paidBy: null
+        };
+        return { ...state, deposits: [...state.deposits, newDeposit] };
+    }
+
+    case 'REMOVE_DEPOSIT': {
+        return { ...state, deposits: state.deposits.filter(d => d.id !== action.payload.id) };
+    }
+
+    case 'UPDATE_DEPOSIT': {
+        const updatedDeposits = state.deposits.map(d => {
+            if (d.id === action.payload.id) {
+                return { ...d, ...action.payload };
+            }
+            return d;
+        });
+        return { ...state, deposits: updatedDeposits };
+    }
 
     case 'UPDATE_TIP_SPLIT_MODE':
         return { ...state, tipSplitMode: action.payload };

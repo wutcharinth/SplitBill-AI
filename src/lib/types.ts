@@ -47,6 +47,7 @@ export interface BillData {
   tip: number;
   tipSplitMode: 'proportionally' | 'equally';
   payments: Payment[];
+  deposits: Payment[];
   billTotal: number;
   baseCurrency: string;
   restaurantName: string;

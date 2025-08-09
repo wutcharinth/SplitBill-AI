@@ -116,6 +116,7 @@ function AppContent({ modelName }: { modelName: string }) {
             tip: 0,
             tipSplitMode: 'proportionally',
             payments: initialPayments,
+            deposits: [],
             billTotal: data?.total || 0,
             baseCurrency: baseCurrency,
             restaurantName: data?.restaurantName || '',
@@ -283,6 +284,3 @@ export default function App({ modelName }: { modelName: string }) {
         </UsageProvider>
     )
 }
-
-    
-    
