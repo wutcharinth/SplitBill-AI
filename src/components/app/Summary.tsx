@@ -101,7 +101,8 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
-                 return node.tagName?.toLowerCase() !== 'button';
+                const isToggleButton = node.getAttribute('data-summary-toggle') === 'true';
+                return !isToggleButton && node.tagName?.toLowerCase() !== 'button';
             },
             cacheBust: true,
         });
@@ -430,18 +431,18 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     )}
 
                     <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
-                        <h3 className="text-sm font-bold text-foreground font-headline">Split Summary</h3>
+                         <h3 className="text-sm font-bold text-foreground font-headline">Split Summary</h3>
                         <div className="flex items-center justify-end flex-wrap gap-2">
                              {hasAnyTranslatedItems && splitMode === 'item' && (
-                                <button onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md">
+                                <button data-summary-toggle="true" onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md">
                                     <Languages size={14} />
                                     <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
                                 </button>
                             )}
                             {splitMode === 'item' && (
-                                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
-                                    <div onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
-                                    <div onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
+                                 <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
+                                    <div data-summary-toggle="true" onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
+                                    <div data-summary-toggle="true" onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
                                 </div>
                             )}
                         </div>
@@ -493,9 +494,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                     {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat * fxRate} sign="+"/></span></div>}
                                                     {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax * fxRate} sign="+"/></span></div>}
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
-                                                    <div className="flex justify-between font-semibold border-t mt-1 pt-1"><span>Bill Share:</span><span><DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold"/></span></div>>
+                                                    <div className="flex justify-between font-semibold border-t mt-1 pt-1"><span>Bill Share:</span><span><DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold"/></span></div>
                                                     {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600"/></span></div>}
-                                                    <div className="flex justify-between font-bold border-t mt-1 pt-1"><span>Total Share:</span><span><DualCurrencyDisplay baseValue={person.totalShare * fxRate} className="font-bold"/></span></div>>
+                                                    <div className="flex justify-between font-bold border-t mt-1 pt-1"><span>Total Share:</span><span><DualCurrencyDisplay baseValue={person.totalShare * fxRate} className="font-bold"/></span></div>
                                                     {breakdown.payment > 0 && <div className="flex justify-between text-red-600"><span>Payment:</span><span><DualCurrencyDisplay baseValue={breakdown.payment * fxRate} sign="-" className="text-red-600"/></span></div>}
                                                 </div>
                                             )}
