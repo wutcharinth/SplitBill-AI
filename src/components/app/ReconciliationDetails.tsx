@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Payment } from '@/lib/types';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -18,15 +18,59 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     }
 };
 
+const BillTotalInput: React.FC<{
+    value: number;
+    fxRate: number;
+    onUpdate: (newValue: number) => void;
+}> = ({ value, fxRate, onUpdate }) => {
+    const [localValue, setLocalValue] = useState(value > 0 ? (value * fxRate).toFixed(2) : '');
+
+    useEffect(() => {
+        setLocalValue(value > 0 ? (value * fxRate).toFixed(2) : '');
+    }, [value, fxRate]);
+
+    const handleBlur = () => {
+        const numericValue = parseFloat(localValue);
+        if (!isNaN(numericValue)) {
+            onUpdate(numericValue / fxRate);
+        } else {
+             onUpdate(0); // Set to 0 if input is invalid/empty
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLocalValue(e.target.value);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            (e.target as HTMLInputElement).blur();
+        }
+    };
+    
+    return (
+        <input 
+            type="number" 
+            value={localValue}
+            onFocus={handleFocus}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            className="w-24 text-right bg-card border border-border rounded-md p-1 font-mono text-sm text-foreground"
+            placeholder="Enter total"
+            step="0.01"
+        />
+    );
+}
+
 const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: string, formatNumber: (num: number) => string, fxRate: number, billTotal: number }> = ({ adjustment, currencySymbol, formatNumber, fxRate, billTotal }) => {
+    if (billTotal <= 0) {
+        return null;
+    }
     const absAdjustment = Math.abs(adjustment);
     
-    if (billTotal <= 0) {
-        return null; // Don't show status if there's no bill total to reconcile against
-    }
-
     const matchPercentage = (1 - absAdjustment / billTotal) * 100;
-    const isNearlyPerfect = matchPercentage >= 99 && matchPercentage < 100;
+    const isNearlyPerfect = matchPercentage >= 99.9 && matchPercentage < 100;
 
     if (absAdjustment < 0.01) {
         return (
@@ -37,7 +81,7 @@ const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: strin
         );
     }
     
-    if (isNearlyPerfect || matchPercentage > 99) {
+    if (isNearlyPerfect) {
         let message;
         if (adjustment > 0) {
              message = `Shortfall of ${currencySymbol}${formatNumber(adjustment * fxRate)} will be split.`;
@@ -118,13 +162,10 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 <label className="font-semibold text-gray-800 text-sm">Receipt Total</label>
                 <div className="flex items-center">
                     <span className="mr-2 text-gray-600 text-sm">{currencySymbol}</span>
-                    <input 
-                        type="number" 
-                        value={billTotal > 0 ? (billTotal * fxRate).toFixed(2) : ''}
-                        onFocus={handleFocus}
-                        onChange={e => dispatch({type: 'UPDATE_BILL_TOTAL', payload: Number(e.target.value) / fxRate})} 
-                        className="w-24 text-right bg-card border border-border rounded-md p-1 font-mono text-sm text-foreground"
-                        placeholder="Enter total"
+                    <BillTotalInput
+                      value={billTotal}
+                      fxRate={fxRate}
+                      onUpdate={(newTotal) => dispatch({type: 'UPDATE_BILL_TOTAL', payload: newTotal})}
                     />
                 </div>
             </div>
@@ -162,7 +203,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 <span className="font-mono text-foreground">{currencySymbol}{(calculatedTotal * fxRate).toFixed(2)}</span>
             </div>
 
-            {billTotal > 0 && (
+            {billTotal > 0 && Math.abs(adjustment) > 0.01 && (
                 <div className="flex justify-between items-center pt-1 text-sm font-semibold">
                     <h4 className="text-blue-600">Difference</h4>
                     <span className={`font-mono ${adjustment >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
