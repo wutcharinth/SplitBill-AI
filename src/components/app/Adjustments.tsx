@@ -135,7 +135,14 @@ const AdjustmentRow: React.FC<{ label: React.ReactNode; children: React.ReactNod
     </div>
 );
 
-const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate: number}> = ({ tax, dispatch, currencySymbol, fxRate}) => (
+const TaxRow: React.FC<{
+    tax: any, 
+    dispatch: any, 
+    currencySymbol: string, 
+    fxRate: number,
+    canBeRemoved?: boolean,
+    onRemove?: () => void,
+}> = ({ tax, dispatch, currencySymbol, fxRate, canBeRemoved = false, onRemove }) => (
     <div className="flex justify-between items-center py-2">
         <div className="flex items-center flex-grow mr-2">
             <input
@@ -160,6 +167,11 @@ const TaxRow: React.FC<{tax: any, dispatch: any, currencySymbol: string, fxRate:
             </div>
         </div>
         <div className="flex items-center">
+            {canBeRemoved && (
+                <button onClick={onRemove} className="text-gray-400 hover:text-red-500 mr-2" aria-label={`Remove ${tax.name}`}>
+                    <X size={16} />
+                </button>
+            )}
             <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
             <TaxInput 
                 value={tax.amount} 
@@ -245,7 +257,14 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
                 <TaxRow tax={taxes.vat} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate}/>
                 
                 {showOtherTax ? (
-                     <TaxRow tax={taxes.otherTax} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={fxRate}/>
+                     <TaxRow 
+                        tax={taxes.otherTax} 
+                        dispatch={dispatch} 
+                        currencySymbol={currencySymbol} 
+                        fxRate={fxRate}
+                        canBeRemoved={taxes.otherTax.isEnabled && taxes.otherTax.amount === 0}
+                        onRemove={() => dispatch({ type: 'UPDATE_TAX', payload: { id: 'otherTax', isEnabled: false, amount: 0 }})}
+                     />
                 ) : (
                     <button 
                         onClick={() => dispatch({ type: 'UPDATE_TAX', payload: { id: 'otherTax', isEnabled: true }})}
