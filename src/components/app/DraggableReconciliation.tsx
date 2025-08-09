@@ -5,6 +5,7 @@ import React, { useMemo, useRef } from 'react';
 import Draggable from 'react-draggable';
 import Reconciliation from './Reconciliation';
 import { GripVertical, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DraggableReconciliationProps {
   state: any;
@@ -25,6 +26,7 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
 }) => {
   const nodeRef = useRef(null);
   const { items, billTotal, splitMode } = state;
+  const isMobile = useIsMobile();
 
   const { totalShares } = useMemo(() => {
     let sharesTotal = 0;
@@ -81,7 +83,14 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
       bounds="parent"
       nodeRef={nodeRef}
     >
-        <div ref={nodeRef} className="fixed top-24 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl z-40 cursor-grab">
+        <div 
+          ref={nodeRef} 
+          className={`fixed z-40 cursor-grab ${
+            isMobile
+              ? "top-40 left-4 w-[calc(100%-2rem)]"
+              : "top-24 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl"
+          }`}
+        >
             <div className={getWrapperClass()}>
                 <div className="flex items-start justify-between">
                     <div className="flex-grow">
