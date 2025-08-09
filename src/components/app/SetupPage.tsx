@@ -10,8 +10,9 @@ import ReconciliationDetails from './ReconciliationDetails';
 import { SplitMode } from '../types';
 import DraggableReconciliation from './DraggableReconciliation';
 import { Button } from '../ui/button';
-import { Wand2, Info, CheckCircle2, AlertCircle, PartyPopper } from 'lucide-react';
+import { Wand2, Info, CheckCircle2, AlertCircle, PartyPopper, Receipt } from 'lucide-react';
 import SettleUp from './SettleUp';
+import ReceiptViewer from './ReceiptViewer';
 
 interface SetupPageProps {
   state: any;
@@ -23,10 +24,11 @@ interface SetupPageProps {
 
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   const [isGuideVisible, setIsGuideVisible] = useState(false);
+  const [isReceiptVisible, setIsReceiptVisible] = useState(false);
   
-  const { items, billTotal, splitMode, discount, taxes } = state;
+  const { items, billTotal, splitMode, discount, taxes, uploadedReceipt } = state;
 
-  const { totalShares, adjustment, absAdjustment, unassignedItemsCount, assignedSubtotal } = useMemo(() => {
+  const { totalShares, adjustment, absAdjustment, unassignedItemsCount } = useMemo(() => {
     let sharesTotal = 0;
     let unassignedCount = 0;
 
@@ -55,7 +57,6 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
       adjustment: adj, 
       absAdjustment: Math.abs(adj),
       unassignedItemsCount: unassignedCount,
-      assignedSubtotal: subtotalOfAssigned,
     };
   }, [items, discount, taxes, billTotal]);
   
@@ -112,19 +113,32 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
           onClose={() => setIsGuideVisible(false)}
           wrapperClass={balloonWrapperClass}
         />
+        
+        {uploadedReceipt && <ReceiptViewer isVisible={isReceiptVisible} onClose={() => setIsReceiptVisible(false)} receiptImage={uploadedReceipt} />}
 
-        {!isGuideVisible && (
-          <div className="fixed bottom-4 right-4 z-50">
-            <Button
-              onClick={() => setIsGuideVisible(true)}
-              className={`rounded-full shadow-lg ${buttonClass}`}
-              size="lg"
-            >
-              <Icon className="mr-2 h-5 w-5" />
-              {text}
-            </Button>
-          </div>
-        )}
+
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-3">
+            {!isGuideVisible && (
+              <Button
+                onClick={() => setIsGuideVisible(true)}
+                className={`rounded-full shadow-lg ${buttonClass}`}
+                size="lg"
+              >
+                <Icon className="mr-2 h-5 w-5" />
+                {text}
+              </Button>
+            )}
+             {uploadedReceipt && !isReceiptVisible && (
+                <Button
+                    onClick={() => setIsReceiptVisible(true)}
+                    className="rounded-full shadow-lg bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    size="lg"
+                >
+                    <Receipt className="mr-2 h-5 w-5" />
+                    View Receipt
+                </Button>
+            )}
+        </div>
 
 
       <div className="space-y-3 mt-4">
@@ -183,16 +197,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
            <SettleUp state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
         </div>
         
-        {state.uploadedReceipt && (
-          <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-            <h2 className="text-base font-bold mb-4 text-primary font-headline">Original Receipt</h2>
-            <img 
-              src={`data:image/png;base64,${state.uploadedReceipt}`} 
-              alt="Uploaded Receipt"
-              className="w-full rounded-lg" 
-            />
-          </div>
-        )}
+        {/* The stationary receipt is hidden to avoid redundancy with the floating button */}
 
       </div>
     </div>

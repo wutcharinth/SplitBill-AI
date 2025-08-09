@@ -3,6 +3,7 @@
 
 import React, { useMemo } from 'react';
 import { Payment } from '@/lib/types';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 const DetailRow: React.FC<{ label: React.ReactNode; children: React.ReactNode; className?: string }> = ({ label, children, className }) => (
     <div className={`flex justify-between items-center py-1.5 ${className}`}>
@@ -17,10 +18,56 @@ const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     }
 };
 
+const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: string, formatNumber: (num: number) => string, fxRate: number }> = ({ adjustment, currencySymbol, formatNumber, fxRate }) => {
+    const absAdjustment = Math.abs(adjustment);
+
+    if (absAdjustment < 0.01) {
+        return (
+            <div className="mt-3 p-2 text-sm flex items-center gap-2 rounded-lg bg-green-500/10 text-green-700 border border-green-500/20">
+                <CheckCircle2 size={16} />
+                <p className="font-medium">Totals match perfectly.</p>
+            </div>
+        );
+    }
+    
+    if (absAdjustment < 0.1) {
+        return (
+            <div className="mt-3 p-2 text-sm flex items-center gap-2 rounded-lg bg-yellow-500/10 text-yellow-800 border border-yellow-500/20">
+                <AlertCircle size={16} />
+                <p className="font-medium">
+                    Tiny difference of {currencySymbol}{formatNumber(absAdjustment * fxRate)} will be auto-adjusted.
+                </p>
+            </div>
+        )
+    }
+
+    if (adjustment > 0) { // Shortfall
+        return (
+            <div className="mt-3 p-2 text-sm flex items-center gap-2 rounded-lg bg-yellow-500/10 text-yellow-800 border border-yellow-500/20">
+                <AlertCircle size={16} />
+                <p className="font-medium">
+                    Shortfall of {currencySymbol}{formatNumber(adjustment * fxRate)} will be split.
+                </p>
+            </div>
+        );
+    }
+
+    // Surplus
+    return (
+        <div className="mt-3 p-2 text-sm flex items-center gap-2 rounded-lg bg-blue-500/10 text-blue-800 border border-blue-500/20">
+            <AlertCircle size={16} />
+            <p className="font-medium">
+                Surplus of {currencySymbol}{formatNumber(absAdjustment * fxRate)} will be distributed.
+            </p>
+        </div>
+    );
+};
+
+
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   const { items, billTotal, discount, taxes, splitMode, tip, payments } = state;
 
-  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTip, totalPayment } = useMemo(() => {
+  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotalWithTip } = useMemo(() => {
     const sub = items.reduce((sum: number, item: any) => sum + item.price, 0);
     
     let baseForCharges = sub;
@@ -35,7 +82,6 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
     const scAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
     const vAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
     const otAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
-    const paymentAmount = payments.reduce((sum: number, payment: Payment) => sum + payment.amount, 0);
 
     const calcTotal = subAfterDiscount + scAmount + vAmount + otAmount;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
@@ -50,9 +96,8 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
         calculatedTotal: calcTotal,
         adjustment: adj,
         grandTotalWithTip: gTotalWithTip,
-        totalPayment: paymentAmount
     };
-}, [items, billTotal, discount, taxes, splitMode, tip, payments]);
+}, [items, billTotal, discount, taxes, splitMode, tip]);
 
 
   return (
@@ -125,6 +170,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTip * fxRate).toFixed(2)}</span>
             </div>
         </div>
+         <ReconciliationStatus adjustment={adjustment} currencySymbol={currencySymbol} formatNumber={formatNumber} fxRate={fxRate} />
     </div>
   );
 };
