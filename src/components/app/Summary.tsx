@@ -335,8 +335,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const labelText = isOwed ? 'Gets' : 'Pays';
 
         return (
-            <div className={`text-right font-bold text-sm whitespace-nowrap ${textColor}`}>
-                 <div className="flex flex-col">
+            <div className={`text-right font-bold text-sm ${textColor}`}>
+                 <div className="flex flex-col items-end">
                      <span>
                          {labelText}: {currencySymbol}{formatNumber(displayValue)}
                      </span>
@@ -428,9 +428,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             return (
                                 <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                                     <div className="p-3">
-                                        <div className="flex justify-between items-start gap-2">
-                                            <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
-                                            <div className="whitespace-nowrap"><FinalAmountDisplay person={person} /></div>
+                                        <div className="flex justify-between items-start gap-4">
+                                            <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm w-full" disabled={splitMode === 'evenly'}/>
+                                            <div className="flex-shrink-0 whitespace-nowrap">
+                                                <FinalAmountDisplay person={person} />
+                                            </div>
                                         </div>
                                         {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
                                             <ul className="list-disc list-inside mt-1 text-xs text-muted-foreground">
@@ -656,3 +658,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
