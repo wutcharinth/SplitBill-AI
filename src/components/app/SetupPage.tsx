@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import SplitModeToggle from './SplitModeToggle';
 import ManagePeople from './ManagePeople';
 import ItemAssignment from './ItemAssignment';
@@ -23,6 +23,58 @@ interface SetupPageProps {
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   const [isGuideVisible, setIsGuideVisible] = useState(false);
   
+  const { items, billTotal, splitMode, discount, taxes } = state;
+
+  const { totalShares, adjustment, absAdjustment } = useMemo(() => {
+    let sharesTotal = 0;
+    items.forEach((item: any) => {
+        sharesTotal += item.shares.reduce((a: number, b: number) => a + b, 0);
+    });
+
+    const assignedSubtotal = items
+        .filter((item: any) => item.shares.reduce((a: number, b: number) => a + b, 0) > 0)
+        .reduce((sum: number, item: any) => sum + item.price, 0);
+
+    const discountAmount = discount.type === 'percentage' ? assignedSubtotal * (discount.value / 100) : discount.value;
+    const subtotalAfterDiscount = assignedSubtotal - discountAmount;
+    const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
+    const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
+    const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
+    const calcTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
+    const adj = billTotal > 0 ? billTotal - calcTotal : 0;
+    
+    return { 
+      totalShares: sharesTotal, 
+      adjustment: adj, 
+      absAdjustment: Math.abs(adj) 
+    };
+  }, [items, discount, taxes, billTotal]);
+
+  const getDynamicClasses = () => {
+    const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
+    const isReconciled = absAdjustment < 0.01;
+
+    let bgClass = "bg-primary hover:bg-primary/90"; // For Button
+    let balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-primary border-primary-foreground/50";
+
+    if (totalShares === 0 && splitMode === 'item') {
+        // Initial state, use default colors
+    } else if (isReconciled || isNearlyReconciled) {
+        bgClass = "bg-green-600 hover:bg-green-600/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-green-600 border-green-300";
+    } else if (adjustment > 0) { // Shortfall
+        bgClass = "bg-yellow-600 hover:bg-yellow-600/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-yellow-600 border-yellow-300";
+    } else { // Surplus
+        bgClass = "bg-orange-500 hover:bg-orange-500/90";
+        balloonWrapperClass = "text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 bg-orange-500 border-orange-300";
+    }
+    
+    return { buttonClass: bgClass, balloonWrapperClass };
+  };
+
+  const { buttonClass, balloonWrapperClass } = getDynamicClasses();
+  
   return (
     <div>
        <DraggableReconciliation 
@@ -32,13 +84,14 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
           formatNumber={formatNumber}
           isVisible={isGuideVisible}
           onClose={() => setIsGuideVisible(false)}
+          wrapperClass={balloonWrapperClass}
         />
 
         {!isGuideVisible && (
           <div className="fixed bottom-4 right-4 z-50">
             <Button
               onClick={() => setIsGuideVisible(true)}
-              className="rounded-full shadow-lg"
+              className={`rounded-full shadow-lg ${buttonClass}`}
               size="lg"
             >
               <Wand2 className="mr-2 h-5 w-5" />

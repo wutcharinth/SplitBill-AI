@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import Draggable from 'react-draggable';
 import Reconciliation from './Reconciliation';
 import { GripVertical, X } from 'lucide-react';
@@ -14,6 +14,7 @@ interface DraggableReconciliationProps {
   formatNumber: (num: number) => string;
   isVisible: boolean;
   onClose: () => void;
+  wrapperClass: string;
 }
 
 const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
@@ -23,59 +24,11 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
   formatNumber,
   isVisible,
   onClose,
+  wrapperClass,
 }) => {
   const nodeRef = useRef(null);
-  const { items, billTotal, splitMode } = state;
   const isMobile = useIsMobile();
-
-  const { totalShares } = useMemo(() => {
-    let sharesTotal = 0;
-    items.forEach((item: any) => {
-        sharesTotal += item.shares.reduce((a: number, b: number) => a + b, 0);
-    });
-    return { totalShares: sharesTotal };
-  }, [items]);
-
-  const { adjustment } = useMemo(() => {
-    const assignedSubtotal = items
-        .filter((item: any) => item.shares.reduce((a: number, b: number) => a + b, 0) > 0)
-        .reduce((sum: number, item: any) => sum + item.price, 0);
-
-    const discountAmount = state.discount.type === 'percentage' ? assignedSubtotal * (state.discount.value / 100) : state.discount.value;
-    const subtotalAfterDiscount = assignedSubtotal - discountAmount;
-    const serviceChargeAmount = state.taxes.serviceCharge.isEnabled ? state.taxes.serviceCharge.amount : 0;
-    const vatAmount = state.taxes.vat.isEnabled ? state.taxes.vat.amount : 0;
-    const otherTaxAmount = state.taxes.otherTax.isEnabled ? state.taxes.otherTax.amount : 0;
-    const calcTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
-    const adj = billTotal > 0 ? billTotal - calcTotal : 0;
-    return { adjustment: adj };
-  }, [items, state.discount, state.taxes, billTotal]);
-
-  const absAdjustment = Math.abs(adjustment);
-
-  const getWrapperClass = () => {
-    const isNearlyReconciled = absAdjustment > 0 && absAdjustment < 0.1;
-    const isReconciled = absAdjustment < 0.01;
-
-    let bgClass = "bg-primary";
-    let borderClass = "border-primary-foreground/50";
-
-    if (totalShares === 0 && splitMode === 'item') {
-        // Initial state, no specific color feedback needed yet
-    } else if (isReconciled || isNearlyReconciled) {
-        bgClass = "bg-green-600";
-        borderClass = "border-green-300";
-    } else if (adjustment > 0) { // Shortfall
-        bgClass = "bg-yellow-600";
-        borderClass = "border-yellow-300";
-    } else { // Surplus
-        bgClass = "bg-orange-500";
-        borderClass = "border-orange-300";
-    }
-    
-    return `text-primary-foreground rounded-xl shadow-lg p-3 sm:p-4 border-2 ${bgClass} ${borderClass}`;
-  };
-
+  
   if (!isVisible) {
     return null;
   }
@@ -86,6 +39,7 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
       handle=".drag-handle"
       bounds="parent"
       nodeRef={nodeRef}
+      defaultPosition={{x: 0, y: 0}}
     >
         <div 
           ref={nodeRef} 
@@ -95,7 +49,7 @@ const DraggableReconciliation: React.FC<DraggableReconciliationProps> = ({
               : "top-24 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl"
           }`}
         >
-            <div className={getWrapperClass()}>
+            <div className={wrapperClass}>
                 <div className="flex items-start justify-between">
                     <div className="flex-grow">
                         <Reconciliation 
