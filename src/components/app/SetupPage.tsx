@@ -131,7 +131,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
              {uploadedReceipt && !isReceiptVisible && (
                 <Button
                     onClick={() => setIsReceiptVisible(true)}
-                    className="rounded-full shadow-lg bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    className="rounded-full shadow-lg bg-accent text-accent-foreground hover:bg-accent/90"
                     size="lg"
                 >
                     <Receipt className="mr-2 h-5 w-5" />
