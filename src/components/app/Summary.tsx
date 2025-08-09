@@ -101,6 +101,10 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
+                // Ensure the node is an element and has getAttribute method
+                if (typeof node.getAttribute !== 'function') {
+                    return true;
+                }
                 const isToggleButton = node.getAttribute('data-summary-toggle') === 'true';
                 return !isToggleButton && node.tagName?.toLowerCase() !== 'button';
             },
@@ -391,7 +395,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
-    const hasAnyTranslatedItems = items.some(item => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
+    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
 
 
     return (
