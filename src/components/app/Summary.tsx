@@ -334,7 +334,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const labelText = isOwed ? 'Gets' : 'Pays';
 
         return (
-            <div className="text-right ml-2">
+            <div className="text-right ml-2 flex-shrink-0">
                 <span className={`font-bold text-sm whitespace-nowrap ${textColor}`}>
                     {labelText}: {currencySymbol}{formatNumber(displayValue * fxRate)}
                 </span>
@@ -429,7 +429,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                 <div key={person.id} className="bg-card rounded-lg shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${person.color || '#ccc'}` }}>
                                     <div className="p-3">
                                         <div className="flex justify-between items-start gap-2">
-                                            <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
+                                            <div className="flex-grow">
+                                                <input type="text" value={person.name} onChange={e => dispatch({type: 'UPDATE_PERSON_NAME', payload: { index, name: e.target.value}})} className="name-input text-foreground font-bold text-sm" disabled={splitMode === 'evenly'}/>
+                                            </div>
                                             <FinalAmountDisplay person={person} />
                                         </div>
                                         {splitMode === 'item' && summaryViewMode === 'compact' && person.items.length > 0 && (
