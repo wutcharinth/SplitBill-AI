@@ -129,7 +129,7 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
             )}
 
             <div className="flex justify-between items-center pt-2 mt-2 border-t font-bold text-base">
-                <h4 className="text-gray-900">Grand Total</h4>
+                <h4 className="text-gray-900">Amount to Settle</h4>
                 <span className="font-mono text-gray-900">{currencySymbol}{(grandTotalWithTipAndPayment * fxRate).toFixed(2)}</span>
             </div>
         </div>
