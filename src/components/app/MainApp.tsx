@@ -278,8 +278,8 @@ const reducer = (state: AppState, action: Action): AppState => {
                 return p;
             });
         } else {
-            // Add new payment for the person
-            newPayments = [...state.payments, { id: paidBy, paidBy, amount: amount ?? 0 }];
+            // Add new payment for the person, generating a truly unique ID
+            newPayments = [...state.payments, { id: `payment-${paidBy}-${Date.now()}`, paidBy, amount: amount ?? 0 }];
         }
   
         return { ...state, payments: newPayments };
