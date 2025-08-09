@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2, Mail, Loader2 } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail, Loader2, Languages } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti'
@@ -129,6 +129,7 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
 
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
+    const [showTranslatedNames, setShowTranslatedNames] = useState(true);
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
@@ -235,7 +236,16 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         if (shareCount > 0) {
                             const personShareValue = pricePerShare * shareCount;
                             personSubtotals[personIndex].subtotal += personShareValue;
-                            personSubtotals[personIndex].items.push({ name: item.name, translatedName: item.translatedName, value: personShareValue, count: shareCount });
+                            
+                            const mainName = showTranslatedNames && item.translatedName ? item.translatedName : item.name;
+                            const subName = showTranslatedNames && item.translatedName ? item.name : null;
+
+                            personSubtotals[personIndex].items.push({ 
+                                name: mainName, 
+                                originalName: subName,
+                                value: personShareValue, 
+                                count: shareCount 
+                            });
                         }
                     });
                 }
@@ -306,7 +316,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             }
         }
         return perPersonData;
-    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly, payments]);
+    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly, payments, showTranslatedNames]);
     
     const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.finalTotal, 0), [perPersonResults]);
 
@@ -380,6 +390,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
+    const hasAnyTranslatedItems = items.some(item => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
+
 
     return (
         <div className="border-t pt-4 border-border">
@@ -419,12 +431,20 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
                     <div className="flex justify-between items-center mb-3">
                         <h3 className="text-sm font-bold text-foreground font-headline">Split Summary</h3>
-                        {splitMode === 'item' && (
-                            <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
-                                <button onClick={() => setSummaryViewMode('detailed')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</button>
-                                <button onClick={() => setSummaryViewMode('compact')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</button>
-                            </div>
-                        )}
+                        <div className="flex items-center space-x-2">
+                             {hasAnyTranslatedItems && splitMode === 'item' && (
+                                <button onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md">
+                                    <Languages size={14} />
+                                    <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
+                                </button>
+                            )}
+                            {splitMode === 'item' && (
+                                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
+                                    <button onClick={() => setSummaryViewMode('detailed')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</button>
+                                    <button onClick={() => setSummaryViewMode('compact')} className={`py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     
                     <div className="space-y-3">
@@ -456,12 +476,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     {splitMode === 'item' && summaryViewMode === 'detailed' && breakdown && (
                                         <div className="text-xs border-t border-border space-y-1 text-foreground bg-muted/50 p-3">
                                             {person.items.map((item:any, i:number) => {
-                                                const isTranslated = item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase();
                                                 return (
                                                     <div key={i} className="flex justify-between" title={item.name}>
                                                         <span className="truncate pr-2">
                                                             {item.name} {item.count > 1 ? `(x${item.count})` : ''}
-                                                            {isTranslated && <span className="text-accent ml-1">({item.translatedName})</span>}
+                                                            {item.originalName && <span className="text-accent ml-1">({item.originalName})</span>}
                                                         </span>
                                                         <span><DualCurrencyDisplay baseValue={item.value * fxRate} /></span>
                                                     </div>
@@ -474,7 +493,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                     {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat * fxRate} sign="+"/></span></div>}
                                                     {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax * fxRate} sign="+"/></span></div>}
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''}/></span></div>}
-                                                    <div className="flex justify-between font-semibold border-t mt-1 pt-1"><span>Bill Share:</span><span><DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold"/></span></div>
+                                                    <div className="flex justify-between font-semibold border-t mt-1 pt-1"><span>Bill Share:</span><span><DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold"/></span></div>>
                                                     {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600"/></span></div>}
                                                     <div className="flex justify-between font-bold border-t mt-1 pt-1"><span>Total Share:</span><span><DualCurrencyDisplay baseValue={person.totalShare * fxRate} className="font-bold"/></span></div>
                                                     {breakdown.payment > 0 && <div className="flex justify-between text-red-600"><span>Payment:</span><span><DualCurrencyDisplay baseValue={breakdown.payment * fxRate} sign="-" className="text-red-600"/></span></div>}
@@ -487,7 +506,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         })}
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-border">
+                    <div className="mt-4 pt-4 border-t border-border bg-card rounded-lg shadow-sm p-3">
                         <h3 className="text-sm font-bold text-foreground mb-2 font-headline">Reconciliation</h3>
                         <div className="space-y-1 text-xs bg-muted p-3 rounded-lg text-foreground border border-border">
                              {splitMode === 'item' ? (
@@ -557,34 +576,34 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                 </div>
                             )}
                         </div>
-                    </div>
 
-                    <div className="mt-4 pt-3 border-t-2 border-border flex justify-between font-bold text-base text-foreground">
-                        <span>Amount to Settle:</span>
-                        <div className="text-right">
-                            <span>{currencySymbol}{formatNumber(calculations.amountToSettle * fxRate)}</span>
-                            {baseCurrency !== displayCurrency && (
-                                <div className="text-xs font-normal text-muted-foreground">
-                                    ({baseCurrencySymbol}{formatNumber(calculations.amountToSettle)})
+                        <div className="mt-2 text-green-600 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
+                            <div className="flex justify-between items-center font-bold text-xs">
+                                 <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> Total of Individual Balances:</span>
+                                 <div className="text-right">
+                                     <span>{currencySymbol}{formatNumber(totalFromIndividuals * fxRate)}</span>
+                                     {baseCurrency !== displayCurrency && (
+                                        <div className="text-xs font-normal text-green-700/80">
+                                            ({baseCurrencySymbol}{formatNumber(totalFromIndividuals)})
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="mt-2 text-green-600 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
-                        <div className="flex justify-between items-center font-bold text-xs">
-                             <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> Total of Individual Balances:</span>
-                             <div className="text-right">
-                                 <span>{currencySymbol}{formatNumber(totalFromIndividuals * fxRate)}</span>
-                                 {baseCurrency !== displayCurrency && (
-                                    <div className="text-xs font-normal text-green-700/80">
-                                        ({baseCurrencySymbol}{formatNumber(totalFromIndividuals)})
+                        <div className="mt-2 pt-3 border-t-2 border-border flex justify-between font-bold text-base text-foreground">
+                            <span>Amount to Settle:</span>
+                            <div className="text-right">
+                                <span>{currencySymbol}{formatNumber(calculations.amountToSettle * fxRate)}</span>
+                                {baseCurrency !== displayCurrency && (
+                                    <div className="text-xs font-normal text-muted-foreground">
+                                        ({baseCurrencySymbol}{formatNumber(calculations.amountToSettle)})
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="mt-4 pt-4 border-t border-dashed border-border/80">
                          <div className="flex items-center justify-between">
                             <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2">
@@ -676,3 +695,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
