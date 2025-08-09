@@ -23,7 +23,14 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: 'https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png',
+    shortcut: 'https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png',
     apple: 'https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png',
+    other: [
+      {
+        rel: 'icon',
+        url: 'https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png',
+      },
+    ],
   }
 };
 
