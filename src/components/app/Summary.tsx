@@ -65,15 +65,16 @@ const fireConfetti = () => {
     }
 };
 
-const waitForImagesToLoad = (element: HTMLElement): Promise<void[]> => {
+const waitForImagesToLoad = (element: HTMLElement): Promise<any[]> => {
     const images = Array.from(element.getElementsByTagName('img'));
     const promises = images.map(img => {
-        return new Promise<void>((resolve) => {
-             if (img.complete && img.naturalHeight !== 0) {
-                resolve();
+        return new Promise((resolve, reject) => {
+            if (img.complete && img.naturalHeight !== 0) {
+                // For already loaded images, still wait for decode to be safe.
+                img.decode().then(resolve).catch(resolve);
             } else {
-                img.onload = () => resolve();
-                img.onerror = () => resolve(); // Resolve even on error to not block generation
+                img.onload = () => img.decode().then(resolve).catch(resolve);
+                img.onerror = reject; // It's better to reject on error now
             }
         });
     });
@@ -92,7 +93,8 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
     try {
         await waitForImagesToLoad(element);
         
-        await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 100)));
+        // Add a small, controlled delay to allow the browser to paint.
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const dataUrl = await toPng(element, {
             quality: 0.95,
