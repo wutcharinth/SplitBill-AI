@@ -125,6 +125,10 @@
     -moz-appearance: textfield;
 }
 
+.capturing input::placeholder {
+  color: transparent !important;
+}
+
 /* Hide spinners on number inputs for cleaner capture */
 .capturing input[type=number]::-webkit-inner-spin-button,
 .capturing input[type=number]::-webkit-outer-spin-button {
