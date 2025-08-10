@@ -1,8 +1,8 @@
 
 import App from '@/components/app/App';
-import { modelName } from '@/ai/genkit';
 
 export default function Home() {
+  const modelName = 'googleai/gemini-1.5-pro-latest';
   const formattedModelName = modelName
     .replace('googleai/gemini-', 'Gemini ')
     .replace('-latest', '')

@@ -1,7 +1,9 @@
+'use server';
+
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-export const modelName = 'googleai/gemini-1.5-pro-latest';
+const modelName = 'googleai/gemini-1.5-pro-latest';
 
 export const ai = genkit({
   plugins: [googleAI()],
