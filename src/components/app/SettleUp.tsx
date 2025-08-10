@@ -112,21 +112,22 @@ const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySy
             {settleMode === 'single' ? (
                  <div className="pt-2">
                     <p className="text-sm font-medium text-center text-foreground mb-3">Who paid the bill?</p>
-                    <div className="flex flex-wrap justify-center gap-2">
+                    <div className="flex flex-wrap justify-center items-center gap-3">
                         {people.map((person: Person) => {
                             const isSelected = singlePayerId === person.id;
                             return (
                                 <button
                                     key={person.id}
                                     onClick={() => handleSinglePayerSelect(person.id)}
-                                    className={`px-4 py-2 rounded-full border-2 text-sm font-semibold flex items-center gap-2 transition-all duration-200 ${
+                                    className={`h-16 w-16 rounded-full flex items-center justify-center text-white font-bold text-lg transition-all transform duration-200 ${
                                         isSelected
-                                            ? 'border-primary bg-primary/10 shadow-md'
-                                            : 'border-border bg-card hover:border-primary/50'
+                                            ? 'ring-4 ring-offset-2 ring-primary scale-110 shadow-lg'
+                                            : 'hover:scale-105 shadow-md'
                                     }`}
+                                    style={{ backgroundColor: person.color }}
+                                    title={person.name}
                                 >
-                                    <div className="h-4 w-4 rounded-full" style={{ backgroundColor: person.color }}></div>
-                                    <span className="text-foreground">{person.name}</span>
+                                    {person.name.substring(0, 2).toUpperCase()}
                                 </button>
                             );
                         })}
