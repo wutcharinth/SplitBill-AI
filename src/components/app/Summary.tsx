@@ -549,9 +549,25 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                     {breakdown.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span><DualCurrencyDisplay baseValue={breakdown.discount * fxRate} sign="-" className="text-red-600" {...commonCurrencyProps}/></span></div>}
                                                     {breakdown.fees > 0 && <div className="flex justify-between"><span>Fees & Charges:</span><span><DualCurrencyDisplay baseValue={breakdown.fees * fxRate} sign="+" {...commonCurrencyProps}/></span></div>}
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''} {...commonCurrencyProps}/></span></div>}
-                                                    <div className="flex justify-between font-semibold border-t mt-1 pt-1"><span>Bill Share:</span><DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold" {...commonCurrencyProps}/></div>
-                                                    {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600" {...commonCurrencyProps}/></span></div>}
-                                                    <div className="flex justify-between font-bold border-t mt-1 pt-1"><span>Total Share:</span><DualCurrencyDisplay baseValue={person.totalShare * fxRate} className="font-bold" {...commonCurrencyProps}/></div>
+                                                    
+                                                    {breakdown.tip > 0 && (
+                                                        <div className="flex justify-between font-semibold border-t mt-1 pt-1">
+                                                            <span>Bill Share:</span>
+                                                            <DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold" {...commonCurrencyProps}/>
+                                                        </div>
+                                                    )}
+
+                                                    {breakdown.tip > 0 && (
+                                                      <div className="flex justify-between text-blue-600">
+                                                          <span>Tip:</span>
+                                                          <span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600" {...commonCurrencyProps}/></span>
+                                                      </div>
+                                                    )}
+
+                                                    <div className="flex justify-between font-bold border-t mt-1 pt-1">
+                                                        <span>Total Share:</span>
+                                                        <DualCurrencyDisplay baseValue={person.totalShare * fxRate} className="font-bold" {...commonCurrencyProps}/>
+                                                    </div>
                                                     {breakdown.payment > 0 && <div className="flex justify-between text-red-600"><span>Payment:</span><span><DualCurrencyDisplay baseValue={breakdown.payment * fxRate} sign="-" className="text-red-600" {...commonCurrencyProps}/></span></div>}
                                                 </div>
                                             )}
@@ -649,8 +665,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-dashed border-border/80">
-                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2" data-summary-toggle="true">
+                    <div className="mt-4 pt-4 border-t border-dashed border-border/80" data-summary-toggle="true">
+                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2" >
                             <input
                             type="checkbox"
                             checked={includeReceiptInSummary}
@@ -747,3 +763,5 @@ Summary.Toggles = SummaryToggles;
 
 
 export default Summary;
+
+    
