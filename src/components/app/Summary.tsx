@@ -230,8 +230,6 @@ const TotalShareDisplay: React.FC<{
 }
 
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-    const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
-    const [showTranslatedNames, setShowTranslatedNames] = useState(true);
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
@@ -240,7 +238,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         items, people, discount, taxes, tip, tipSplitMode, billTotal, payments,
         splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
         restaurantName, billDate, qrCodeImage, notes,
-        includeReceiptInSummary, uploadedReceipt
+        includeReceiptInSummary, uploadedReceipt,
+        ui: { summaryViewMode, showTranslatedNames }
     } = state;
 
     const handleShareSummary = async () => {
@@ -733,24 +732,24 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     );
 };
 
-Summary.Toggles = function SummaryToggles({ state, dispatch, setSummaryViewMode, setShowTranslatedNames }) {
-    const { items, splitMode } = state;
-    const { summaryViewMode, showTranslatedNames } = state.ui;
+Summary.Toggles = function SummaryToggles({ state, dispatch }) {
+    const { items, splitMode, ui } = state;
+    const { summaryViewMode, showTranslatedNames } = ui;
 
     const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
 
     return (
-        <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
+        <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3" data-summary-toggle="true">
             {splitMode === 'item' && (
-                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border" data-summary-toggle="true">
-                    <div onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
-                    <div onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
+                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
+                    <div onClick={() => dispatch({type: 'SET_UI_STATE', payload: {summaryViewMode: 'detailed'}})} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
+                    <div onClick={() => dispatch({type: 'SET_UI_STATE', payload: {summaryViewMode: 'compact'}})} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
                 </div>
             )}
             {hasAnyTranslatedItems && splitMode === 'item' && (
-                <div onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer" data-summary-toggle="true">
+                <div onClick={() => dispatch({type: 'SET_UI_STATE', payload: {showTranslatedNames: !showTranslatedNames}})} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer">
                     <Languages size={14} />
-                    <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
+                    <span>{showTranslatedNames ? 'Translated' : 'Original'}</span>
                 </div>
             )}
         </div>
