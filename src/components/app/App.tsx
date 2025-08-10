@@ -41,6 +41,9 @@ function AppContent({ modelName }: { modelName: string }) {
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
 
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     useEffect(() => {
         try {
@@ -182,26 +185,39 @@ function AppContent({ modelName }: { modelName: string }) {
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
                              <div className="space-y-4">
-                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
-                                    <ActionButton
-                                        as="div"
-                                        disabled={!consentGiven}
-                                        icon={<Camera size={20} />}
-                                        text="Take a Picture"
-                                    />
-                                </label>
-                                <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
+                                <ActionButton
+                                    onClick={() => cameraInputRef.current?.click()}
+                                    disabled={!consentGiven}
+                                    icon={<Camera size={20} />}
+                                    text="Take a Picture"
+                                />
+                                <input
+                                    ref={cameraInputRef}
+                                    id="camera-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    className="hidden"
+                                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                    disabled={!consentGiven}
+                                />
                                 
-                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
-                                    <ActionButton
-                                        as="div"
-                                        disabled={!consentGiven}
-                                        icon={<Upload size={20} />}
-                                        text="Upload from Library"
-                                        type="secondary"
-                                    />
-                                </label>
-                                <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
+                                <ActionButton
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={!consentGiven}
+                                    icon={<Upload size={20} />}
+                                    text="Upload from Library"
+                                    type="secondary"
+                                />
+                                <input
+                                    ref={fileInputRef}
+                                    id="file-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                                    disabled={!consentGiven}
+                                />
 
                                 <ActionButton
                                     onClick={handleStartManual}

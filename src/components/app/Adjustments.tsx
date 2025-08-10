@@ -119,15 +119,15 @@ const FeeRow: React.FC<{
             </div>
         </div>
         <div className="flex items-center">
-            <button onClick={() => dispatch({ type: 'REMOVE_FEE', payload: { id: fee.id } })} className="text-gray-400 hover:text-red-500 mr-2" aria-label={`Remove ${fee.name}`}>
-                <Trash2 size={16} />
-            </button>
             <span className="mr-2 text-gray-500 text-xs">{currencySymbol}</span>
             <AmountInput
                 value={fee.amount}
                 fxRate={fxRate}
                 onUpdate={(newAmount) => dispatch({ type: 'UPDATE_FEE', payload: { id: fee.id, data: { amount: newAmount } }})}
             />
+            <button onClick={() => dispatch({ type: 'REMOVE_FEE', payload: { id: fee.id } })} className="text-gray-400 hover:text-red-500 ml-2" aria-label={`Remove ${fee.name}`}>
+                <Trash2 size={16} />
+            </button>
         </div>
     </div>
 );
