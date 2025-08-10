@@ -276,7 +276,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const [isDownloading, setIsDownloading] = useState(false);
     
     const {
-        items, people, discount, taxes, tip, tipSplitMode, billTotal, payments,
+        items, people, discounts, fees, tip, tipSplitMode, billTotal, payments,
         splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
         restaurantName, billDate, qrCodeImage, notes,
         includeReceiptInSummary, uploadedReceipt,
@@ -333,39 +333,34 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             itemDiscountsTotal = 0;
         }
 
-        const baseForCharges = subtotal - itemDiscountsTotal;
-        const globalDiscountAmount = discount.type === 'percentage' ? baseForCharges * (discount.value / 100) : discount.value;
-        const subtotalAfterDiscount = baseForCharges - globalDiscountAmount;
+        const totalFeesAmount = fees.filter((f:any) => f.isEnabled).reduce((sum:number, f:any) => sum + f.amount, 0);
+        const totalDiscountsAmount = discounts.reduce((sum:number, d:any) => sum + d.amount, 0);
 
-        const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
-        const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
-        const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
+        const subtotalAfterDiscount = subtotal - totalDiscountsAmount;
+
         const totalPayment = payments.reduce((sum: number, payment: Payment) => sum + payment.amount, 0);
 
-        const calculatedTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
+        const calculatedTotal = subtotalAfterDiscount + totalFeesAmount;
         const adjustment = billTotal > 0 ? billTotal - calculatedTotal : 0;
         const grandTotal = calculatedTotal + adjustment;
         const amountToSettle = grandTotal + tip - totalPayment;
         
         return { 
             subtotal, 
-            serviceChargeAmount, 
-            vatAmount, 
-            otherTaxAmount, 
+            totalFeesAmount,
             adjustment, 
             grandTotal, 
             amountToSettle,
             itemDiscountsTotal, 
-            globalDiscountAmount, 
+            totalDiscountsAmount, 
             calculatedTotal, 
             totalPayment 
         };
-    }, [items, discount, taxes, tip, billTotal, splitMode, payments]);
+    }, [items, discounts, fees, tip, billTotal, splitMode, payments]);
     
     const perPersonResults = useMemo(() => {
-        const { globalDiscountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, adjustment } = calculations;
+        const { totalDiscountsAmount, totalFeesAmount, adjustment, subtotal: assignedSubtotal } = calculations;
 
-        const totalPayableSubtotal = calculations.subtotal;
         let perPersonData: any[] = [];
 
         if (splitMode === 'item') {
@@ -392,28 +387,26 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     });
                 }
             });
-            
-            const discountSharerIds = discount.shares.length > 0 ? discount.shares : people.map((p: any) => p.id);
-            const subtotalOfDiscountSharers = people.reduce((acc: number, person: any, index: number) => {
-                if (discountSharerIds.includes(person.id)) {
-                    return acc + personSubtotals[index].subtotal;
-                }
-                return acc;
-            }, 0);
+
+            const totalItemShares = personSubtotals.reduce((sum, p) => sum + p.subtotal, 0);
 
             perPersonData = people.map((person: any, index: number) => {
                 const personSub = personSubtotals[index].subtotal;
-                const proportionOfBill = totalPayableSubtotal > 0 ? personSub / totalPayableSubtotal : (1 / people.length);
-                
-                let personGlobalDiscount = 0;
-                if (discountSharerIds.includes(person.id) && subtotalOfDiscountSharers > 0) {
-                    const proportionOfDiscountPool = personSub / subtotalOfDiscountSharers;
-                    personGlobalDiscount = globalDiscountAmount * proportionOfDiscountPool;
-                }
+                const proportionOfBill = totalItemShares > 0 ? personSub / totalItemShares : (1 / people.length);
 
-                const personServiceCharge = proportionOfBill * serviceChargeAmount;
-                const personVat = proportionOfBill * vatAmount;
-                const personOtherTax = proportionOfBill * otherTaxAmount;
+                let personTotalDiscount = 0;
+                discounts.forEach((discount: any) => {
+                    const totalShares = discount.shares.reduce((a: number, b: number) => a + b, 0);
+                    if (totalShares > 0) {
+                        const pricePerShare = discount.amount / totalShares;
+                        personTotalDiscount += pricePerShare * discount.shares[index];
+                    } else {
+                        // If no one is assigned, split it based on their bill proportion
+                        personTotalDiscount += discount.amount * proportionOfBill;
+                    }
+                });
+
+                const personFees = proportionOfBill * totalFeesAmount;
                 const personAdjustment = proportionOfBill * adjustment;
                 const personTip = tipSplitMode === 'equally' ? tip / people.length : proportionOfBill * tip;
                 
@@ -421,7 +414,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     return payment.paidBy === person.id ? sum + payment.amount : sum;
                 }, 0);
 
-                const totalShare = personSub - personGlobalDiscount + personServiceCharge + personVat + personOtherTax + personAdjustment + personTip;
+                const totalShare = personSub - personTotalDiscount + personFees + personAdjustment + personTip;
                 const finalTotal = totalShare - personPayment;
 
                 return {
@@ -431,10 +424,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     items: personSubtotals[index].items,
                     breakdown: {
                         subtotal: personSub,
-                        discount: personGlobalDiscount,
-                        serviceCharge: personServiceCharge,
-                        vat: personVat,
-                        otherTax: personOtherTax,
+                        discount: personTotalDiscount,
+                        fees: personFees,
                         adjustment: personAdjustment,
                         tip: personTip,
                         payment: personPayment,
@@ -460,7 +451,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             }
         }
         return perPersonData;
-    }, [calculations, items, people, discount, tip, tipSplitMode, splitMode, peopleCountEvenly, payments, showTranslatedNames]);
+    }, [calculations, items, people, discounts, fees, tip, tipSplitMode, splitMode, peopleCountEvenly, payments, showTranslatedNames]);
     
     const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.finalTotal, 0), [perPersonResults]);
 
@@ -478,12 +469,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     
     return (
         <div className="border-t pt-4 border-border">
-            <SummaryToggles state={state} dispatch={dispatch} />
             <div id="summary-container" className="relative">
                 <div ref={summaryRef} className="bg-background p-4 rounded-lg font-sans">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <input type="text" value={restaurantName} onChange={e => dispatch({type: 'UPDATE_RESTAURANT_NAME', payload: e.target.value})} className="text-base font-bold p-1 -ml-1 rounded-lg bg-transparent w-full text-foreground font-headline" placeholder="Restaurant Name" />
+                            <input type="text" value={restaurantName} onChange={e => dispatch({type: 'UPDATE_RESTAURANT_NAME', payload: e.target.value})} className="name-input text-base font-bold p-1 -ml-1 rounded-lg bg-transparent w-full text-foreground font-headline" placeholder="Restaurant Name" />
                             <div className="flex items-center">
                                 <label htmlFor="summary-bill-date" className="text-xs text-muted-foreground font-medium whitespace-nowrap">Date:</label>
                                 <input 
@@ -522,9 +512,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             const breakdown = person.breakdown;
                             const hasAdjustments = breakdown && (
                                 breakdown.discount > 0 ||
-                                breakdown.serviceCharge > 0 ||
-                                breakdown.vat > 0 ||
-                                breakdown.otherTax > 0 ||
+                                breakdown.fees > 0 ||
                                 breakdown.adjustment !== 0 ||
                                 breakdown.tip > 0 ||
                                 breakdown.payment > 0
@@ -559,9 +547,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                             {hasAdjustments && (
                                                 <div className="space-y-1 pt-1 mt-1 border-t border-border">
                                                     {breakdown.discount > 0 && <div className="flex justify-between"><span>Discount:</span><span><DualCurrencyDisplay baseValue={breakdown.discount * fxRate} sign="-" className="text-red-600" {...commonCurrencyProps}/></span></div>}
-                                                    {breakdown.serviceCharge > 0 && <div className="flex justify-between"><span>{taxes.serviceCharge.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.serviceCharge * fxRate} sign="+" {...commonCurrencyProps}/></span></div>}
-                                                    {breakdown.vat > 0 && <div className="flex justify-between"><span>{taxes.vat.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.vat * fxRate} sign="+" {...commonCurrencyProps}/></span></div>}
-                                                    {breakdown.otherTax > 0 && <div className="flex justify-between"><span>{taxes.otherTax.name}:</span><span><DualCurrencyDisplay baseValue={breakdown.otherTax * fxRate} sign="+" {...commonCurrencyProps}/></span></div>}
+                                                    {breakdown.fees > 0 && <div className="flex justify-between"><span>Fees & Charges:</span><span><DualCurrencyDisplay baseValue={breakdown.fees * fxRate} sign="+" {...commonCurrencyProps}/></span></div>}
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''} {...commonCurrencyProps}/></span></div>}
                                                     <div className="flex justify-between font-semibold border-t mt-1 pt-1"><span>Bill Share:</span><DualCurrencyDisplay baseValue={(person.totalShare - breakdown.tip) * fxRate} className="font-semibold" {...commonCurrencyProps}/></div>
                                                     {breakdown.tip > 0 && <div className="flex justify-between text-blue-600"><span>Tip:</span><span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600" {...commonCurrencyProps}/></span></div>}
@@ -590,28 +576,16 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                     <DualCurrencyDisplay baseValue={calculations.subtotal * fxRate} displayMode="stacked" {...commonCurrencyProps} />
                                 </div>
                              )}
-                            {calculations.globalDiscountAmount > 0 && (
+                            {calculations.totalDiscountsAmount > 0 && (
                                 <div className="flex justify-between items-center text-red-600">
-                                    <span>Global Discount:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.globalDiscountAmount * fxRate} sign="-" displayMode="stacked" className="text-red-600" {...commonCurrencyProps} />
+                                    <span>Total Discounts:</span>
+                                    <DualCurrencyDisplay baseValue={calculations.totalDiscountsAmount * fxRate} sign="-" displayMode="stacked" className="text-red-600" {...commonCurrencyProps} />
                                 </div>
                             )}
-                            {taxes.serviceCharge.isEnabled && (
+                            {calculations.totalFeesAmount > 0 && (
                                 <div className="flex justify-between items-center">
-                                    <span>{taxes.serviceCharge.name}:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.serviceChargeAmount * fxRate} sign="+" displayMode="stacked" {...commonCurrencyProps} />
-                                </div>
-                            )}
-                            {taxes.vat.isEnabled && (
-                                <div className="flex justify-between items-center">
-                                    <span>{taxes.vat.name}:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.vatAmount * fxRate} sign="+" displayMode="stacked" {...commonCurrencyProps} />
-                                </div>
-                            )}
-                            {taxes.otherTax.isEnabled && (
-                                <div className="flex justify-between items-center">
-                                    <span>{taxes.otherTax.name}:</span>
-                                    <DualCurrencyDisplay baseValue={calculations.otherTaxAmount * fxRate} sign="+" displayMode="stacked" {...commonCurrencyProps} />
+                                    <span>Total Fees & Charges:</span>
+                                    <DualCurrencyDisplay baseValue={calculations.totalFeesAmount * fxRate} sign="+" displayMode="stacked" {...commonCurrencyProps} />
                                 </div>
                             )}
                             <div className="flex justify-between items-center font-bold border-t mt-1 pt-1 border-border">
@@ -676,20 +650,18 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-dashed border-border/80">
-                         <div className="flex items-center justify-between">
-                            <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2">
-                                <input
-                                type="checkbox"
-                                checked={includeReceiptInSummary}
-                                onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
-                                className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
-                                disabled={!uploadedReceipt}
-                                />
-                                <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
-                                    Attach receipt image to summary
-                                </span>
-                            </label>
-                        </div>
+                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2" data-summary-toggle="true">
+                            <input
+                            type="checkbox"
+                            checked={includeReceiptInSummary}
+                            onChange={() => dispatch({ type: 'TOGGLE_INCLUDE_RECEIPT' })}
+                            className="h-4 w-4 rounded text-primary focus:ring-primary border-border disabled:opacity-50"
+                            disabled={!uploadedReceipt}
+                            />
+                            <span className={`text-xs ${!uploadedReceipt ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                Attach receipt image to summary
+                            </span>
+                        </label>
                         {includeReceiptInSummary && uploadedReceipt && (
                             <div className="mt-2">
                                 <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
@@ -775,6 +747,3 @@ Summary.Toggles = SummaryToggles;
 
 
 export default Summary;
-
-
-      

@@ -6,7 +6,7 @@ import { CheckCircle2, AlertCircle, PartyPopper, Info } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: number, formatNumber: (num: number) => string, isBalloon?: boolean }> = ({ state, currencySymbol, fxRate, formatNumber, isBalloon=false }) => {
-    const { items, discount, taxes, billTotal, splitMode } = state;
+    const { items, discounts, fees, billTotal, splitMode } = state;
 
     const { unassignedItemsCount, totalShares, assignedSubtotal } = useMemo(() => {
         let unassignedCount = 0;
@@ -26,15 +26,20 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     
     const { calculatedTotal, adjustment } = useMemo(() => {
         const baseForCharges = assignedSubtotal;
-        const discountAmount = discount.type === 'percentage' ? baseForCharges * (discount.value / 100) : discount.value;
-        const subtotalAfterDiscount = baseForCharges - discountAmount;
-        const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
-        const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
-        const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
-        const calcTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
+        
+        const totalDiscounts = discounts.reduce((sum: number, d: any) => {
+            const totalShares = d.shares.reduce((a: number, b: number) => a + b, 0);
+            return totalShares > 0 ? sum + d.amount : sum;
+        }, 0);
+
+        const subtotalAfterDiscount = baseForCharges - totalDiscounts;
+
+        const totalFees = fees.filter((f: any) => f.isEnabled).reduce((sum: number, f: any) => sum + f.amount, 0);
+        
+        const calcTotal = subtotalAfterDiscount + totalFees;
         const adj = billTotal > 0 ? billTotal - calcTotal : 0;
         return { calculatedTotal: calcTotal, adjustment: adj };
-    }, [assignedSubtotal, discount, taxes, billTotal]);
+    }, [assignedSubtotal, discounts, fees, billTotal]);
 
     const absAdjustment = Math.abs(adjustment);
     const matchPercentage = billTotal > 0 ? Math.max(0, (1 - absAdjustment / billTotal) * 100) : (totalShares > 0 ? 0 : 100);
@@ -192,8 +197,8 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     
     // Surplus
     const surplus = absAdjustment;
-    const taxLikeSurplus = [taxes.serviceCharge, taxes.vat, taxes.otherTax].find(tax => 
-        tax.isEnabled && Math.abs(surplus - tax.amount) / tax.amount < 0.1 // Within 10%
+    const taxLikeSurplus = fees.find((fee: any) => 
+        fee.isEnabled && Math.abs(surplus - fee.amount) / fee.amount < 0.1 // Within 10%
     );
 
     if (taxLikeSurplus) {
@@ -204,7 +209,7 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
                     <h4 className={`font-bold ${getTextColor("text-foreground")} text-sm`}>Surplus Found!</h4>
                     <p className={`text-xs ${getMutedTextColor("text-muted-foreground")} mt-1`}>
                         The surplus of <strong className="font-mono">{currencySymbol}{formatNumber(surplus * fxRate)}</strong> is very similar to your <strong className="font-semibold">'{taxLikeSurplus.name}'</strong>.
-                        Could the AI have mistaken this tax for a line item? Please review the items list above.
+                        Could the AI have mistaken this fee for a line item? Please review the items list above.
                     </p>
                      <MatchProgress />
                 </div>

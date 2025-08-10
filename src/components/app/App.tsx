@@ -1,10 +1,10 @@
 
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { Camera, Upload, PlusCircle } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Camera, Upload, PlusCircle, LogIn } from 'lucide-react';
 import { parseReceipt } from '../services/geminiService';
-import { BillData, Person } from '../types';
+import { BillData, Person, Fee, Discount } from '../types';
 import { ALLOWED_CURRENCIES, PERSON_COLORS, COUNTRY_CURRENCY_MAP, CURRENCIES } from '../constants';
 import MainApp from './MainApp';
 import Loader from './Loader';
@@ -13,16 +13,47 @@ import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import AuthForm from '@/components/app/AuthForm';
 
+const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
+    const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
+    const typeClasses = {
+        primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
+        secondary: 'bg-card text-card-foreground border border-border hover:bg-muted hover:shadow-lg hover:scale-105',
+        ghost: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg hover:scale-105'
+    };
+    const disabledClasses = "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none";
 
-function AppContent() {
-    const [view, setView] = useState<'upload' | 'loading' | 'main' | 'error'>('upload');
+    return (
+        <Component id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses} ${className}`}>
+            {icon}
+            <span>{text}</span>
+        </Component>
+    )
+}
+
+function AppContent({ modelName }: { modelName: string }) {
+    const [view, setView] = useState<'auth' | 'upload' | 'loading' | 'main' | 'error'>('upload');
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
     const [consentGiven, setConsentGiven] = useState(true);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
+    const { user, loading } = useAuth();
+
+
+    useEffect(() => {
+        if (loading) {
+            setView('loading');
+        } else if (!user) {
+            setView('auth');
+        } else {
+            setView('upload');
+        }
+    }, [user, loading]);
 
     useEffect(() => {
         try {
@@ -104,25 +135,27 @@ function AppContent() {
             paidBy: person.id,
         }));
         
-        const serviceChargeName = data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge';
-        const serviceChargeOriginalName = data?.serviceCharge?.name && serviceChargeName !== data.serviceCharge.name ? data.serviceCharge.name : null;
+        const fees: Fee[] = data?.fees?.map(fee => ({
+            id: fee.id || `fee-${Date.now()}`,
+            name: fee.translatedName || fee.name,
+            translatedName: fee.name,
+            amount: fee.amount,
+            isEnabled: true
+        })) || [];
 
-        const vatName = data?.vat?.translatedName || data?.vat?.name || 'VAT';
-        const vatOriginalName = data?.vat?.name && vatName !== data.vat.name ? data.vat.name : null;
-
-        const otherTaxName = data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax';
-        const otherTaxOriginalName = data?.otherTax?.name && otherTaxName !== data.otherTax.name ? data.otherTax.name : null;
+        const discounts: Discount[] = data?.discounts?.map(discount => ({
+            id: discount.id || `discount-${Date.now()}`,
+            name: discount.translatedName || discount.name,
+            amount: discount.amount,
+            shares: Array(initialPeople.length).fill(0)
+        })) || [];
 
 
         const newBillData: BillData = {
             items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
-            taxes: {
-                serviceCharge: { id: 'serviceCharge', name: serviceChargeName, translatedName: serviceChargeOriginalName, amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
-                vat: { id: 'vat', name: vatName, translatedName: vatOriginalName, amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
-                otherTax: { id: 'otherTax', name: otherTaxName, translatedName: otherTaxOriginalName, amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
-            },
-            discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
+            fees,
+            discounts,
             tip: 0,
             tipSplitMode: 'proportionally',
             payments: initialPayments,
@@ -143,45 +176,29 @@ function AppContent() {
         setErrorMessage('');
     };
 
-    const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
-        const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
-        const typeClasses = {
-            primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
-            secondary: 'bg-card text-card-foreground border border-border hover:bg-muted hover:shadow-lg hover:scale-105',
-            ghost: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg hover:scale-105'
-        };
-        const disabledClasses = "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none";
-
-        return (
-            <Component id={id} onClick={onClick} disabled={disabled} className={`${baseClasses} ${typeClasses[type]} ${disabledClasses} ${className}`}>
-                {icon}
-                <span>{text}</span>
-            </Component>
-        )
-    }
-
     const renderContent = () => {
         switch (view) {
             case 'loading':
-                return <Loader message="Analyzing receipt..." />;
+                return <Loader message="Analyzing receipt..." modelName={modelName} />;
             case 'error':
                 return <ErrorMessage message={errorMessage} onReset={handleReset} />;
             case 'main':
                 return billData ? <MainApp initialBillData={billData} onReset={handleReset} uploadedReceipt={uploadedReceipt} /> : <ErrorMessage message="Failed to load bill data." onReset={handleReset} />;
+            case 'auth':
+                return <AuthForm onAuthSuccess={() => setView('upload')} />;
             case 'upload':
             default:
                 return (
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
                         <div className="w-full max-w-sm mx-auto text-center">
                             <div className="flex flex-col justify-center items-center mb-4">
-                               <img src="https://i.postimg.cc/TYXtwbKN/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-48 w-48" />
-                               <h1 className="text-2xl font-bold text-foreground font-headline mt-2">SplitBill AI</h1>
+                               <img src="https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-48 w-48" />
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
-                            <div className="flex flex-col">
-                                <label htmlFor="camera-upload" className={`cursor-pointer mb-3 ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
-                                     <ActionButton
+                             <div className="space-y-4">
+                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                    <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
                                         icon={<Camera size={20} />}
@@ -190,7 +207,7 @@ function AppContent() {
                                 </label>
                                 <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
                                 
-                                <label htmlFor="file-upload" className={`cursor-pointer mb-3 ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
                                     <ActionButton
                                         as="div"
                                         disabled={!consentGiven}
@@ -207,7 +224,6 @@ function AppContent() {
                                     icon={<PlusCircle size={20} />}
                                     text="Start without Receipt"
                                     type="ghost"
-                                    className="mb-3"
                                 />
                             </div>
                             
@@ -289,10 +305,10 @@ const getCurrencyFromLocale = (): string => {
     return 'USD'; // Fallback
 };
 
-export default function App() {
+export default function App({ modelName }: { modelName: string }) {
     return (
         <UsageProvider>
-            <AppContent />
+            <AppContent modelName={modelName} />
         </UsageProvider>
     )
 }

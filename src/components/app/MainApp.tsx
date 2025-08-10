@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useReducer, useEffect } from 'react';
-import { BillData, BillItem, Person, Tax, Discount, SplitMode, Payment } from '../../types';
+import { BillData, BillItem, Person, Fee, Discount, SplitMode, Payment } from '../../types';
 import { CURRENCIES } from '../constants';
 import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
@@ -64,9 +64,13 @@ type Action =
   | { type: 'UPDATE_ITEM_NAME'; payload: { itemIndex: number; name: string } }
   | { type: 'UPDATE_ITEM_PRICE'; payload: { itemIndex: number; price: number } }
   | { type: 'UPDATE_ITEM_SHARE'; payload: { itemIndex: number; personIndex: number; change: 1 | -1 } }
-  | { type: 'UPDATE_TAX'; payload: Partial<Tax> & { id: 'serviceCharge' | 'vat' | 'otherTax' } }
-  | { type: 'UPDATE_DISCOUNT'; payload: Partial<Discount> }
-  | { type: 'TOGGLE_DISCOUNT_SHARE'; payload: { personId: string } }
+  | { type: 'UPDATE_FEE', payload: { id: string, data: Partial<Fee> } }
+  | { type: 'ADD_FEE' }
+  | { type: 'REMOVE_FEE', payload: { id: string } }
+  | { type: 'UPDATE_DISCOUNT', payload: { id: string, data: Partial<Discount> } }
+  | { type: 'ADD_DISCOUNT' }
+  | { type: 'REMOVE_DISCOUNT', payload: { id: string } }
+  | { type: 'UPDATE_DISCOUNT_SHARE'; payload: { discountIndex: number; personIndex: number; change: 1 | -1 } }
   | { type: 'UPDATE_TIP'; payload: number }
   | { type: 'ADD_PAYMENT' }
   | { type: 'REMOVE_PAYMENT'; payload: { id: string } }
@@ -128,9 +132,10 @@ const reducer = (state: AppState, action: Action): AppState => {
           ...item,
           shares: [...item.shares, 0]
       }));
+      const discountsWithNewPerson = state.discounts.map(d => ({ ...d, shares: [...d.shares, 0]}));
       // Also add a default payment for the new person
       const newPaymentsArray = [...state.payments, {id: newPerson.id, amount: 0, paidBy: newPerson.id}];
-      return { ...state, people: newPeopleArray, items: itemsWithNewPerson, payments: newPaymentsArray };
+      return { ...state, people: newPeopleArray, items: itemsWithNewPerson, discounts: discountsWithNewPerson, payments: newPaymentsArray };
 
     case 'REMOVE_PERSON': {
       const { personId } = action.payload;
@@ -139,14 +144,18 @@ const reducer = (state: AppState, action: Action): AppState => {
           return state; // Can't remove last person
       }
       const filteredPeople = state.people.filter(p => p.id !== personId);
+      
       const itemsWithPersonRemoved = state.items.map(item => {
           const newShares = [...item.shares];
           newShares.splice(personIndexToRemove, 1);
           return { ...item, shares: newShares };
       });
-      // Also remove person from discount shares
-      const newDiscountShares = state.discount.shares.filter(id => id !== personId);
-      // And from payments and deposits
+      const discountsWithPersonRemoved = state.discounts.map(d => {
+        const newShares = [...d.shares];
+        newShares.splice(personIndexToRemove, 1);
+        return { ...d, shares: newShares };
+      });
+      
       const newPayments = state.payments.filter(p => p.paidBy !== personId);
       const newDeposits = state.deposits.filter(d => d.paidBy !== personId);
 
@@ -154,7 +163,7 @@ const reducer = (state: AppState, action: Action): AppState => {
           ...state,
           people: filteredPeople,
           items: itemsWithPersonRemoved,
-          discount: { ...state.discount, shares: newDiscountShares },
+          discounts: discountsWithPersonRemoved,
           payments: newPayments,
           deposits: newDeposits
       };
@@ -218,32 +227,46 @@ const reducer = (state: AppState, action: Action): AppState => {
       });
       return { ...state, items: updatedItems };
     }
-      
-    case 'UPDATE_TAX':
-        const { id, ...taxData } = action.payload;
-        return {
-            ...state,
-            taxes: {
-                ...state.taxes,
-                [id]: { ...state.taxes[id], ...taxData }
-            }
-        };
 
-    case 'UPDATE_DISCOUNT':
-        return { ...state, discount: { ...state.discount, ...action.payload } };
-
-    case 'TOGGLE_DISCOUNT_SHARE': {
-        const { personId } = action.payload;
-        const currentShares = state.discount.shares;
-        const newShares = currentShares.includes(personId)
-            ? currentShares.filter(id => id !== personId)
-            : [...currentShares, personId];
-        return {
-            ...state,
-            discount: { ...state.discount, shares: newShares }
-        };
+    case 'UPDATE_FEE': {
+      return { ...state, fees: state.fees.map(f => f.id === action.payload.id ? { ...f, ...action.payload.data } : f) };
     }
 
+    case 'ADD_FEE': {
+      const newFee: Fee = { id: `fee_${Date.now()}`, name: 'New Fee', amount: 0, isEnabled: true, translatedName: null };
+      return { ...state, fees: [...state.fees, newFee] };
+    }
+  
+    case 'REMOVE_FEE': {
+      return { ...state, fees: state.fees.filter(f => f.id !== action.payload.id) };
+    }
+
+    case 'UPDATE_DISCOUNT': {
+      return { ...state, discounts: state.discounts.map(d => d.id === action.payload.id ? { ...d, ...action.payload.data } : d) };
+    }
+
+    case 'ADD_DISCOUNT': {
+      const newDiscount: Discount = { id: `discount_${Date.now()}`, name: 'New Discount', amount: 0, shares: Array(state.people.length).fill(0) };
+      return { ...state, discounts: [...state.discounts, newDiscount] };
+    }
+
+    case 'REMOVE_DISCOUNT': {
+      return { ...state, discounts: state.discounts.filter(d => d.id !== action.payload.id) };
+    }
+
+    case 'UPDATE_DISCOUNT_SHARE': {
+        const { discountIndex, personIndex, change } = action.payload;
+        const updatedDiscounts = state.discounts.map((discount, i) => {
+          if (i === discountIndex) {
+            const newShares = [...discount.shares];
+            newShares[personIndex] = Math.max(0, newShares[personIndex] + change);
+            return { ...discount, shares: newShares };
+          }
+          return discount;
+        });
+        return { ...state, discounts: updatedDiscounts };
+    }
+      
     case 'UPDATE_TIP':
         return { ...state, tip: action.payload };
 
@@ -452,6 +475,9 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             )}
             {activePage === 'summary' && (
                 <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
+                    <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
+                        <Summary.Toggles state={state} dispatch={dispatch}/>
+                    </div>
                     <h2 className="text-sm font-bold mb-4 text-primary font-headline">Final Summary</h2>
                     <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
                 </div>
@@ -484,6 +510,3 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 };
 
 export default MainApp;
-
-
-      

@@ -58,22 +58,22 @@ const SinglePersonPaymentInput: React.FC<{ person: Person; payment: Payment | un
 };
 
 const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string, settleMode: 'single' | 'multiple', setSettleMode: (mode: 'single' | 'multiple') => void }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber, settleMode, setSettleMode }) => {
-    const { items, people, discount, taxes, tip, payments, billTotal } = state;
+    const { items, people, discounts, fees, tip, payments, billTotal } = state;
 
     const { grandTotalWithTip, remainingAmount } = useMemo(() => {
         const subtotal = items.reduce((sum: number, item: any) => sum + item.price, 0);
-        const discountAmount = discount.type === 'percentage' ? subtotal * (discount.value / 100) : discount.value;
-        const subtotalAfterDiscount = subtotal - discountAmount;
-        const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
-        const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
-        const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
-        const calculatedTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
+        const totalDiscounts = discounts.reduce((sum: number, d: any) => sum + d.amount, 0);
+        const totalFees = fees.filter((f: any) => f.isEnabled).reduce((sum: number, f: any) => sum + f.amount, 0);
+        
+        const subtotalAfterDiscount = subtotal - totalDiscounts;
+        const calculatedTotal = subtotalAfterDiscount + totalFees;
+
         const adjustment = billTotal > 0 ? billTotal - calculatedTotal : 0;
         const totalWithTip = calculatedTotal + adjustment + tip;
         const totalPayments = payments.reduce((sum: number, p: Payment) => sum + p.amount, 0);
         const remaining = totalWithTip - totalPayments;
         return { grandTotalWithTip: totalWithTip, remainingAmount: remaining };
-    }, [items, discount, taxes, tip, billTotal, payments]);
+    }, [items, discounts, fees, tip, billTotal, payments]);
 
     const handleSinglePayerSelect = (selectedPersonId: string) => {
         // Set all other people's payments to 0
@@ -96,7 +96,11 @@ const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySy
 
     return (
         <div className="space-y-3">
-             <p className="text-xs text-muted-foreground -mt-1">Enter who paid the restaurant to see who owes who.</p>
+             <div className="text-center">
+                <p className="text-xs text-muted-foreground -mt-1">
+                    {settleMode === 'single' ? "Tap who paid the entire bill" : "Enter amounts if multiple people paid"}
+                </p>
+             </div>
             
             {settleMode === 'single' ? (
                  <div className="pt-2">

@@ -21,11 +21,20 @@ const ExtractReceiptDataInputSchema = z.object({
 });
 export type ExtractReceiptDataInput = z.infer<typeof ExtractReceiptDataInputSchema>;
 
-const taxSchema = z.object({
-    name: z.string().describe('The original name of the tax/charge from the receipt.'),
-    translatedName: z.string().optional().describe('The English translation of the tax/charge name if it was not in English.'),
-    amount: z.number().describe('The amount of the tax/charge.'),
+const feeSchema = z.object({
+    id: z.string().describe('A unique identifier for the fee (e.g., "delivery", "service-charge").'),
+    name: z.string().describe('The original name of the fee/charge from the receipt.'),
+    translatedName: z.string().optional().describe('The English translation of the fee/charge name if it was not in English.'),
+    amount: z.number().describe('The amount of the fee/charge.'),
 });
+
+const discountSchema = z.object({
+    id: z.string().describe('A unique identifier for the discount (e.g., "coupon", "store-discount").'),
+    name: z.string().describe('The original name of the discount from the receipt (e.g., "Coupon", "ส่วนลดร้านที่ร่วมรายการ").'),
+    translatedName: z.string().optional().describe('The English translation of the discount name if it was not in English.'),
+    amount: z.number().describe('The amount of the discount as a positive number.'),
+});
+
 
 const ExtractReceiptDataOutputSchema = z.object({
   items: z.array(
@@ -38,11 +47,9 @@ const ExtractReceiptDataOutputSchema = z.object({
   total: z.number().describe('The total amount due on the receipt.'),
   restaurantName: z.string().optional().describe('The name of the restaurant.'),
   date: z.string().optional().describe('The date of the receipt in YYYY-MM-DD format. Find this date on the receipt.'),
-  discount: z.number().optional().describe('The total discount amount on the receipt. This should be a positive number.'),
   currency: z.string().optional().describe('The currency of the receipt (e.g., USD, EUR, THB).'),
-  serviceCharge: taxSchema.optional().describe('The service charge, if present. Look for terms like "Service Charge", "S.C.", or the Japanese term "サービス料".'),
-  vat: taxSchema.optional().describe('The Value Added Tax (VAT), if present. Look for terms like "VAT" or the Japanese term "消費税".'),
-  otherTax: taxSchema.optional().describe('Any other taxes or fees, if present.'),
+  fees: z.array(feeSchema).optional().describe('A list of all fees found on the receipt, such as "Delivery fee", "Service Charge", "VAT", "Tax", "Additional service fee", etc. Each fee should be its own object in the array.'),
+  discounts: z.array(discountSchema).optional().describe('A list of all discounts found on the receipt. Discounts are typically negative numbers on a receipt, but should be returned as positive values here. Examples include "Coupon" or campaign discounts.'),
 });
 export type ExtractReceiptDataOutput = z.infer<typeof ExtractReceiptDataOutputSchema>;
 
@@ -62,16 +69,14 @@ const prompt = ai.definePrompt({
     *   First, look for an explicit currency symbol (e.g., $, £, ¥, ฿) on the receipt.
     *   If no symbol is present, infer the currency from the language of the text or location context on the receipt (e.g., Japanese text implies JPY, Thai text implies THB).
 3.  **Identify the FINAL TOTAL:** This is the most important step. Find the final, total amount due from the receipt. This is often labeled "Total", "Grand Total", or "合計" (Go-kei) in Japanese. This value is what you must use for the \`total\` field.
-4.  **Separate Items from Charges:**
+4.  **Separate Items from Charges/Discounts:**
     *   First, identify and list all purchased food and drink items in the 'items' array.
-    *   Next, scan the receipt for any line items that are NOT food or drink. These are additional charges. This includes, but is not limited to, "Service Charge," "S.C.," "サービス料" (Service Fee), "VAT," "Tax," "消費税" (Consumption Tax), or any other fees.
-5.  **Categorize Charges:**
-    *   If a charge is for service (e.g., "Service Charge", "サービス料"), place it in the \`serviceCharge\` field.
-    *   If a charge is for a value-added tax (e.g., "VAT", "消費税"), place it in the \`vat\` field.
-    *   Place any other miscellaneous charges into the \`otherTax\` field.
-    *   **IMPORTANT:** Items categorized as \`serviceCharge\`, \`vat\`, or \`otherTax\` MUST NOT appear in the main \`items\` array.
-6.  **Extract Discounts:** If a discount is listed, extract the total discount amount.
-7.  **Translate:** For all extracted item names, service charges, and taxes that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
+    *   Next, scan the receipt for any line items that are NOT food or drink. These are additional charges or discounts. This includes, but is not limited to, "Delivery fee," "Service Charge," "S.C.," "サービス料" (Service Fee), "VAT," "Tax," "消費税" (Consumption Tax), "Coupon", or store-specific discounts like "ส่วนลดร้านที่ร่วมรายการ".
+5.  **Categorize into Fees and Discounts:**
+    *   Any charge that adds to the total (e.g., "Delivery Fee", "Service Charge", "VAT") must be placed in the \`fees\` array. Each fee should be a separate object in the array.
+    *   Any charge that reduces the total (e.g., "Coupon", or other promotional discounts, often shown as a negative number) must be placed in the \`discounts\` array. The amount for discounts should ALWAYS be a positive number. Each discount should be a separate object in the array.
+    *   **IMPORTANT:** Line items categorized as \`fees\` or \`discounts\` MUST NOT appear in the main \`items\` array.
+6.  **Translate:** For all extracted item names, fees, and discounts that are not in English, you MUST provide an English translation in the corresponding 'translatedName' field.
 
 **Source of Information:**
 Photo: {{media url=photoDataUri}}

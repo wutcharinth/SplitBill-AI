@@ -15,8 +15,8 @@ export interface BillItem {
   shares: number[];
 }
 
-export interface Tax {
-    id: 'serviceCharge' | 'vat' | 'otherTax';
+export interface Fee {
+    id: string;
     name:string;
     translatedName: string | null;
     amount: number;
@@ -24,9 +24,10 @@ export interface Tax {
 }
 
 export interface Discount {
-    value: number;
-    type: 'percentage' | 'fixed';
-    shares: string[]; // Person IDs sharing the discount
+    id: string;
+    name: string;
+    amount: number;
+    shares: number[]; // Person IDs sharing the discount
 }
 
 export interface Payment {
@@ -38,12 +39,8 @@ export interface Payment {
 export interface BillData {
   items: BillItem[];
   people: Person[];
-  taxes: {
-      serviceCharge: Tax;
-      vat: Tax;
-      otherTax: Tax;
-  };
-  discount: Discount;
+  fees: Fee[];
+  discounts: Discount[];
   tip: number;
   tipSplitMode: 'proportionally' | 'equally';
   payments: Payment[];

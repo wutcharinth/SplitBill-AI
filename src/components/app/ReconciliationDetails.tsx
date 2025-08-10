@@ -120,9 +120,9 @@ const ReconciliationStatus: React.FC<{ adjustment: number, currencySymbol: strin
 
 
 const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
-  const { items, billTotal, discount, taxes, splitMode, tip, payments } = state;
+  const { items, billTotal, discounts, fees, splitMode, tip, payments } = state;
 
-  const { subtotal, discountAmount, serviceChargeAmount, vatAmount, otherTaxAmount, calculatedTotal, adjustment, grandTotal } = useMemo(() => {
+  const { subtotal, totalDiscounts, totalFees, calculatedTotal, adjustment, grandTotal } = useMemo(() => {
     const sub = items.reduce((sum: number, item: any) => sum + item.price, 0);
     
     let baseForCharges = sub;
@@ -131,28 +131,24 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
         baseForCharges = assignedItems.reduce((sum: number, item: any) => sum + item.price, 0);
     }
     
-    const discAmount = discount.type === 'percentage' ? baseForCharges * (discount.value / 100) : discount.value;
-    const subAfterDiscount = baseForCharges - discAmount;
+    const totDiscounts = discounts.reduce((sum: number, d: any) => sum + d.amount, 0);
+    const totFees = fees.filter((f: any) => f.isEnabled).reduce((sum: number, f: any) => sum + f.amount, 0);
 
-    const scAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
-    const vAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
-    const otAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
-
-    const calcTotal = subAfterDiscount + scAmount + vAmount + otAmount;
+    const subAfterDiscount = baseForCharges - totDiscounts;
+    
+    const calcTotal = subAfterDiscount + totFees;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
     const gTotal = calcTotal + adj;
 
     return { 
         subtotal: sub,
-        discountAmount: discAmount, 
-        serviceChargeAmount: scAmount,
-        vatAmount: vAmount,
-        otherTaxAmount: otAmount,
+        totalDiscounts: totDiscounts,
+        totalFees: totFees,
         calculatedTotal: calcTotal,
         adjustment: adj,
         grandTotal: gTotal,
     };
-}, [items, billTotal, discount, taxes, splitMode]);
+}, [items, billTotal, discounts, fees, splitMode]);
 
 
   return (
@@ -174,30 +170,18 @@ const ReconciliationDetails: React.FC<{ state: any; dispatch: React.Dispatch<any
                 <span className="font-mono text-xs text-foreground">{currencySymbol}{(subtotal * fxRate).toFixed(2)}</span>
             </DetailRow>
 
-            {discount.value > 0 && (
-                <DetailRow label={`Discount (${discount.type === 'fixed' ? currencySymbol : ''}${discount.value}${discount.type === 'percentage' ? '%' : ''})`} className="text-red-600">
-                    <span className="font-mono text-xs">- {currencySymbol}{(discountAmount * fxRate).toFixed(2)}</span>
+            {totalDiscounts > 0 && (
+                <DetailRow label={`Total Discounts`} className="text-red-600">
+                    <span className="font-mono text-xs">- {currencySymbol}{(totalDiscounts * fxRate).toFixed(2)}</span>
                 </DetailRow>
             )}
 
-            {taxes.serviceCharge.isEnabled && taxes.serviceCharge.amount > 0 && (
-                 <DetailRow label={taxes.serviceCharge.name}>
-                    <span className="font-mono text-xs text-foreground">+ {currencySymbol}{(serviceChargeAmount * fxRate).toFixed(2)}</span>
+            {fees.map((fee: any) => fee.isEnabled && fee.amount > 0 && (
+                 <DetailRow key={fee.id} label={fee.name}>
+                    <span className="font-mono text-xs text-foreground">+ {currencySymbol}{(fee.amount * fxRate).toFixed(2)}</span>
                 </DetailRow>
-            )}
-
-            {taxes.vat.isEnabled && taxes.vat.amount > 0 && (
-                <DetailRow label={taxes.vat.name}>
-                    <span className="font-mono text-xs text-foreground">+ {currencySymbol}{(vatAmount * fxRate).toFixed(2)}</span>
-                </DetailRow>
-            )}
-
-            {taxes.otherTax.isEnabled && taxes.otherTax.amount > 0 && (
-                 <DetailRow label={taxes.otherTax.name}>
-                    <span className="font-mono text-xs text-foreground">+ {currencySymbol}{(otherTaxAmount * fxRate).toFixed(2)}</span>
-                </DetailRow>
-            )}
-
+            ))}
+            
             <div className="flex justify-between items-center pt-2 mt-2 border-t font-semibold text-sm">
                 <h4 className="text-gray-800">Calculated Total</h4>
                 <span className="font-mono text-foreground">{currencySymbol}{(calculatedTotal * fxRate).toFixed(2)}</span>

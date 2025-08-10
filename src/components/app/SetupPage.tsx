@@ -29,7 +29,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
   const [isReceiptVisible, setIsReceiptVisible] = useState(false);
   const [settleMode, setSettleMode] = useState<'single' | 'multiple'>('single');
   
-  const { items, billTotal, splitMode, discount, taxes, uploadedReceipt } = state;
+  const { items, billTotal, splitMode, discounts, fees, uploadedReceipt } = state;
 
   const { totalShares, adjustment, absAdjustment, unassignedItemsCount, matchPercentage } = useMemo(() => {
     let sharesTotal = 0;
@@ -46,12 +46,12 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
 
     const subtotalOfAssigned = assignedItems.reduce((sum: number, item: any) => sum + item.price, 0);
 
-    const discountAmount = discount.type === 'percentage' ? subtotalOfAssigned * (discount.value / 100) : discount.value;
-    const subtotalAfterDiscount = subtotalOfAssigned - discountAmount;
-    const serviceChargeAmount = taxes.serviceCharge.isEnabled ? taxes.serviceCharge.amount : 0;
-    const vatAmount = taxes.vat.isEnabled ? taxes.vat.amount : 0;
-    const otherTaxAmount = taxes.otherTax.isEnabled ? taxes.otherTax.amount : 0;
-    const calcTotal = subtotalAfterDiscount + serviceChargeAmount + vatAmount + otherTaxAmount;
+    const totalDiscounts = discounts.reduce((sum: number, d: any) => d.amount + sum, 0);
+    const subtotalAfterDiscount = subtotalOfAssigned - totalDiscounts;
+    
+    const totalFees = fees.filter((f: any) => f.isEnabled).reduce((sum: number, f: any) => f.amount + sum, 0);
+    
+    const calcTotal = subtotalAfterDiscount + totalFees;
     const adj = billTotal > 0 ? billTotal - calcTotal : 0;
     const absAdj = Math.abs(adj);
     const match = billTotal > 0 ? Math.max(0, (1 - absAdj / billTotal) * 100) : (sharesTotal > 0 ? 0 : 100);
@@ -65,14 +65,8 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
     };
   }, [
     items.map((i: any) => [i.price, i.shares]), 
-    discount.value, 
-    discount.type, 
-    taxes.serviceCharge.amount, 
-    taxes.serviceCharge.isEnabled, 
-    taxes.vat.amount, 
-    taxes.vat.isEnabled, 
-    taxes.otherTax.amount, 
-    taxes.otherTax.isEnabled, 
+    discounts,
+    fees, 
     billTotal
   ]);
   
@@ -215,7 +209,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-bold text-primary font-headline">{state.splitMode === 'item' ? '6' : '5'}. Who Paid?</h2>
+              <h2 className="text-base font-bold text-primary font-headline">6. Who Paid?</h2>
               <div className="flex items-center space-x-2">
                     <Label htmlFor="settle-mode" className="text-xs text-muted-foreground">Multiple Payers</Label>
                     <Switch
