@@ -13,9 +13,7 @@ import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import AuthForm from '@/components/app/AuthForm';
 
 const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
     const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
@@ -35,25 +33,14 @@ const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as:
 }
 
 function AppContent({ modelName }: { modelName: string }) {
-    const [view, setView] = useState<'auth' | 'upload' | 'loading' | 'main' | 'error'>('upload');
+    const [view, setView] = useState<'upload' | 'loading' | 'main' | 'error'>('upload');
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
     const [consentGiven, setConsentGiven] = useState(true);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
-    const { user, loading } = useAuth();
 
-
-    useEffect(() => {
-        if (loading) {
-            setView('loading');
-        } else if (!user) {
-            setView('auth');
-        } else {
-            setView('upload');
-        }
-    }, [user, loading]);
 
     useEffect(() => {
         try {
@@ -184,8 +171,6 @@ function AppContent({ modelName }: { modelName: string }) {
                 return <ErrorMessage message={errorMessage} onReset={handleReset} />;
             case 'main':
                 return billData ? <MainApp initialBillData={billData} onReset={handleReset} uploadedReceipt={uploadedReceipt} /> : <ErrorMessage message="Failed to load bill data." onReset={handleReset} />;
-            case 'auth':
-                return <AuthForm onAuthSuccess={() => setView('upload')} />;
             case 'upload':
             default:
                 return (
