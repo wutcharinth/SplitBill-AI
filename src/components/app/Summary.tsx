@@ -72,7 +72,7 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     }
 
     const promises = images.map(img => {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             if (img.complete && img.naturalHeight !== 0) {
                 // If image is already loaded and decoded, resolve immediately
                  img.decode().then(() => resolve()).catch(() => resolve());
@@ -94,9 +94,17 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
         });
     });
 
+    // Wait for all images to have been loaded and decoded
     return Promise.all(promises).then(() => {
-        // Add a small delay after all images are decoded to allow for browser paint
-        return new Promise(resolve => setTimeout(resolve, 300));
+        // All images are decoded. Now, we wait for the browser to actually paint them.
+        // A double requestAnimationFrame is much more reliable than a fixed setTimeout for this.
+        return new Promise<void>(resolve => {
+            // Wait for the next available frame.
+            requestAnimationFrame(() => {
+                // Wait for the paint of that frame to complete.
+                requestAnimationFrame(resolve);
+            });
+        });
     });
 };
 
