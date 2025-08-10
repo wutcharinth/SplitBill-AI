@@ -143,7 +143,6 @@ const DiscountRow: React.FC<{
 }> = ({ discount, discountIndex, people, dispatch, currencySymbol, fxRate }) => {
     const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isLongPressOrContext = useRef(false);
-    const totalShares = discount.shares.reduce((a, b) => a + b, 0);
   
     const handlePressStart = (personIndex: number) => {
       isLongPressOrContext.current = false;
@@ -228,11 +227,6 @@ const DiscountRow: React.FC<{
                     })}
                 </div>
             </div>
-             {totalShares === 0 && (
-                <div className="mt-3 text-center bg-primary/10 text-primary-dark font-medium p-2 rounded-md text-xs">
-                    <p>No one selected. This discount will be distributed to all participants based on their share of the bill.</p>
-                </div>
-            )}
         </div>
     )
 }
@@ -263,6 +257,7 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 
         <div className="border-t pt-4 mt-4 border-gray-200">
              <h3 className="text-sm font-bold mb-2 text-gray-700">Discounts</h3>
+             <p className="text-xs text-muted-foreground mt-2 mb-3">If a discount is not assigned to anyone, it will be distributed to all participants based on their share of the bill.</p>
              <div className="space-y-3 pt-2">
                 {discounts.map((discount: Discount, index: number) => (
                     <DiscountRow 
@@ -335,5 +330,3 @@ const Adjustments: React.FC<{ state: any; dispatch: React.Dispatch<any>, currenc
 };
 
 export default Adjustments;
-
-    
