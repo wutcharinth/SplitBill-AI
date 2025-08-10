@@ -108,7 +108,6 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     });
 };
 
-
 async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
     if (!element) {
         console.error('Element for image generation not found');
@@ -275,6 +274,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
+    // NEW STATE: Track if the receipt image is loaded and ready.
+    const [isReceiptImageLoaded, setIsReceiptImageLoaded] = useState(true);
     
     const {
         items, people, discounts, fees, tip, tipSplitMode, billTotal, payments,
@@ -283,6 +284,26 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         includeReceiptInSummary, uploadedReceipt,
         ui: { summaryViewMode, showTranslatedNames }
     } = state;
+
+    // NEW EFFECT: Preload the receipt image in memory to prevent race conditions.
+    useEffect(() => {
+        if (includeReceiptInSummary && uploadedReceipt) {
+            setIsReceiptImageLoaded(false); // Set to loading state
+            const img = new Image();
+            img.src = `data:image/png;base64,${uploadedReceipt}`;
+            img.onload = () => {
+                setIsReceiptImageLoaded(true); // Image is ready
+            };
+            img.onerror = () => {
+                console.error("In-memory preloading of receipt image failed.");
+                setIsReceiptImageLoaded(true); // Allow download anyway to not block user
+            };
+        } else {
+            // If receipt isn't included, no loading is needed.
+            setIsReceiptImageLoaded(true);
+        }
+    }, [includeReceiptInSummary, uploadedReceipt]);
+
 
     const handleShareSummary = async () => {
         setIsDownloading(true);
@@ -468,6 +489,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         formatNumber
     };
     
+    // UPDATED LOGIC: Determine if the button should be disabled for loading.
+    const isReceiptLoading = includeReceiptInSummary && uploadedReceipt && !isReceiptImageLoaded;
+
     return (
         <div className="border-t pt-4 border-border">
             <div id="summary-container" className="relative">
@@ -551,7 +575,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                     {breakdown.fees > 0 && <div className="flex justify-between"><span>Fees & Charges:</span><span><DualCurrencyDisplay baseValue={breakdown.fees * fxRate} sign="+" {...commonCurrencyProps}/></span></div>}
                                                     {breakdown.adjustment !== 0 && <div className="flex justify-between"><span>Adjustment:</span><span><DualCurrencyDisplay baseValue={breakdown.adjustment * fxRate} sign={breakdown.adjustment > 0 ? '+':''} {...commonCurrencyProps}/></span></div>}
                                                     
-                                                    {breakdown.tip > 0 ? (
+                                                    {breakdown.tip > 0 && (
                                                         <>
                                                             <div className="flex justify-between font-semibold border-t mt-1 pt-1">
                                                                 <span>Bill Share:</span>
@@ -562,7 +586,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                                                 <span><DualCurrencyDisplay baseValue={breakdown.tip * fxRate} sign="+" className="text-blue-600" {...commonCurrencyProps}/></span>
                                                             </div>
                                                         </>
-                                                    ) : null }
+                                                    )}
 
                                                     <div className="flex justify-between font-bold border-t mt-1 pt-1">
                                                         <span>Total Share:</span>
@@ -741,11 +765,17 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             </div>
             
              <div className="mt-4 grid grid-cols-1 gap-3">
-                 <Button onClick={handleShareSummary} className="w-full font-bold" disabled={isDownloading}>
+                 {/* UPDATED LOGIC: Button is disabled while downloading OR while receipt is loading */}
+                 <Button onClick={handleShareSummary} className="w-full font-bold" disabled={isDownloading || isReceiptLoading}>
                     {isDownloading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             <span>Creating your masterpiece...</span>
+                        </>
+                    ) : isReceiptLoading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>Loading receipt image...</span>
                         </>
                     ) : (
                         <>
