@@ -110,25 +110,23 @@ const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySy
             </div>
             
             {settleMode === 'single' ? (
-                <div className="pt-2">
+                 <div className="pt-2">
                     <p className="text-sm font-medium text-center text-foreground mb-3">Who paid the bill?</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="flex flex-wrap justify-center gap-2">
                         {people.map((person: Person) => {
                             const isSelected = singlePayerId === person.id;
                             return (
                                 <button
                                     key={person.id}
                                     onClick={() => handleSinglePayerSelect(person.id)}
-                                    className={`p-3 rounded-lg border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                                    className={`px-4 py-2 rounded-full border-2 text-sm font-semibold flex items-center gap-2 transition-all duration-200 ${
                                         isSelected
-                                            ? 'border-primary bg-primary/10 shadow-lg scale-105'
+                                            ? 'border-primary bg-primary/10 shadow-md'
                                             : 'border-border bg-card hover:border-primary/50'
                                     }`}
                                 >
-                                    <div className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: person.color }}>
-                                        {person.name.substring(0, 2).toUpperCase()}
-                                    </div>
-                                    <span className="font-semibold text-sm text-foreground truncate">{person.name}</span>
+                                    <div className="h-4 w-4 rounded-full" style={{ backgroundColor: person.color }}></div>
+                                    <span className="text-foreground">{person.name}</span>
                                 </button>
                             );
                         })}
@@ -153,5 +151,3 @@ const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySy
 }
 
 export default SettleUp;
-
-    
