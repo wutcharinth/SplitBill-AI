@@ -182,20 +182,25 @@ function AppContent({ modelName }: { modelName: string }) {
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
                              <div className="space-y-4">
-                                <Button asChild disabled={!consentGiven} className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
-                                  <label htmlFor="camera-upload">
-                                    <Camera size={20} />
-                                    <span>Take a Picture</span>
-                                  </label>
-                                </Button>
+                                <label htmlFor="camera-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                    <ActionButton
+                                        as="div"
+                                        disabled={!consentGiven}
+                                        icon={<Camera size={20} />}
+                                        text="Take a Picture"
+                                    />
+                                </label>
                                 <input id="camera-upload" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
                                 
-                                <Button asChild variant="secondary" disabled={!consentGiven} className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
-                                  <label htmlFor="file-upload">
-                                    <Upload size={20} />
-                                    <span>Upload from Library</span>
-                                  </label>
-                                </Button>
+                                <label htmlFor="file-upload" className={`cursor-pointer ${!consentGiven ? 'cursor-not-allowed' : ''}`}>
+                                    <ActionButton
+                                        as="div"
+                                        disabled={!consentGiven}
+                                        icon={<Upload size={20} />}
+                                        text="Upload from Library"
+                                        type="secondary"
+                                    />
+                                </label>
                                 <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0] || null)} disabled={!consentGiven} />
 
                                 <ActionButton
