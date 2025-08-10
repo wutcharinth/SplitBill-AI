@@ -108,6 +108,7 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     });
 };
 
+
 async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
     if (!element) {
         console.error('Element for image generation not found');
@@ -664,8 +665,8 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-dashed border-border/80" data-summary-toggle="true">
-                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2" >
+                    <div className="mt-4 pt-4 border-t border-dashed border-border/80">
+                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted -m-2" data-summary-toggle="true">
                             <input
                             type="checkbox"
                             checked={includeReceiptInSummary}
