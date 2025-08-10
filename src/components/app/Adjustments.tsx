@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { CURRENCIES } from '../constants';
 import { Plus, X, CheckCircle2, AlertCircle, PartyPopper, Info, User, Trash2 } from 'lucide-react';
 import { Person, Payment, Discount, Fee } from '../types';
