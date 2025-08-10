@@ -211,7 +211,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
         </div>
 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-            <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '6' : '5'}. Settle Up (Optional)</h2>
+            <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '6' : '5'}. Who Paid?</h2>
            <SettleUp state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
         </div>
         
