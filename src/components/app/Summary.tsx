@@ -70,31 +70,23 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     if (images.length === 0) {
         return Promise.resolve();
     }
+
     const promises = images.map(img => {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             if (img.complete && img.naturalHeight !== 0) {
-                // If image is already loaded and decoded, we're good.
-                img.decode().then(() => resolve()).catch(err => {
-                    console.warn("Decoding failed for already complete image, but resolving anyway:", img.src, err);
-                    resolve();
-                });
+                img.decode().then(() => resolve()).catch(() => resolve());
             } else {
                 img.onload = () => {
-                    // Once loaded, try to decode it to ensure it's ready for paint
-                    img.decode().then(() => resolve()).catch(err => {
-                        console.warn("Decoding failed on load, but resolving anyway:", img.src, err);
-                        resolve();
-                    });
+                    img.decode().then(() => resolve()).catch(() => resolve());
                 };
                 img.onerror = () => {
-                     // If an image fails to load, we don't want to block the whole process.
-                     // We resolve instead of rejecting to allow the download to proceed without the broken image.
-                     console.error("Image failed to load, but download will continue:", img.src);
-                     resolve();
+                    console.error("Image failed to load, but download will continue:", img.src);
+                    resolve();
                 };
             }
         });
     });
+
     return Promise.all(promises).then(() => {});
 };
 
@@ -107,10 +99,8 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
     element.classList.add('capturing');
 
     try {
-        // This is the critical step: wait for our specific images to be ready.
         await waitForImagesToLoad(element);
         
-        // Add a small, controlled delay to allow the browser to paint. This is a safeguard.
         await new Promise(resolve => setTimeout(resolve, 300));
 
         const dataUrl = await toPng(element, {
@@ -120,14 +110,13 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
-                // This function filters out elements we don't want in the final image
                 if (typeof node.getAttribute !== 'function') {
                     return true;
                 }
                 const isToggleButton = node.getAttribute('data-summary-toggle') === 'true';
                 return !isToggleButton;
             },
-            cacheBust: true, // Helps with re-capturing updated images
+            cacheBust: true,
         });
 
         const link = document.createElement('a');
@@ -239,32 +228,6 @@ const TotalShareDisplay: React.FC<{
         </div>
     );
 }
-
-const SummaryToggles: React.FC<{
-    summaryViewMode: 'detailed' | 'compact', 
-    setSummaryViewMode: (mode: 'detailed' | 'compact') => void, 
-    showTranslatedNames: boolean, 
-    setShowTranslatedNames: (show: boolean) => void,
-    hasAnyTranslatedItems: boolean,
-    splitMode: 'item' | 'evenly'
-}> = ({ summaryViewMode, setSummaryViewMode, showTranslatedNames, setShowTranslatedNames, hasAnyTranslatedItems, splitMode }) => {
-    return (
-        <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
-            {splitMode === 'item' && (
-                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border" data-summary-toggle="true">
-                    <div onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
-                    <div onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
-                </div>
-            )}
-            {hasAnyTranslatedItems && splitMode === 'item' && (
-                <div onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer" data-summary-toggle="true">
-                    <Languages size={14} />
-                    <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
-                </div>
-            )}
-        </div>
-    );
-};
 
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
@@ -478,14 +441,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     return (
         <div className="border-t pt-4 border-border">
-             <SummaryToggles 
-                summaryViewMode={summaryViewMode}
-                setSummaryViewMode={setSummaryViewMode}
-                showTranslatedNames={showTranslatedNames}
-                setShowTranslatedNames={setShowTranslatedNames}
-                hasAnyTranslatedItems={hasAnyTranslatedItems}
-                splitMode={splitMode}
-            />
             <div id="summary-container" className="relative">
                 <div ref={summaryRef} className="bg-background p-4 rounded-lg font-sans">
                     <div className="flex justify-between items-start mb-4">
@@ -774,6 +729,30 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                     )}
                 </Button>
             </div>
+        </div>
+    );
+};
+
+Summary.Toggles = function SummaryToggles({ state, dispatch, setSummaryViewMode, setShowTranslatedNames }) {
+    const { items, splitMode } = state;
+    const { summaryViewMode, showTranslatedNames } = state.ui;
+
+    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
+
+    return (
+        <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
+            {splitMode === 'item' && (
+                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border" data-summary-toggle="true">
+                    <div onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
+                    <div onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
+                </div>
+            )}
+            {hasAnyTranslatedItems && splitMode === 'item' && (
+                <div onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer" data-summary-toggle="true">
+                    <Languages size={14} />
+                    <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
+                </div>
+            )}
         </div>
     );
 };

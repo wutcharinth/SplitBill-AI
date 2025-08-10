@@ -47,6 +47,10 @@ interface AppState extends BillData {
   isFxLoading: boolean;
   includeReceiptInSummary: boolean;
   uploadedReceipt: string | null;
+  ui: {
+    summaryViewMode: 'detailed' | 'compact',
+    showTranslatedNames: boolean,
+  }
 }
 
 type Action =
@@ -80,6 +84,7 @@ type Action =
   | { type: 'SET_QR_CODE_IMAGE'; payload: string | null }
   | { type: 'SET_NOTES'; payload: string }
   | { type: 'TOGGLE_INCLUDE_RECEIPT' }
+  | { type: 'SET_UI_STATE', payload: Partial<AppState['ui']>}
   | { type: 'RESET'; payload: BillData | null };
 
 const getStoredQrCode = (): string | null => {
@@ -105,6 +110,10 @@ const createInitialState = (billData: BillData, uploadedReceipt: string | null):
     isFxLoading: false,
     includeReceiptInSummary: !!uploadedReceipt,
     uploadedReceipt,
+    ui: {
+        summaryViewMode: 'detailed',
+        showTranslatedNames: true,
+    }
 });
 
 const reducer = (state: AppState, action: Action): AppState => {
@@ -346,6 +355,9 @@ const reducer = (state: AppState, action: Action): AppState => {
     
     case 'TOGGLE_INCLUDE_RECEIPT':
         return { ...state, includeReceiptInSummary: !state.includeReceiptInSummary };
+    
+    case 'SET_UI_STATE':
+        return { ...state, ui: { ...state.ui, ...action.payload } };
 
     case 'RESET':
         if(action.payload) {
@@ -441,7 +453,12 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             {activePage === 'summary' && (
                 <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
                     <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
-                        <Summary.Toggles state={state} />
+                        <Summary.Toggles 
+                          state={state} 
+                          dispatch={dispatch} 
+                          setSummaryViewMode={(mode) => dispatch({type: 'SET_UI_STATE', payload: {summaryViewMode: mode}})}
+                          setShowTranslatedNames={(show) => dispatch({type: 'SET_UI_STATE', payload: {showTranslatedNames: show}})}
+                        />
                     </div>
                     <h2 className="text-sm font-bold mb-4 text-primary font-headline">Final Summary</h2>
                     <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
