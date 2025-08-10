@@ -389,9 +389,9 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
   }, [state.baseCurrency, state.displayCurrency]);
 
   useEffect(() => {
-    // Preload images for summary page to avoid flash of missing images
+    // Preload critical images for summary page to avoid flash of missing images
     const imagesToPreload: string[] = [];
-    if (state.uploadedReceipt) {
+    if (state.uploadedReceipt && state.includeReceiptInSummary) {
       imagesToPreload.push(`data:image/png;base64,${state.uploadedReceipt}`);
     }
     if (state.qrCodeImage) {
@@ -406,7 +406,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             console.warn(`Failed to preload image: ${src}`, error);
         }
     });
-  }, [state.uploadedReceipt, state.qrCodeImage]);
+  }, [state.uploadedReceipt, state.qrCodeImage, state.includeReceiptInSummary]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -472,3 +472,5 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 };
 
 export default MainApp;
+
+    

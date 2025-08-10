@@ -66,21 +66,28 @@ const fireConfetti = () => {
 };
 
 const waitForImagesToLoad = (element: HTMLElement): Promise<any[]> => {
-    const images = Array.from(element.getElementsByTagName('img'));
+    const images = Array.from(element.querySelectorAll<HTMLImageElement>('img[data-summary-image="true"]'));
     const promises = images.map(img => {
         return new Promise((resolve, reject) => {
             if (img.complete && img.naturalHeight !== 0) {
-                // For already loaded images, still wait for decode to be safe.
-                img.decode().then(resolve).catch(resolve);
+                img.decode().then(resolve).catch(err => {
+                    console.warn("Decoding failed, but resolving anyway:", img.src, err);
+                    resolve(true); // Resolve even if decode fails, maybe the browser can still render it.
+                });
             } else {
-                img.onload = () => img.decode().then(resolve).catch(resolve);
-                img.onerror = reject; // It's better to reject on error now
+                img.onload = () => img.decode().then(resolve).catch(err => {
+                    console.warn("Decoding failed on load, but resolving anyway:", img.src, err);
+                    resolve(true);
+                });
+                img.onerror = () => {
+                     console.error("Image failed to load:", img.src);
+                     reject(new Error(`Image failed to load: ${img.src}`));
+                };
             }
         });
     });
     return Promise.all(promises);
 };
-
 
 async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
     if (!element) {
@@ -94,7 +101,7 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
         await waitForImagesToLoad(element);
         
         // Add a small, controlled delay to allow the browser to paint.
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         const dataUrl = await toPng(element, {
             quality: 0.95,
@@ -662,7 +669,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         {includeReceiptInSummary && uploadedReceipt && (
                             <div className="mt-2">
                                 <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
-                                <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" />
+                                <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" data-summary-image="true" />
                             </div>
                         )}
                     </div>
@@ -673,7 +680,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                 <div className="space-y-2 text-center w-full">
                                     <h4 className="text-xs font-semibold text-muted-foreground">Payment QR Code</h4>
                                     <div className="relative w-fit mx-auto">
-                                        <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-full max-w-[256px] h-auto" />
+                                        <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-full max-w-[256px] h-auto" data-summary-image="true" />
                                     </div>
                                 </div>
                             )}
@@ -741,3 +748,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 };
 
 export default Summary;
+
+    
