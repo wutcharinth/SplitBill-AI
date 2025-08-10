@@ -67,23 +67,30 @@ const fireConfetti = () => {
 
 const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     const images = Array.from(element.querySelectorAll<HTMLImageElement>('img[data-summary-image="true"]'));
+    if (images.length === 0) {
+        return Promise.resolve();
+    }
     const promises = images.map(img => {
         return new Promise<void>((resolve, reject) => {
             if (img.complete && img.naturalHeight !== 0) {
+                // If image is already loaded and decoded, we're good.
                 img.decode().then(() => resolve()).catch(err => {
-                    console.warn("Decoding failed, but resolving anyway:", img.src, err);
+                    console.warn("Decoding failed for already complete image, but resolving anyway:", img.src, err);
                     resolve();
                 });
             } else {
                 img.onload = () => {
+                    // Once loaded, try to decode it to ensure it's ready for paint
                     img.decode().then(() => resolve()).catch(err => {
                         console.warn("Decoding failed on load, but resolving anyway:", img.src, err);
                         resolve();
                     });
                 };
                 img.onerror = () => {
-                     console.error("Image failed to load:", img.src);
-                     reject(new Error(`Image failed to load: ${img.src}`));
+                     // If an image fails to load, we don't want to block the whole process.
+                     // We resolve instead of rejecting to allow the download to proceed without the broken image.
+                     console.error("Image failed to load, but download will continue:", img.src);
+                     resolve();
                 };
             }
         });
@@ -100,9 +107,10 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
     element.classList.add('capturing');
 
     try {
+        // This is the critical step: wait for our specific images to be ready.
         await waitForImagesToLoad(element);
         
-        // Add a small, controlled delay to allow the browser to paint.
+        // Add a small, controlled delay to allow the browser to paint. This is a safeguard.
         await new Promise(resolve => setTimeout(resolve, 300));
 
         const dataUrl = await toPng(element, {
@@ -112,13 +120,14 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 fontFamily: "'Inter', sans-serif",
             },
             filter: (node: HTMLElement) => {
+                // This function filters out elements we don't want in the final image
                 if (typeof node.getAttribute !== 'function') {
                     return true;
                 }
                 const isToggleButton = node.getAttribute('data-summary-toggle') === 'true';
                 return !isToggleButton;
             },
-            cacheBust: true,
+            cacheBust: true, // Helps with re-capturing updated images
         });
 
         const link = document.createElement('a');
@@ -231,12 +240,14 @@ const TotalShareDisplay: React.FC<{
     );
 }
 
-const SummaryToggles: React.FC<{state: any}> = ({ state }) => {
-    const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
-    const [showTranslatedNames, setShowTranslatedNames] = useState(true);
-    const { items, splitMode } = state;
-    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
-
+const SummaryToggles: React.FC<{
+    summaryViewMode: 'detailed' | 'compact', 
+    setSummaryViewMode: (mode: 'detailed' | 'compact') => void, 
+    showTranslatedNames: boolean, 
+    setShowTranslatedNames: (show: boolean) => void,
+    hasAnyTranslatedItems: boolean,
+    splitMode: 'item' | 'evenly'
+}> = ({ summaryViewMode, setSummaryViewMode, showTranslatedNames, setShowTranslatedNames, hasAnyTranslatedItems, splitMode }) => {
     return (
         <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
             {splitMode === 'item' && (
@@ -255,32 +266,19 @@ const SummaryToggles: React.FC<{state: any}> = ({ state }) => {
     );
 };
 
-const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> & { Toggles: typeof SummaryToggles } = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
+const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const [showTranslatedNames, setShowTranslatedNames] = useState(true);
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
-    const [imagesLoaded, setImagesLoaded] = useState(false);
-
+    
     const {
         items, people, discount, taxes, tip, tipSplitMode, billTotal, payments,
         splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
         restaurantName, billDate, qrCodeImage, notes,
         includeReceiptInSummary, uploadedReceipt
     } = state;
-
-    useEffect(() => {
-        if(summaryRef.current) {
-            waitForImagesToLoad(summaryRef.current).then(() => {
-                setImagesLoaded(true);
-            }).catch(err => {
-                console.error("Error waiting for images:", err);
-                // Still set to true to allow download attempts
-                setImagesLoaded(true);
-            });
-        }
-    }, [includeReceiptInSummary, qrCodeImage]);
 
     const handleShareSummary = async () => {
         setIsDownloading(true);
@@ -291,11 +289,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const filename = `SplitBill-AI-${datePart}${restaurantPart ? `-${restaurantPart}` : ''}-${timePart}.png`;
         
         if (summaryRef.current) {
-            // Force a re-render cycle if images just loaded
-            if (!imagesLoaded) {
-                 await new Promise(resolve => setTimeout(resolve, 50));
-            }
-
             const success = await generateImage(summaryRef.current, filename, toast);
             if (success) {
                 fireConfetti();
@@ -479,10 +472,20 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         displayCurrency,
         formatNumber
     };
+    
+    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
 
 
     return (
         <div className="border-t pt-4 border-border">
+             <SummaryToggles 
+                summaryViewMode={summaryViewMode}
+                setSummaryViewMode={setSummaryViewMode}
+                showTranslatedNames={showTranslatedNames}
+                setShowTranslatedNames={setShowTranslatedNames}
+                hasAnyTranslatedItems={hasAnyTranslatedItems}
+                splitMode={splitMode}
+            />
             <div id="summary-container" className="relative">
                 <div ref={summaryRef} className="bg-background p-4 rounded-lg font-sans">
                     <div className="flex justify-between items-start mb-4">
@@ -774,7 +777,5 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         </div>
     );
 };
-
-Summary.Toggles = SummaryToggles;
 
 export default Summary;
