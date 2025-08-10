@@ -4,7 +4,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Camera, Upload, PlusCircle, LogIn } from 'lucide-react';
 import { parseReceipt } from '../services/geminiService';
-import { BillData, Person } from '../types';
+import { BillData, Person, Fee, Discount } from '../types';
 import { ALLOWED_CURRENCIES, PERSON_COLORS, COUNTRY_CURRENCY_MAP, CURRENCIES } from '../constants';
 import MainApp from './MainApp';
 import Loader from './Loader';
@@ -13,9 +13,7 @@ import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import AuthForm from '@/components/app/AuthForm';
 
 const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
     const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
@@ -35,25 +33,14 @@ const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as:
 }
 
 function AppContent({ modelName }: { modelName: string }) {
-    const [view, setView] = useState<'auth' | 'upload' | 'loading' | 'main' | 'error'>('upload');
+    const [view, setView] = useState<'upload' | 'loading' | 'main' | 'error'>('upload');
     const [billData, setBillData] = useState<BillData | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
     const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
     const [consentGiven, setConsentGiven] = useState(true);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
-    const { user, loading } = useAuth();
 
-
-    useEffect(() => {
-        if (loading) {
-            setView('loading');
-        } else if (!user) {
-            setView('auth');
-        } else {
-            setView('upload');
-        }
-    }, [user, loading]);
 
     useEffect(() => {
         try {
@@ -135,25 +122,27 @@ function AppContent({ modelName }: { modelName: string }) {
             paidBy: person.id,
         }));
         
-        const serviceChargeName = data?.serviceCharge?.translatedName || data?.serviceCharge?.name || 'Service Charge';
-        const serviceChargeOriginalName = data?.serviceCharge?.name && serviceChargeName !== data.serviceCharge.name ? data.serviceCharge.name : null;
+        const fees: Fee[] = data?.fees?.map(fee => ({
+            id: fee.id || `fee-${Date.now()}`,
+            name: fee.translatedName || fee.name,
+            translatedName: fee.name,
+            amount: fee.amount,
+            isEnabled: true
+        })) || [];
 
-        const vatName = data?.vat?.translatedName || data?.vat?.name || 'VAT';
-        const vatOriginalName = data?.vat?.name && vatName !== data.vat.name ? data.vat.name : null;
-
-        const otherTaxName = data?.otherTax?.translatedName || data?.otherTax?.name || 'Other Tax';
-        const otherTaxOriginalName = data?.otherTax?.name && otherTaxName !== data.otherTax.name ? data.otherTax.name : null;
+        const discounts: Discount[] = data?.discounts?.map(discount => ({
+            id: discount.id || `discount-${Date.now()}`,
+            name: discount.translatedName || discount.name,
+            amount: discount.amount,
+            shares: Array(initialPeople.length).fill(0)
+        })) || [];
 
 
         const newBillData: BillData = {
             items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
-            taxes: {
-                serviceCharge: { id: 'serviceCharge', name: serviceChargeName, translatedName: serviceChargeOriginalName, amount: data?.serviceCharge?.amount || 0, isEnabled: !!data?.serviceCharge?.amount },
-                vat: { id: 'vat', name: vatName, translatedName: vatOriginalName, amount: data?.vat?.amount || 0, isEnabled: !!data?.vat?.amount },
-                otherTax: { id: 'otherTax', name: otherTaxName, translatedName: otherTaxOriginalName, amount: data?.otherTax?.amount || 0, isEnabled: !!data?.otherTax?.amount },
-            },
-            discount: { value: data?.discount || 0, type: 'fixed', shares: [] },
+            fees,
+            discounts,
             tip: 0,
             tipSplitMode: 'proportionally',
             payments: initialPayments,
@@ -182,8 +171,6 @@ function AppContent({ modelName }: { modelName: string }) {
                 return <ErrorMessage message={errorMessage} onReset={handleReset} />;
             case 'main':
                 return billData ? <MainApp initialBillData={billData} onReset={handleReset} uploadedReceipt={uploadedReceipt} /> : <ErrorMessage message="Failed to load bill data." onReset={handleReset} />;
-            case 'auth':
-                return <AuthForm onAuthSuccess={() => setView('upload')} />;
             case 'upload':
             default:
                 return (
@@ -310,3 +297,5 @@ export default function App({ modelName }: { modelName: string }) {
         </UsageProvider>
     )
 }
+
+    
