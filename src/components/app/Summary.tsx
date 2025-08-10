@@ -65,20 +65,22 @@ const fireConfetti = () => {
     }
 };
 
-const waitForImagesToLoad = (element: HTMLElement): Promise<any[]> => {
+const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     const images = Array.from(element.querySelectorAll<HTMLImageElement>('img[data-summary-image="true"]'));
     const promises = images.map(img => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             if (img.complete && img.naturalHeight !== 0) {
-                img.decode().then(resolve).catch(err => {
+                img.decode().then(() => resolve()).catch(err => {
                     console.warn("Decoding failed, but resolving anyway:", img.src, err);
-                    resolve(true); // Resolve even if decode fails, maybe the browser can still render it.
+                    resolve();
                 });
             } else {
-                img.onload = () => img.decode().then(resolve).catch(err => {
-                    console.warn("Decoding failed on load, but resolving anyway:", img.src, err);
-                    resolve(true);
-                });
+                img.onload = () => {
+                    img.decode().then(() => resolve()).catch(err => {
+                        console.warn("Decoding failed on load, but resolving anyway:", img.src, err);
+                        resolve();
+                    });
+                };
                 img.onerror = () => {
                      console.error("Image failed to load:", img.src);
                      reject(new Error(`Image failed to load: ${img.src}`));
@@ -86,7 +88,7 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<any[]> => {
             }
         });
     });
-    return Promise.all(promises);
+    return Promise.all(promises).then(() => {});
 };
 
 async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
@@ -229,12 +231,37 @@ const TotalShareDisplay: React.FC<{
     );
 }
 
-const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
+const SummaryToggles: React.FC<{state: any}> = ({ state }) => {
+    const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
+    const [showTranslatedNames, setShowTranslatedNames] = useState(true);
+    const { items, splitMode } = state;
+    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
+
+    return (
+        <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
+            {splitMode === 'item' && (
+                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border" data-summary-toggle="true">
+                    <div onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
+                    <div onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
+                </div>
+            )}
+            {hasAnyTranslatedItems && splitMode === 'item' && (
+                <div onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer" data-summary-toggle="true">
+                    <Languages size={14} />
+                    <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> & { Toggles: typeof SummaryToggles } = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const [summaryViewMode, setSummaryViewMode] = useState<'detailed' | 'compact'>('detailed');
     const [showTranslatedNames, setShowTranslatedNames] = useState(true);
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
+    const [imagesLoaded, setImagesLoaded] = useState(false);
 
     const {
         items, people, discount, taxes, tip, tipSplitMode, billTotal, payments,
@@ -242,6 +269,18 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         restaurantName, billDate, qrCodeImage, notes,
         includeReceiptInSummary, uploadedReceipt
     } = state;
+
+    useEffect(() => {
+        if(summaryRef.current) {
+            waitForImagesToLoad(summaryRef.current).then(() => {
+                setImagesLoaded(true);
+            }).catch(err => {
+                console.error("Error waiting for images:", err);
+                // Still set to true to allow download attempts
+                setImagesLoaded(true);
+            });
+        }
+    }, [includeReceiptInSummary, qrCodeImage]);
 
     const handleShareSummary = async () => {
         setIsDownloading(true);
@@ -252,6 +291,11 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const filename = `SplitBill-AI-${datePart}${restaurantPart ? `-${restaurantPart}` : ''}-${timePart}.png`;
         
         if (summaryRef.current) {
+            // Force a re-render cycle if images just loaded
+            if (!imagesLoaded) {
+                 await new Promise(resolve => setTimeout(resolve, 50));
+            }
+
             const success = await generateImage(summaryRef.current, filename, toast);
             if (success) {
                 fireConfetti();
@@ -426,9 +470,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
-    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
-
-
+    
     const commonCurrencyProps = {
         currencySymbol,
         baseCurrencySymbol,
@@ -441,21 +483,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
     return (
         <div className="border-t pt-4 border-border">
-            <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
-                {splitMode === 'item' && (
-                    <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
-                        <div onClick={() => setSummaryViewMode('detailed')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
-                        <div onClick={() => setSummaryViewMode('compact')} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
-                    </div>
-                )}
-                {hasAnyTranslatedItems && splitMode === 'item' && (
-                    <div onClick={() => setShowTranslatedNames(!showTranslatedNames)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer">
-                        <Languages size={14} />
-                        <span>{showTranslatedNames ? 'Original' : 'Translated'}</span>
-                    </div>
-                )}
-            </div>
-
             <div id="summary-container" className="relative">
                 <div ref={summaryRef} className="bg-background p-4 rounded-lg font-sans">
                     <div className="flex justify-between items-start mb-4">
@@ -748,6 +775,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     );
 };
 
-export default Summary;
+Summary.Toggles = SummaryToggles;
 
-    
+export default Summary;
