@@ -400,10 +400,10 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
     fetchRate();
   }, [state.baseCurrency, state.displayCurrency]);
 
-  useEffect(() => {
-    // Preload critical images for summary page to avoid flash of missing images
+ useEffect(() => {
+    // Preload critical images to improve summary generation reliability
     const imagesToPreload: string[] = [];
-    if (state.uploadedReceipt && state.includeReceiptInSummary) {
+    if (state.uploadedReceipt) {
       imagesToPreload.push(`data:image/png;base64,${state.uploadedReceipt}`);
     }
     if (state.qrCodeImage) {
@@ -415,10 +415,10 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             const img = new Image();
             img.src = src;
         } catch (error) {
-            console.warn(`Failed to preload image: ${src}`, error);
+            console.warn(`Failed to preload image, continuing without it: ${src}`, error);
         }
     });
-  }, [state.uploadedReceipt, state.qrCodeImage, state.includeReceiptInSummary]);
+  }, [state.uploadedReceipt, state.qrCodeImage]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -452,9 +452,6 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             )}
             {activePage === 'summary' && (
                 <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-                    <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3">
-                        <Summary.Toggles state={state} dispatch={dispatch} />
-                    </div>
                     <h2 className="text-sm font-bold mb-4 text-primary font-headline">Final Summary</h2>
                     <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
                 </div>
@@ -487,3 +484,6 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 };
 
 export default MainApp;
+
+
+      

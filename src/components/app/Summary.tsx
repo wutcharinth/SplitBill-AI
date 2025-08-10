@@ -72,14 +72,21 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     }
 
     const promises = images.map(img => {
-        return new Promise<void>((resolve) => {
+        return new Promise<void>((resolve, reject) => {
             if (img.complete && img.naturalHeight !== 0) {
-                img.decode().then(() => resolve()).catch(() => resolve());
+                // If image is already loaded and decoded, resolve immediately
+                 img.decode().then(() => resolve()).catch(() => resolve());
             } else {
                 img.onload = () => {
-                    img.decode().then(() => resolve()).catch(() => resolve());
+                    // Once loaded, decode it
+                    img.decode().then(() => resolve()).catch(() => {
+                        // Even if decode fails, resolve to not block the process
+                        console.error("Image failed to decode, but download will continue:", img.src);
+                        resolve();
+                    });
                 };
                 img.onerror = () => {
+                    // If image fails to load, resolve to not block the process
                     console.error("Image failed to load, but download will continue:", img.src);
                     resolve();
                 };
@@ -87,7 +94,10 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
         });
     });
 
-    return Promise.all(promises).then(() => {});
+    return Promise.all(promises).then(() => {
+        // Add a small delay after all images are decoded to allow for browser paint
+        return new Promise(resolve => setTimeout(resolve, 300));
+    });
 };
 
 async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
@@ -100,8 +110,6 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
 
     try {
         await waitForImagesToLoad(element);
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
 
         const dataUrl = await toPng(element, {
             quality: 0.95,
@@ -228,6 +236,31 @@ const TotalShareDisplay: React.FC<{
         </div>
     );
 }
+
+const SummaryToggles = ({ state, dispatch }: { state: any, dispatch: any }) => {
+    const { items, splitMode, ui } = state;
+    const { summaryViewMode, showTranslatedNames } = ui;
+
+    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
+
+    return (
+        <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3" data-summary-toggle="true">
+            {splitMode === 'item' && (
+                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
+                    <div onClick={() => dispatch({ type: 'SET_UI_STATE', payload: { summaryViewMode: 'detailed' } })} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
+                    <div onClick={() => dispatch({ type: 'SET_UI_STATE', payload: { summaryViewMode: 'compact' } })} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
+                </div>
+            )}
+            {hasAnyTranslatedItems && splitMode === 'item' && (
+                <div onClick={() => dispatch({ type: 'SET_UI_STATE', payload: { showTranslatedNames: !showTranslatedNames } })} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer">
+                    <Languages size={14} />
+                    <span>{showTranslatedNames ? 'Translated' : 'Original'}</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const summaryRef = useRef<HTMLDivElement>(null);
@@ -435,11 +468,9 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         formatNumber
     };
     
-    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
-
-
     return (
         <div className="border-t pt-4 border-border">
+            <SummaryToggles state={state} dispatch={dispatch} />
             <div id="summary-container" className="relative">
                 <div ref={summaryRef} className="bg-background p-4 rounded-lg font-sans">
                     <div className="flex justify-between items-start mb-4">
@@ -732,28 +763,10 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
     );
 };
 
-Summary.Toggles = function SummaryToggles({ state, dispatch }) {
-    const { items, splitMode, ui } = state;
-    const { summaryViewMode, showTranslatedNames } = ui;
+Summary.Toggles = SummaryToggles;
 
-    const hasAnyTranslatedItems = items.some((item: any) => item.translatedName && item.translatedName.toLowerCase() !== item.name.toLowerCase());
-
-    return (
-        <div className="flex flex-wrap-reverse justify-end items-center gap-2 mb-3" data-summary-toggle="true">
-            {splitMode === 'item' && (
-                <div className="flex items-center justify-center space-x-1 bg-muted p-1 rounded-lg text-xs border">
-                    <div onClick={() => dispatch({type: 'SET_UI_STATE', payload: {summaryViewMode: 'detailed'}})} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'detailed' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Detailed</div>
-                    <div onClick={() => dispatch({type: 'SET_UI_STATE', payload: {summaryViewMode: 'compact'}})} className={`cursor-pointer py-1 px-2 rounded-md ${summaryViewMode === 'compact' ? 'bg-card shadow text-foreground' : 'text-muted-foreground'}`}>Compact</div>
-                </div>
-            )}
-            {hasAnyTranslatedItems && splitMode === 'item' && (
-                <div onClick={() => dispatch({type: 'SET_UI_STATE', payload: {showTranslatedNames: !showTranslatedNames}})} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer">
-                    <Languages size={14} />
-                    <span>{showTranslatedNames ? 'Translated' : 'Original'}</span>
-                </div>
-            )}
-        </div>
-    );
-};
 
 export default Summary;
+
+
+      
