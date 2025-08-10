@@ -57,9 +57,8 @@ const SinglePersonPaymentInput: React.FC<{ person: Person; payment: Payment | un
     );
 };
 
-const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
+const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string, settleMode: 'single' | 'multiple', setSettleMode: (mode: 'single' | 'multiple') => void }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber, settleMode, setSettleMode }) => {
     const { items, people, discount, taxes, tip, payments, billTotal } = state;
-    const [settleMode, setSettleMode] = useState<'single' | 'multiple'>('single');
 
     const { grandTotalWithTip, remainingAmount } = useMemo(() => {
         const subtotal = items.reduce((sum: number, item: any) => sum + item.price, 0);
@@ -97,21 +96,10 @@ const SettleUp: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySy
 
     return (
         <div className="space-y-3">
-            <div className="flex justify-between items-center">
-                <p className="text-xs text-muted-foreground -mt-1">Enter who paid the restaurant to see who owes who.</p>
-                <div className="flex items-center space-x-2">
-                    <Label htmlFor="settle-mode" className="text-xs text-muted-foreground">Multiple Payers</Label>
-                    <Switch
-                        id="settle-mode"
-                        checked={settleMode === 'multiple'}
-                        onCheckedChange={(checked) => setSettleMode(checked ? 'multiple' : 'single')}
-                    />
-                </div>
-            </div>
+             <p className="text-xs text-muted-foreground -mt-1">Enter who paid the restaurant to see who owes who.</p>
             
             {settleMode === 'single' ? (
                  <div className="pt-2">
-                    <p className="text-sm font-medium text-center text-foreground mb-3">Who paid the bill?</p>
                     <div className="flex flex-wrap justify-center items-center gap-3">
                         {people.map((person: Person) => {
                             const isSelected = singlePayerId === person.id;

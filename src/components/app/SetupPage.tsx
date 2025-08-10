@@ -13,6 +13,8 @@ import { Button } from '../ui/button';
 import { Wand2, Info, CheckCircle2, AlertCircle, PartyPopper, Receipt } from 'lucide-react';
 import SettleUp from './SettleUp';
 import ReceiptViewer from './ReceiptViewer';
+import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
 
 interface SetupPageProps {
   state: any;
@@ -25,6 +27,7 @@ interface SetupPageProps {
 const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
   const [isGuideVisible, setIsGuideVisible] = useState(false);
   const [isReceiptVisible, setIsReceiptVisible] = useState(false);
+  const [settleMode, setSettleMode] = useState<'single' | 'multiple'>('single');
   
   const { items, billTotal, splitMode, discount, taxes, uploadedReceipt } = state;
 
@@ -211,8 +214,26 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
         </div>
 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-            <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '6' : '5'}. Who Paid?</h2>
-           <SettleUp state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-bold text-primary font-headline">{state.splitMode === 'item' ? '6' : '5'}. Who Paid?</h2>
+              <div className="flex items-center space-x-2">
+                    <Label htmlFor="settle-mode" className="text-xs text-muted-foreground">Multiple Payers</Label>
+                    <Switch
+                        id="settle-mode"
+                        checked={settleMode === 'multiple'}
+                        onCheckedChange={(checked) => setSettleMode(checked ? 'multiple' : 'single')}
+                    />
+                </div>
+            </div>
+           <SettleUp 
+            state={state} 
+            dispatch={dispatch} 
+            currencySymbol={currencySymbol} 
+            fxRate={state.fxRate} 
+            formatNumber={formatNumber}
+            settleMode={settleMode}
+            setSettleMode={setSettleMode}
+            />
         </div>
         
         {/* The stationary receipt is hidden to avoid redundancy with the floating button */}
