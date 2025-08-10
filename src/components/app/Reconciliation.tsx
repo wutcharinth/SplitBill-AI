@@ -27,10 +27,9 @@ const Reconciliation: React.FC<{ state: any; currencySymbol: string, fxRate: num
     const { calculatedTotal, adjustment } = useMemo(() => {
         const baseForCharges = assignedSubtotal;
         
-        const totalDiscounts = discounts.reduce((sum: number, d: any) => {
-            const totalShares = d.shares.reduce((a: number, b: number) => a + b, 0);
-            return totalShares > 0 ? sum + d.amount : sum;
-        }, 0);
+        // Corrected logic: All discounts should be summed up, regardless of assignment.
+        // The distribution happens later in the final summary calculation.
+        const totalDiscounts = discounts.reduce((sum: number, d: any) => sum + d.amount, 0);
 
         const subtotalAfterDiscount = baseForCharges - totalDiscounts;
 
