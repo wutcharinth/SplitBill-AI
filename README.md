@@ -79,7 +79,18 @@ The `AppState` interface in `MainApp.tsx` defines the entire shape of this compl
 
 ---
 
-## 5. Key File & Directory Deep Dive
+## 5. Error Handling & Edge Cases
+A robust application must gracefully handle failures.
+
+**AI Processing Failure**: If the Gemini model fails to return data or returns it in an unexpected format, the Server Action will catch the error. It will return a specific error object to the client. App.tsx will then transition the UI to the 'error' state, displaying a user-friendly message.
+
+**Network Failure**: `try/catch` blocks around all fetch calls (including Server Action invocations) are used to handle network issues. The UI will inform the user that the request could not be completed.
+
+**Database Operations**: All interactions with Firestore (reads, writes, updates) are wrapped in `try/catch` blocks to handle potential security rule violations or network interruptions. The user will be notified of any failure to save data.
+
+---
+
+## 6. Key File & Directory Deep Dive
 
 ### `src/ai` - AI and Genkit Integration
 
