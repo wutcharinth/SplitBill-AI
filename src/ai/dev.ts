@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/edit-receipt-items.ts';
-import '@/ai/flows/extract-receipt-data.ts';
+import './init.ts';
+import './flows/edit-receipt-items.ts';
+import './flows/extract-receipt-data.ts';

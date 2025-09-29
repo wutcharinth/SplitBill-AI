@@ -10,7 +10,7 @@ import MainApp from './MainApp';
 import Loader from './Loader';
 import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
-import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
+import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types';
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
 import { Button } from '@/components/ui/button';

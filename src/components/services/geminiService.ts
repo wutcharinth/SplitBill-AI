@@ -1,4 +1,5 @@
-import { extractReceiptData, ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
+import { extractReceiptData } from '@/ai/flows/extract-receipt-data';
+import type { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types';
 
 export const parseReceipt = async (base64Image: string, mimeType: string): Promise<ExtractReceiptDataOutput> => {
     try {
