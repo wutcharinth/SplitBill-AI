@@ -15,6 +15,8 @@ import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types'
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
 import { Button } from '@/components/ui/button';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import AuthForm from '@/components/app/AuthForm';
 
 const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
     const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
@@ -41,6 +43,7 @@ function AppContent({ modelName }: { modelName: string }) {
     const [consentGiven, setConsentGiven] = useState(true);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
+    const { user, loading } = useAuth();
 
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -185,27 +188,39 @@ function AppContent({ modelName }: { modelName: string }) {
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
+                            {!user && !loading && (
+                                <p className="text-muted-foreground mb-6 max-w-xs mx-auto text-sm">
+                                    The smartest way to split a bill. It's fast, powerful, and free. Sign in to get started.
+                                </p>
+                            )}
+
                              <div className="flex flex-col gap-4">
-                                <ActionButton
-                                    onClick={() => cameraInputRef.current?.click()}
-                                    disabled={!consentGiven}
-                                    icon={<Camera size={20} />}
-                                    text="Take a Picture"
-                                />
-                                <ActionButton
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={!consentGiven}
-                                    icon={<Upload size={20} />}
-                                    text="Upload from Library"
-                                    type="secondary"
-                                />
-                                <ActionButton
-                                    onClick={handleStartManual}
-                                    disabled={!consentGiven}
-                                    icon={<PlusCircle size={20} />}
-                                    text="Start without Receipt"
-                                    type="ghost"
-                                />
+                                <AuthForm />
+
+                                {user && !loading && (
+                                    <>
+                                        <ActionButton
+                                            onClick={() => cameraInputRef.current?.click()}
+                                            disabled={!consentGiven}
+                                            icon={<Camera size={20} />}
+                                            text="Take a Picture"
+                                        />
+                                        <ActionButton
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={!consentGiven}
+                                            icon={<Upload size={20} />}
+                                            text="Upload from Library"
+                                            type="secondary"
+                                        />
+                                        <ActionButton
+                                            onClick={handleStartManual}
+                                            disabled={!consentGiven}
+                                            icon={<PlusCircle size={20} />}
+                                            text="Start without Receipt"
+                                            type="ghost"
+                                        />
+                                    </>
+                                )}
                             </div>
                             
                             <input
@@ -216,7 +231,7 @@ function AppContent({ modelName }: { modelName: string }) {
                                 capture="environment"
                                 className="hidden"
                                 onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                                disabled={!consentGiven}
+                                disabled={!consentGiven || !user}
                             />
                              <input
                                 ref={fileInputRef}
@@ -225,7 +240,7 @@ function AppContent({ modelName }: { modelName: string }) {
                                 accept="image/*"
                                 className="hidden"
                                 onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                                disabled={!consentGiven}
+                                disabled={!consentGiven || !user}
                             />
                             
                             {isFirstVisit && (
@@ -309,13 +324,9 @@ const getCurrencyFromLocale = (): string => {
 export default function App({ modelName }: { modelName: string }) {
     return (
         <UsageProvider>
-            <AppContent modelName={modelName} />
+            <AuthProvider>
+                <AppContent modelName={modelName} />
+            </AuthProvider>
         </UsageProvider>
     )
 }
-
-    
-
-    
-
-    
