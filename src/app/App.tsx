@@ -15,6 +15,8 @@ import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types'
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
 import { Button } from '@/components/ui/button';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import AuthForm from '@/components/app/AuthForm';
 
 const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
     const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
@@ -186,6 +188,7 @@ function AppContent({ modelName }: { modelName: string }) {
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
                              <div className="flex flex-col gap-4">
+                                <AuthForm />
                                 <ActionButton
                                     onClick={() => cameraInputRef.current?.click()}
                                     disabled={!consentGiven}
@@ -309,13 +312,9 @@ const getCurrencyFromLocale = (): string => {
 export default function App({ modelName }: { modelName: string }) {
     return (
         <UsageProvider>
-            <AppContent modelName={modelName} />
+            <AuthProvider>
+                <AppContent modelName={modelName} />
+            </AuthProvider>
         </UsageProvider>
     )
 }
-
-    
-
-    
-
-    
