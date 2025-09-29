@@ -188,6 +188,12 @@ function AppContent({ modelName }: { modelName: string }) {
                             </div>
                             <p className="text-gray-600 mb-8 text-lg font-medium">Snap.Split.Share!</p>
                             
+                            {!user && !loading && (
+                                <p className="text-muted-foreground mb-6 max-w-xs mx-auto text-sm">
+                                    The smartest way to split a bill. It's fast, powerful, and free. Sign in to get started.
+                                </p>
+                            )}
+
                              <div className="flex flex-col gap-4">
                                 <AuthForm />
 
