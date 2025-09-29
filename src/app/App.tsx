@@ -43,6 +43,7 @@ function AppContent({ modelName }: { modelName: string }) {
     const [consentGiven, setConsentGiven] = useState(true);
     const [isFirstVisit, setIsFirstVisit] = useState(true);
     const { recordUsage } = useUsage();
+    const { user, loading } = useAuth();
 
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -189,26 +190,31 @@ function AppContent({ modelName }: { modelName: string }) {
                             
                              <div className="flex flex-col gap-4">
                                 <AuthForm />
-                                <ActionButton
-                                    onClick={() => cameraInputRef.current?.click()}
-                                    disabled={!consentGiven}
-                                    icon={<Camera size={20} />}
-                                    text="Take a Picture"
-                                />
-                                <ActionButton
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={!consentGiven}
-                                    icon={<Upload size={20} />}
-                                    text="Upload from Library"
-                                    type="secondary"
-                                />
-                                <ActionButton
-                                    onClick={handleStartManual}
-                                    disabled={!consentGiven}
-                                    icon={<PlusCircle size={20} />}
-                                    text="Start without Receipt"
-                                    type="ghost"
-                                />
+
+                                {user && !loading && (
+                                    <>
+                                        <ActionButton
+                                            onClick={() => cameraInputRef.current?.click()}
+                                            disabled={!consentGiven}
+                                            icon={<Camera size={20} />}
+                                            text="Take a Picture"
+                                        />
+                                        <ActionButton
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={!consentGiven}
+                                            icon={<Upload size={20} />}
+                                            text="Upload from Library"
+                                            type="secondary"
+                                        />
+                                        <ActionButton
+                                            onClick={handleStartManual}
+                                            disabled={!consentGiven}
+                                            icon={<PlusCircle size={20} />}
+                                            text="Start without Receipt"
+                                            type="ghost"
+                                        />
+                                    </>
+                                )}
                             </div>
                             
                             <input
@@ -219,7 +225,7 @@ function AppContent({ modelName }: { modelName: string }) {
                                 capture="environment"
                                 className="hidden"
                                 onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                                disabled={!consentGiven}
+                                disabled={!consentGiven || !user}
                             />
                              <input
                                 ref={fileInputRef}
@@ -228,7 +234,7 @@ function AppContent({ modelName }: { modelName: string }) {
                                 accept="image/*"
                                 className="hidden"
                                 onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                                disabled={!consentGiven}
+                                disabled={!consentGiven || !user}
                             />
                             
                             {isFirstVisit && (
