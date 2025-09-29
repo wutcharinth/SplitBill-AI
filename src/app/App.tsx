@@ -1,14 +1,15 @@
 
+
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Camera, Upload, PlusCircle, LogIn } from 'lucide-react';
-import { parseReceipt } from '../services/geminiService';
-import { BillData, Person, Fee, Discount } from '../types';
-import { ALLOWED_CURRENCIES, PERSON_COLORS, COUNTRY_CURRENCY_MAP, CURRENCIES } from '../constants';
-import MainApp from './MainApp';
-import Loader from './Loader';
-import ErrorMessage from './ErrorMessage';
+import { parseReceipt } from '@/components/services/geminiService';
+import { BillData, Person, Fee, Discount } from '@/lib/types';
+import { ALLOWED_CURRENCIES, PERSON_COLORS, COUNTRY_CURRENCY_MAP, CURRENCIES } from '@/components/constants';
+import MainApp from '@/components/app/MainApp';
+import Loader from '@/components/app/Loader';
+import ErrorMessage from '@/components/app/ErrorMessage';
 import imageCompression from 'browser-image-compression';
 import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types';
 import Link from 'next/link';
@@ -122,24 +123,24 @@ function AppContent({ modelName }: { modelName: string }) {
             paidBy: person.id,
         }));
         
-        const fees: Fee[] = data?.fees?.map(fee => ({
+        const fees: Fee[] = Array.isArray(data?.fees) ? data.fees.filter(fee => fee && fee.name).map(fee => ({
             id: fee.id || `fee-${Date.now()}`,
             name: fee.translatedName || fee.name,
             translatedName: fee.name,
             amount: fee.amount,
             isEnabled: true
-        })) || [];
+        })) : [];
 
-        const discounts: Discount[] = data?.discounts?.map(discount => ({
+        const discounts: Discount[] = Array.isArray(data?.discounts) ? data.discounts.filter(discount => discount && discount.name).map(discount => ({
             id: discount.id || `discount-${Date.now()}`,
             name: discount.translatedName || discount.name,
             amount: discount.amount,
             shares: Array(initialPeople.length).fill(0)
-        })) || [];
+        })) : [];
 
 
         const newBillData: BillData = {
-            items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
+            items: Array.isArray(data?.items) ? data.items.filter(item => item && item.name).map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) : [],
             people: initialPeople,
             fees,
             discounts,
@@ -297,5 +298,7 @@ export default function App({ modelName }: { modelName: string }) {
         </UsageProvider>
     )
 }
+
+    
 
     
