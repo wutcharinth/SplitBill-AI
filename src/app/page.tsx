@@ -2,7 +2,7 @@
 import App from '@/app/App';
 
 export default function Home() {
-  const modelName = 'googleai/gemini-pro';
+  const modelName = 'googleai/gemini-2.0-flash';
   const formattedModelName = modelName
     .replace('googleai/gemini-', 'Gemini ')
     .replace('-latest', '')
