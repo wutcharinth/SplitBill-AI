@@ -1,91 +1,123 @@
-# SplitBill AI - Architecture Overview
+# SplitBill AI - In-Depth Architecture Overview
 
-This document provides a high-level overview of the architecture for the SplitBill AI application. It is a modern web application built with Next.js and leverages Google's Gemini model for its core AI functionality.
+This document provides a comprehensive overview of the architecture for the SplitBill AI application. It is a modern web application built with Next.js that leverages Google's Gemini model for its core AI functionality. This guide is intended for developers to understand the project structure, data flow, state management, and key components.
 
-## Technology Stack
+## 1. Technology Stack
 
-- **Framework**: [Next.js](https://nextjs.org/) (using the App Router)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **AI/Generative**: [Genkit](https://firebase.google.com/docs/genkit) with Google's Gemini models
-- **UI Components**: [ShadCN UI](https://ui.shadcn.com/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **State Management**: React Hooks (`useState`, `useReducer`)
+The application is built on a modern, type-safe, and component-driven stack.
 
-## Project Structure
+- **Framework**: **[Next.js](https://nextjs.org/) (App Router)** - Provides server-side rendering, routing, and Server Actions for a performant and scalable foundation.
+- **Language**: **[TypeScript](https://www.typescriptlang.org/)** - Ensures type safety across the entire application, reducing bugs and improving developer experience.
+- **AI/Generative**: **[Genkit](https://firebase.google.com/docs/genkit) with Google Gemini** - Manages the interaction with the AI model. Genkit provides a structured way to define prompts, schemas, and server-side AI "flows".
+- **UI Components**: **[ShadCN UI](https://ui.shadcn.com/)** - A collection of beautifully designed, accessible, and unstyled components that are copied into the project, allowing for full customization.
+- **Styling**: **[Tailwind CSS](https://tailwindcss.com/)** - A utility-first CSS framework for rapidly building custom user interfaces.
+- **State Management**: **React Hooks (`useState`, `useReducer`)** - The application uses a client-centric state model. Simple state is managed with `useState`, while complex, interconnected state is managed with `useReducer` for predictable updates.
+- **Schema & Validation**: **[Zod](https://zod.dev/)** - Used to define the data structures for both the AI flow inputs/outputs and for ensuring type safety in client-side code.
+- **Image Handling**:
+    - **`browser-image-compression`**: Compresses receipt images on the client-side *before* uploading to reduce bandwidth and improve AI processing speed.
+    - **`html-to-image`**: Converts the final DOM-based summary into a downloadable PNG image.
 
-The project is organized into several key directories within the `src/` folder:
+## 2. Project Structure
+
+The project is organized into several key directories within the `src/` folder, following best practices for a Next.js application.
 
 ```
 /
 ├── src/
 │   ├── ai/                 # Genkit AI flows and configuration
+│   │   ├── flows/          # Individual AI tasks (e.g., receipt extraction)
+│   │   └── init.ts         # Genkit initialization and configuration
 │   ├── app/                # Next.js App Router pages and layouts
 │   ├── components/         # Reusable React components
-│   │   ├── app/            # Application-specific components
-│   │   └── ui/             # ShadCN UI components
-│   ├── hooks/              # Custom React hooks
+│   │   ├── app/            # Application-specific, high-level components
+│   │   └── ui/             # ShadCN UI primitive components
+│   ├── hooks/              # Custom React hooks for shared logic
 │   ├── lib/                # Libraries, utilities, and type definitions
-│   └── public/             # Static assets
+│   └── public/             # Static assets (images, manifest, etc.)
 ├── package.json
 └── tsconfig.json
 ```
 
+---
+
+## 3. Core Data Flow: Receipt Processing
+
+This is the primary user journey and showcases how the frontend, backend (Server Actions), and AI model interact.
+
+1.  **Upload (`src/app/App.tsx`)**: The user selects a receipt image from their device or camera. The `handleFileChange` function is triggered.
+2.  **Client-Side Compression**: The `browser-image-compression` library resizes and compresses the image to a manageable size (max 1MB). This is a crucial optimization step.
+3.  **Base64 Conversion**: The compressed image `File` object is converted into a Base64-encoded string.
+4.  **Service Call (`src/components/services/geminiService.ts`)**: The Base64 string is passed to the `parseReceipt` function. This service acts as a clean bridge between the UI and the Server Action.
+5.  **Server Action (`src/ai/flows/extract-receipt-data.ts`)**: The `parseReceipt` function calls the `extractReceiptData` Server Action. This is where the context switches from the client to the server.
+6.  **Genkit Flow Execution**:
+    *   The `extractReceiptData` function invokes the Genkit flow (`extractReceiptDataFlow`).
+    *   Genkit takes the image data and a carefully engineered prompt, which instructs the AI on exactly how to analyze the receipt.
+    *   The prompt specifies the desired output structure using a Zod schema (`ExtractReceiptDataOutputSchema`), a powerful feature of Genkit that enables reliable JSON output.
+    *   Genkit sends this payload to the **Google Gemini model** (`gemini-2.0-flash`).
+7.  **AI Processing & Response**: The Gemini model analyzes the image and returns a structured JSON object that matches the requested schema.
+8.  **Return to Client**: The JSON data is passed back through the Server Action to the original `await parseReceipt()` call in `App.tsx`.
+9.  **State Initialization**:
+    *   The `processParsedData` function in `App.tsx` takes the AI's response.
+    *   It creates the initial `BillData` object, setting defaults for people, currency (detecting from the AI response or browser locale), and preparing the item structures.
+    *   This initial state is passed as a prop to the `<MainApp />` component.
+10. **Render Interactive UI**: `<MainApp />` renders the main bill-splitting interface, pre-populated with the data extracted by the AI, ready for the user to start assigning items.
+
+---
+
+## 4. State Management Strategy
+
+The application uses a combination of React hooks to manage state, avoiding the need for a heavy external library like Redux.
+
+- **Global UI State (`src/app/App.tsx`)**: The top-level `App` component uses `useState` to manage the primary view of the application. This state determines whether the user sees the `'upload'`, `'loading'`, `'main'`, or `'error'` screen. It acts as a simple state machine for the overall UI.
+
+- **Complex Business Logic (`src/components/app/MainApp.tsx`)**: The `MainApp` component is the heart of the interactive experience. It uses a **`useReducer` hook** to manage all complex bill-related state. This is a critical architectural choice for several reasons:
+    - **Centralized Logic**: All state transitions (adding a person, assigning an item, updating a fee) are handled by the `reducer` function. This keeps the logic predictable and easy to debug, as opposed to scattering `useState` calls throughout many components.
+    - **Predictable State**: Actions (e.g., `{ type: 'ADD_PERSON', payload: ... }`) are dispatched to the reducer, which produces a new state object. This immutability prevents a wide range of bugs.
+    - **Decoupled Components**: Child components don't modify state directly. They only dispatch actions (e.g., `dispatch({ type: 'UPDATE_ITEM_PRICE', ... })`). This makes the components more reusable and less aware of the overall state structure.
+
+The `AppState` interface in `MainApp.tsx` defines the entire shape of this complex state object, including items, people, fees, discounts, currency information, and UI settings.
+
+---
+
+## 5. Key File & Directory Deep Dive
+
 ### `src/ai` - AI and Genkit Integration
 
-This directory contains all the code related to the application's generative AI features, powered by **Genkit**.
+This directory contains all the server-side code for interacting with the Gemini model.
 
-- **`src/ai/init.ts`**: This file initializes the global Genkit `ai` instance and configures the `googleAI` plugin. It specifies which Gemini model (`gemini-2.0-flash`) will be used by default for generative tasks.
+- **`src/ai/init.ts`**: This file initializes the global Genkit `ai` instance. It configures the `googleAI` plugin and specifies which Gemini model (`gemini-2.0-flash`) will be used by default. **Crucially, it does not have the `'use server'` directive.**
 
-- **`src/ai/flows/`**: This directory holds the server-side logic for interacting with the Gemini model. Each flow is defined in its own file and marked with the `'use server'` directive, making it a Next.js Server Action.
-    - **`extract-receipt-data.ts`**: This is the core AI flow. It defines a structured prompt that instructs the Gemini model how to analyze a receipt image. It specifies the input (a data URI of the image) and the desired JSON output structure.
-    - **`extract-receipt-data.types.ts`**: This file defines the input and output data structures for the receipt extraction flow using the **Zod** library. This ensures type safety and provides a clear schema for the AI model to follow.
+- **`src/ai/flows/`**: This directory holds the server-side logic for the AI agents.
+    - **`extract-receipt-data.types.ts`**: This file **only** defines the input and output data structures for the receipt extraction flow using **Zod**. By isolating the schemas here, they can be safely imported by both server (`'use server'`) and client components without violating Next.js rules.
+    - **`extract-receipt-data.ts`**: This is the core AI flow.
+        - It is marked with **`'use server'`**, making its exported functions available as Server Actions.
+        - `ai.definePrompt`: Defines the structured prompt sent to Gemini. It includes detailed instructions and uses Handlebars syntax (`{{media url=...}}`) to embed the image. It references the Zod schemas from the `.types.ts` file to enforce structured output.
+        - `ai.defineFlow`: Wraps the prompt execution in a Genkit "flow," which can be monitored and traced.
+        - `extractReceiptData()`: The async function that is exported and called by the client-side service.
 
 ### `src/app` - Routing and Pages
 
-This directory follows the Next.js App Router convention.
-
-- **`src/app/page.tsx`**: The main entry point of the application. It renders the top-level `<App />` component.
-- **`src/app/App.tsx`**: This is the main client-side component. It manages the application's view state (`upload`, `loading`, `main`, `error`) and handles the initial receipt upload process. It uses the Browser Image Compression library to optimize images before sending them to the AI.
+- **`src/app/App.tsx`**: The main client-side component that manages the application's top-level view state (`upload`, `loading`, `main`). It handles the initial receipt upload, compression, and the call to the AI service. It is responsible for creating the initial `BillData` object.
+- **`src/app/page.tsx`**: The main entry point of the application. It's a simple server component that renders the top-level `<App />` component.
 - **`src/app/layout.tsx`**: The root layout for the application, defining the HTML structure, fonts, and including the `Toaster` for notifications.
-- **Static Pages (`/about`, `/contact`, `/terms`)**: These folders contain simple, static informational pages.
 
-### `src/components` - React Components
+### `src/components/app` - High-Level Application Components
 
-This directory is divided into two main sub-folders:
+These are the major building blocks of the user experience.
 
-- **`src/components/app/`**: Contains high-level, application-specific components that are composed to build the user experience.
-    - **`MainApp.tsx`**: The core of the interactive bill-splitting interface. It uses a `useReducer` hook to manage all complex bill-related state (items, people, fees, totals, etc.). This is where all the logic for calculating splits and totals resides.
-    - **`SetupPage.tsx`**: Renders the primary configuration interface where users assign items, manage people, and add adjustments.
-    - **`Summary.tsx`**: Renders the final shareable summary image. It uses the `html-to-image` library to convert the rendered DOM into a PNG file for download.
-    - **`ItemAssignment.tsx`**, **`ManagePeople.tsx`**, **`Adjustments.tsx`**: These are the building blocks of the `SetupPage`, each handling a specific part of the bill configuration.
+- **`MainApp.tsx`**: As described in *State Management*, this is the core of the interactive bill-splitting interface. It initializes the `useReducer` and passes the `state` and `dispatch` function down to its children. It also handles fetching FX rates when the currency changes.
+- **`SetupPage.tsx`**: Renders the primary configuration interface where users assign items, manage people, and add adjustments. It's a container for the smaller, more focused components below.
+- **`Summary.tsx`**: Renders the final shareable summary image. It contains all the logic for calculating per-person totals and breakdowns. It uses the `html-to-image` library to convert the rendered DOM into a PNG file for download.
+- **`ItemAssignment.tsx`**: The component responsible for rendering the list of editable bill items and the buttons for assigning each item to a person.
+- **`ManagePeople.tsx`**: The component for adding and removing people from the bill.
+- **`Adjustments.tsx`**: The component for adding, removing, and editing fees, discounts, and tips.
+- **`ReconciliationDetails.tsx` & `Reconciliation.tsx`**: These components provide real-time feedback to the user, comparing the calculated total from assigned items against the `billTotal` extracted from the receipt. This guides the user to a "perfect match."
 
-- **`src/components/ui/`**: This folder contains the reusable, low-level UI components provided by **ShadCN UI** (e.g., `Button`, `Card`, `Input`).
-
-### `src/hooks` - Custom Hooks
-
-- **`src/hooks/use-toast.ts`**: A custom hook for displaying toast notifications.
-- **`src/hooks/usePinnedCurrencies.ts`**: Manages user-pinned currencies in `localStorage` for quick access.
-- **`src/hooks/useUsageTracker.tsx`**: A simple hook to track app usage (e.g., number of receipts processed).
-
-### `src/lib` - Utilities and Types
+### `src/lib` & `src/hooks` - Shared Logic
 
 - **`src/lib/types.ts`**: Defines the core TypeScript types used throughout the application, such as `BillData`, `Person`, and `BillItem`.
-- **`src/lib/utils.ts`**: Contains utility functions, most notably the `cn` function from ShadCN for merging Tailwind CSS classes.
+- **`src/hooks/use-toast.ts`**: A custom hook for displaying toast notifications, providing a clean API for the rest of the app.
+- **`src/hooks/usePinnedCurrencies.ts`**: Manages user-pinned currencies in `localStorage` for quick access in the currency selection dropdowns.
+- **`src/hooks/useUsageTracker.tsx`**: A simple hook to track app usage (e.g., number of receipts processed) using `localStorage`.
 
-## State Management
-
-The application employs a client-centric state management approach using React's built-in hooks.
-
-- **`App.tsx` (`useState`)**: Manages the top-level UI state (e.g., which view to show).
-- **`MainApp.tsx` (`useReducer`)**: The heart of the application's business logic. A `useReducer` hook is used to manage the complex, interconnected state of the bill. This includes all items, people, fees, discounts, currencies, and totals. All state modifications are handled through dispatched actions, which keeps the logic centralized and predictable.
-
-## Data Flow for Receipt Processing
-
-1.  **Upload**: The user uploads a receipt image via `src/app/App.tsx`.
-2.  **Compression**: The image is compressed in the browser using `browser-image-compression` to reduce its size.
-3.  **API Call**: The compressed image is converted to a Base64 data URI and sent to the `parseReceipt` function in `src/components/services/geminiService.ts`.
-4.  **Server Action**: `parseReceipt` calls the `extractReceiptData` Server Action located in `src/ai/flows/extract-receipt-data.ts`.
-5.  **Genkit Flow**: The Genkit flow executes, sending the image and the structured prompt to the **Gemini 2.0 Flash** model.
-6.  **AI Processing**: The Gemini model analyzes the image and returns a structured JSON object based on the schema defined in `extract-receipt-data.types.ts`.
-7.  **State Update**: The JSON data is returned to the client, where `App.tsx` uses it to initialize the state for `MainApp.tsx`.
-8.  **Render**: `MainApp.tsx` renders the interactive bill-splitting interface, pre-populated with the data extracted by the AI.
+This detailed structure provides a clear separation of concerns, making the application robust, maintainable, and easier to scale.
