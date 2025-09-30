@@ -1,3 +1,4 @@
+
 import { collection, addDoc, serverTimestamp, getFirestore } from 'firebase/firestore';
 import { app } from './config';
 import type { BillData } from '@/lib/types';
