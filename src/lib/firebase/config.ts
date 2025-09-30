@@ -9,7 +9,8 @@ const firebaseConfig = {
     "apiKey": "AIzaSyDPFEoxyFrcJwWeQk6aVjK8YbPodmxLA2o",
     "authDomain": "billzai.firebaseapp.com",
     "measurementId": "G-YTWRN4GFLT",
-    "messagingSenderId": "743957871307"
+    "messagingSenderId": "743957871307",
+    "databaseURL": "https://billzai-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase
