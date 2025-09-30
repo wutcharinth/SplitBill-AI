@@ -69,15 +69,14 @@ const fireConfetti = () => {
     }
 };
 
-const generateImageDataUrl = async (element: HTMLElement, toast: (options: any) => void): Promise<string | null> => {
-    if (!element) {
-        console.error('Element for image generation not found');
-        return null;
-    }
-    
-    element.classList.add('capturing');
+const generateImageDataUrl = (element: HTMLElement, toast: (options: any) => void): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        if (!element) {
+            return reject(new Error('Element for image generation not found'));
+        }
+        
+        element.classList.add('capturing');
 
-    return new Promise(async (resolve) => {
         // Give browser 250ms to render images before capture
         setTimeout(async () => {
             try {
@@ -96,16 +95,9 @@ const generateImageDataUrl = async (element: HTMLElement, toast: (options: any) 
                     cacheBust: true,
                 });
                 resolve(dataUrl);
-
             } catch (err) {
                 console.error('Failed to generate summary image:', err);
-                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-                toast({
-                    variant: 'destructive',
-                    title: 'Image Generation Error',
-                    description: `Sorry, there was an error creating the summary image. Please try again. Details: ${errorMessage}`,
-                });
-                resolve(null);
+                reject(err); // Reject the promise on error
             } finally {
                 element.classList.remove('capturing');
             }
@@ -289,36 +281,34 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
         setIsSaving(true);
         
-        const dataUrl = await generateImageDataUrl(summaryRef.current!, toast);
-        
-        if (dataUrl) {
-            try {
-                setImageDataUrl(dataUrl);
-                const url = await uploadImageAndGetUrl(dataUrl, user.uid);
-                
-                // Exclude fields that are not part of BillData
-                const { qrCodeImage, notes, ui, uploadedReceipt, ...billToSave } = state;
-                const billId = await saveBillToFirestore({ ...billToSave, imageUrl: url, userId: user.uid });
-                
-                setShareableLink(url);
-                fireConfetti();
-                toast({
-                    variant: 'success',
-                    title: "Saved Successfully!",
-                    description: "Your summary has been saved. You can now download it or copy the link.",
-                });
+        try {
+            const dataUrl = await generateImageDataUrl(summaryRef.current!, toast);
+            setImageDataUrl(dataUrl);
 
-            } catch (error) {
-                const message = error instanceof Error ? error.message : 'An unknown error occurred during save.';
-                toast({
-                    variant: 'destructive',
-                    title: "Save Failed",
-                    description: message,
-                });
-            }
+            const url = await uploadImageAndGetUrl(dataUrl, user.uid);
+            
+            // Exclude fields that are not part of BillData
+            const { qrCodeImage, notes, ui, uploadedReceipt, ...billToSave } = state;
+            const billId = await saveBillToFirestore({ ...billToSave, imageUrl: url, userId: user.uid });
+            
+            setShareableLink(url);
+            fireConfetti();
+            toast({
+                variant: 'success',
+                title: "Saved Successfully!",
+                description: "Your summary has been saved. You can now download it or copy the link.",
+            });
+
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'An unknown error occurred during save.';
+            toast({
+                variant: 'destructive',
+                title: "Save Failed",
+                description: message,
+            });
+        } finally {
+            setIsSaving(false);
         }
-        
-        setIsSaving(false);
     };
 
     const handleCopyLink = () => {
@@ -822,3 +812,4 @@ Summary.Toggles = SummaryToggles;
 export default Summary;
 
     
+
