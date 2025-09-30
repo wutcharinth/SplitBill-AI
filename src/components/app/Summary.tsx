@@ -287,8 +287,21 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
 
             const url = await uploadImageAndGetUrl(dataUrl, user.uid);
             
-            // Exclude fields that are not part of BillData
-            const { qrCodeImage, notes, ui, uploadedReceipt, ...billToSave } = state;
+            const billToSave = {
+              items: state.items,
+              people: state.people,
+              fees: state.fees,
+              discounts: state.discounts,
+              tip: state.tip,
+              tipSplitMode: state.tipSplitMode,
+              payments: state.payments,
+              deposits: state.deposits || [],
+              billTotal: state.billTotal,
+              baseCurrency: state.baseCurrency,
+              restaurantName: state.restaurantName,
+              billDate: state.billDate,
+            };
+
             const billId = await saveBillToFirestore({ ...billToSave, imageUrl: url, userId: user.uid });
             
             setShareableLink(url);
@@ -812,4 +825,5 @@ Summary.Toggles = SummaryToggles;
 export default Summary;
 
     
+
 

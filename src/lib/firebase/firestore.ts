@@ -12,10 +12,11 @@ interface BillToSave extends BillData {
 
 export const saveBillToFirestore = async (billData: BillToSave): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, 'bills'), {
+    const docData = {
       ...billData,
       createdAt: serverTimestamp(),
-    });
+    };
+    const docRef = await addDoc(collection(db, 'bills'), docData);
     return docRef.id;
   } catch (error) {
     console.error('Error writing document to Firestore: ', error);
