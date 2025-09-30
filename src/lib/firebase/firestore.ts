@@ -1,5 +1,5 @@
 
-import { collection, addDoc, serverTimestamp, getFirestore } from 'firebase/firestore';
+import { collection, addDoc, getFirestore } from 'firebase/firestore';
 import { app } from './config';
 import type { BillData } from '@/lib/types';
 
@@ -14,7 +14,7 @@ export const saveBillToFirestore = async (billData: BillToSave): Promise<string>
   try {
     const docData = {
       ...billData,
-      createdAt: serverTimestamp(),
+      createdAt: new Date(), // Use client-side timestamp
     };
     const docRef = await addDoc(collection(db, 'bills'), docData);
     return docRef.id;
