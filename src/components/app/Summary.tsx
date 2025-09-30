@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2, Mail, Loader2, Languages } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail, Loader2, Languages, Save, Copy } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti'
@@ -11,6 +12,9 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Payment } from '@/lib/types';
+import { useAuth } from '@/hooks/useAuth';
+import { saveBillToFirestore } from '@/lib/firebase/firestore';
+import { uploadImageAndGetUrl } from '@/lib/firebase/storage';
 
 
 const fireConfetti = () => {
@@ -65,96 +69,50 @@ const fireConfetti = () => {
     }
 };
 
-const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
-    const images = Array.from(element.querySelectorAll<HTMLImageElement>('img[data-summary-image="true"]'));
-    if (images.length === 0) {
-        return Promise.resolve();
-    }
-
-    const promises = images.map(img => {
-        return new Promise<void>((resolve) => {
-            if (img.complete && img.naturalHeight !== 0) {
-                // If image is already loaded and decoded, resolve immediately
-                 img.decode().then(() => resolve()).catch(() => resolve());
-            } else {
-                img.onload = () => {
-                    // Once loaded, decode it
-                    img.decode().then(() => resolve()).catch(() => {
-                        // Even if decode fails, resolve to not block the process
-                        console.error("Image failed to decode, but download will continue:", img.src);
-                        resolve();
-                    });
-                };
-                img.onerror = () => {
-                    // If image fails to load, resolve to not block the process
-                    console.error("Image failed to load, but download will continue:", img.src);
-                    resolve();
-                };
-            }
-        });
-    });
-
-    // Wait for all images to have been loaded and decoded
-    return Promise.all(promises).then(() => {
-        // All images are decoded. Now, we wait for the browser to actually paint them.
-        // A double requestAnimationFrame is much more reliable than a fixed setTimeout for this.
-        return new Promise<void>(resolve => {
-            // Wait for the next available frame.
-            requestAnimationFrame(() => {
-                // Wait for the paint of that frame to complete.
-                requestAnimationFrame(resolve);
-            });
-        });
-    });
-};
-
-async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
+const generateImageDataUrl = async (element: HTMLElement, toast: (options: any) => void): Promise<string | null> => {
     if (!element) {
         console.error('Element for image generation not found');
-        return false;
+        return null;
     }
     
     element.classList.add('capturing');
 
-    try {
-        await waitForImagesToLoad(element);
+    return new Promise(async (resolve) => {
+        // Give browser 250ms to render images before capture
+        setTimeout(async () => {
+            try {
+                const dataUrl = await toPng(element, {
+                    quality: 0.95,
+                    pixelRatio: 1.5,
+                    style: {
+                        fontFamily: "'Inter', sans-serif",
+                    },
+                    filter: (node: HTMLElement) => {
+                        if (typeof node.getAttribute !== 'function') return true;
+                        const isToggleButton = node.getAttribute('data-summary-toggle') === 'true';
+                        const isActionContainer = node.getAttribute('data-summary-actions') === 'true';
+                        return !isToggleButton && !isActionContainer;
+                    },
+                    cacheBust: true,
+                });
+                resolve(dataUrl);
 
-        const dataUrl = await toPng(element, {
-            quality: 0.95,
-            pixelRatio: 1.5,
-            style: {
-                fontFamily: "'Inter', sans-serif",
-            },
-            filter: (node: HTMLElement) => {
-                if (typeof node.getAttribute !== 'function') {
-                    return true;
-                }
-                const isToggleButton = node.getAttribute('data-summary-toggle') === 'true';
-                return !isToggleButton;
-            },
-            cacheBust: true,
-        });
+            } catch (err) {
+                console.error('Failed to generate summary image:', err);
+                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+                toast({
+                    variant: 'destructive',
+                    title: 'Image Generation Error',
+                    description: `Sorry, there was an error creating the summary image. Please try again. Details: ${errorMessage}`,
+                });
+                resolve(null);
+            } finally {
+                element.classList.remove('capturing');
+            }
+        }, 250);
+    });
+};
 
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
-        
-        return true;
-
-    } catch (err) {
-        console.error('Failed to generate summary image:', err);
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-        toast({
-            variant: 'destructive',
-            title: 'Image Generation Error',
-            description: `Sorry, there was an error creating the summary image. Please try again. Details: ${errorMessage}`,
-        });
-        return false;
-    } finally {
-        element.classList.remove('capturing');
-    }
-}
 
 const DualCurrencyDisplay: React.FC<{
     baseValue: number, 
@@ -273,9 +231,11 @@ const SummaryToggles = ({ state, dispatch }: { state: any, dispatch: any }) => {
 const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    const { user } = useAuth();
+    const [isSaving, setIsSaving] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    // NEW STATE: Track if the receipt image is loaded and ready.
-    const [isReceiptImageLoaded, setIsReceiptImageLoaded] = useState(true);
+    const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+    const [shareableLink, setShareableLink] = useState<string | null>(null);
     
     const {
         items, people, discounts, fees, tip, tipSplitMode, billTotal, payments,
@@ -285,27 +245,17 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         ui: { summaryViewMode, showTranslatedNames }
     } = state;
 
-    // NEW EFFECT: Preload the receipt image in memory to prevent race conditions.
-    useEffect(() => {
-        if (includeReceiptInSummary && uploadedReceipt) {
-            setIsReceiptImageLoaded(false); // Set to loading state
-            const img = new Image();
-            img.src = `data:image/png;base64,${uploadedReceipt}`;
-            img.onload = () => {
-                setIsReceiptImageLoaded(true); // Image is ready
-            };
-            img.onerror = () => {
-                console.error("In-memory preloading of receipt image failed.");
-                setIsReceiptImageLoaded(true); // Allow download anyway to not block user
-            };
-        } else {
-            // If receipt isn't included, no loading is needed.
-            setIsReceiptImageLoaded(true);
+
+    const handleDownload = async () => {
+        if (!imageDataUrl) {
+             toast({
+                variant: 'destructive',
+                title: "No Image Data",
+                description: "Please save the summary first to generate the image.",
+            });
+            return;
         }
-    }, [includeReceiptInSummary, uploadedReceipt]);
 
-
-    const handleShareSummary = async () => {
         setIsDownloading(true);
         const now = new Date();
         const datePart = now.toISOString().slice(0, 10);
@@ -313,19 +263,81 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const restaurantPart = restaurantName.replace(/[^a-zA-Z0-9]/g, ' ').trim().replace(/\s+/g, '-');
         const filename = `SplitBill-AI-${datePart}${restaurantPart ? `-${restaurantPart}` : ''}-${timePart}.png`;
         
-        if (summaryRef.current) {
-            const success = await generateImage(summaryRef.current, filename, toast);
-            if (success) {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = imageDataUrl;
+        link.click();
+
+        setIsDownloading(false);
+
+        toast({
+            variant: 'success',
+            title: "Summary Saved!",
+            description: "Your summary image has been saved.",
+        });
+    }
+
+    const handleSaveAndShare = async () => {
+        if (!user) {
+            toast({
+                variant: 'destructive',
+                title: "Not Logged In",
+                description: "You must be logged in to save your bill summary.",
+            });
+            return;
+        }
+
+        setIsSaving(true);
+        
+        const dataUrl = await generateImageDataUrl(summaryRef.current!, toast);
+        
+        if (dataUrl) {
+            try {
+                setImageDataUrl(dataUrl);
+                const url = await uploadImageAndGetUrl(dataUrl, user.uid);
+                
+                // Exclude fields that are not part of BillData
+                const { qrCodeImage, notes, ui, uploadedReceipt, ...billToSave } = state;
+                const billId = await saveBillToFirestore({ ...billToSave, imageUrl: url, userId: user.uid });
+                
+                setShareableLink(url);
                 fireConfetti();
                 toast({
                     variant: 'success',
-                    title: "Summary Saved!",
-                    description: "Your summary image has been saved. Don't forget to share it with your friends!",
+                    title: "Saved Successfully!",
+                    description: "Your summary has been saved. You can now download it or copy the link.",
+                });
+
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'An unknown error occurred during save.';
+                toast({
+                    variant: 'destructive',
+                    title: "Save Failed",
+                    description: message,
                 });
             }
         }
-        setIsDownloading(false);
+        
+        setIsSaving(false);
     };
+
+    const handleCopyLink = () => {
+        if (!shareableLink) return;
+        navigator.clipboard.writeText(shareableLink).then(() => {
+            toast({
+                variant: 'success',
+                title: "Link Copied!",
+                description: "The shareable link has been copied to your clipboard.",
+            });
+        }).catch(err => {
+            console.error("Failed to copy link:", err);
+            toast({
+                variant: 'destructive',
+                title: "Copy Failed",
+                description: "Could not copy the link to your clipboard.",
+            });
+        })
+    }
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -489,9 +501,6 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         formatNumber
     };
     
-    // UPDATED LOGIC: Determine if the button should be disabled for loading.
-    const isReceiptLoading = includeReceiptInSummary && uploadedReceipt && !isReceiptImageLoaded;
-
     return (
         <div className="border-t pt-4 border-border">
             <div id="summary-container" className="relative">
@@ -511,7 +520,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                             </div>
                         </div>
                         <div className="flex flex-col items-center text-center ml-2 flex-shrink-0">
-                            <img src="https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-10" />
+                            <img src="https://i.postimg.cc/hgX62bcn/Chat-GPT-Image-Aug-8-2025-04-14-15-PM.png" alt="SplitBill AI Logo" className="h-10" crossOrigin='anonymous' />
                             <p className="text-xs text-muted-foreground mt-1 font-semibold">Snap.Split.Share!</p>
                         </div>
                     </div>
@@ -705,7 +714,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         {includeReceiptInSummary && uploadedReceipt && (
                             <div className="mt-2">
                                 <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
-                                <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" data-summary-image="true" />
+                                <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" data-summary-image="true" crossOrigin="anonymous" />
                             </div>
                         )}
                     </div>
@@ -716,7 +725,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                                 <div className="space-y-2 text-center w-full">
                                     <h4 className="text-xs font-semibold text-muted-foreground">Payment QR Code</h4>
                                     <div className="relative w-fit mx-auto">
-                                        <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-full max-w-[256px] h-auto" data-summary-image="true" />
+                                        <img src={qrCodeImage} alt="Payment QR Code" className="rounded-lg object-contain w-full max-w-[256px] h-auto" data-summary-image="true" crossOrigin="anonymous" />
                                     </div>
                                 </div>
                             )}
@@ -737,7 +746,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-dashed border-border/80 space-y-3">
+            <div className="mt-4 pt-4 border-t border-dashed border-border/80 space-y-3" data-summary-actions="true">
                 <div className="flex items-center gap-3">
                     {qrCodeImage ? (
                         <div className="relative w-fit flex-shrink-0">
@@ -761,29 +770,47 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                         className="w-full p-2 h-10 border rounded-md text-xs bg-card text-foreground border-border focus:ring-ring focus:border-ring transition"
                     />
                 </div>
-                 <p className="text-center text-xs text-muted-foreground">Download the summary and share it with your friends to settle up!</p>
+                 <p className="text-center text-xs text-muted-foreground">Add notes or a payment QR code. Then, save the summary to get a shareable link.</p>
             </div>
             
-             <div className="mt-4 grid grid-cols-1 gap-3">
-                 {/* UPDATED LOGIC: Button is disabled while downloading OR while receipt is loading */}
-                 <Button onClick={handleShareSummary} className="w-full font-bold" disabled={isDownloading || isReceiptLoading}>
-                    {isDownloading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            <span>Creating your masterpiece...</span>
-                        </>
-                    ) : isReceiptLoading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            <span>Loading receipt image...</span>
-                        </>
-                    ) : (
-                        <>
-                            <Download size={18} />
-                            <span>Download as PNG</span>
-                        </>
-                    )}
-                </Button>
+             <div className="mt-4 grid grid-cols-1 gap-3" data-summary-actions="true">
+                {!shareableLink ? (
+                    <Button onClick={handleSaveAndShare} className="w-full font-bold" disabled={isSaving || !user}>
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <span>Saving...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save className="mr-2 h-4 w-4" />
+                                <span>Save & Get Share Link</span>
+                            </>
+                        )}
+                    </Button>
+                ) : (
+                    <div className="space-y-3">
+                        <div className="relative">
+                            <Input type="text" readOnly value={shareableLink} className="pr-10 text-xs bg-muted"/>
+                            <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={handleCopyLink} title="Copy link">
+                                <Copy size={16} />
+                            </Button>
+                        </div>
+                        <Button onClick={handleDownload} className="w-full font-bold" variant="outline" disabled={isDownloading}>
+                            {isDownloading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <span>Generating PNG...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Download size={18} />
+                                    <span>Download as PNG</span>
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
     );
