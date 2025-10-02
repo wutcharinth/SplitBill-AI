@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useReducer, useEffect } from 'react';
-import { BillData, BillItem, Person, Fee, Discount, SplitMode, Payment } from '../../types';
+import { BillData, BillItem, Person, Fee, Discount, SplitMode, Payment } from '@/lib/types';
 import { CURRENCIES } from '../constants';
 import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
@@ -36,7 +36,19 @@ const formatNumber = (num: number) => {
 };
 
 
-interface AppState extends BillData {
+interface AppState {
+  items: BillItem[];
+  people: Person[];
+  fees: Fee[];
+  discounts: Discount[];
+  tip: number;
+  tipSplitMode: 'proportionally' | 'equally';
+  payments: Payment[];
+  deposits: Payment[];
+  billTotal: number;
+  baseCurrency: string;
+  restaurantName: string;
+  billDate: string;
   splitMode: SplitMode;
   peopleCountEvenly: number;
   displayCurrency: string;
@@ -356,8 +368,8 @@ const reducer = (state: AppState, action: Action): AppState => {
 
     case 'SET_FX_RATE':
         const newState = { ...state, fxRate: action.payload.rate, isFxLoading: action.payload.isLoading ?? state.isFxLoading };
-        if ('date' in action.payload) {
-            newState.fxRateDate = action.payload.date;
+        if ('date' in action.payload && action.payload.date !== undefined) {
+            newState.fxRateDate = action.payload.date ?? null;
         }
         return newState;
     
@@ -397,11 +409,14 @@ interface MainAppProps {
   initialBillData: BillData;
   onReset: () => void;
   uploadedReceipt: string | null;
+  billId?: string;
+  onBillSaved?: (billId: string) => void;
+  initialPage?: 'setup' | 'summary';
 }
 
-const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedReceipt }) => {
+const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedReceipt, billId, onBillSaved, initialPage = 'setup' }) => {
   const [state, dispatch] = useReducer(reducer, createInitialState(initialBillData, uploadedReceipt));
-  const [activePage, setActivePage] = useState<'setup' | 'summary'>('setup');
+  const [activePage, setActivePage] = useState<'setup' | 'summary'>(initialPage);
   const { baseCurrency, displayCurrency } = state;
 
   useEffect(() => {
@@ -477,7 +492,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
                     <Summary.Toggles state={state} dispatch={dispatch}/>
                     <h2 className="text-sm font-bold mb-4 text-primary font-headline">Final Summary</h2>
-                    <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber}/>
+                    <Summary state={state} dispatch={dispatch} currencySymbol={displayCurrencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} billId={billId} onBillSaved={onBillSaved}/>
                 </div>
             )}
 
