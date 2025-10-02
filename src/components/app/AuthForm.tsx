@@ -1,11 +1,13 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut, Mail } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 const GoogleIcon = () => (
     <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -31,7 +33,13 @@ const GoogleIcon = () => (
 
 
 const AuthForm = () => {
-  const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut } = useAuth();
+  const { toast } = useToast();
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (loading) {
     return <div className="h-10 w-full bg-muted rounded-lg animate-pulse" />;
@@ -54,11 +62,115 @@ const AuthForm = () => {
     );
   }
 
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      if (isSignUp) {
+        await signUpWithEmail(email, password);
+        toast({
+          title: 'Account created!',
+          description: 'Welcome to SplitBill AI',
+        });
+      } else {
+        await signInWithEmail(email, password);
+        toast({
+          title: 'Signed in successfully!',
+        });
+      }
+      setEmail('');
+      setPassword('');
+      setShowEmailForm(false);
+    } catch (error: any) {
+      let errorMessage = 'An error occurred';
+
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Email already in use';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password should be at least 6 characters';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'User not found';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password';
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password';
+      }
+
+      toast({
+        variant: 'destructive',
+        title: 'Authentication failed',
+        description: errorMessage,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (showEmailForm) {
+    return (
+      <div className="space-y-3">
+        <form onSubmit={handleEmailAuth} className="space-y-3">
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
+          <Input
+            type="password"
+            placeholder="Password (min 6 characters)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            disabled={isSubmitting}
+          />
+          <div className="flex gap-2">
+            <Button type="submit" className="flex-1" disabled={isSubmitting}>
+              {isSubmitting ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowEmailForm(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+        <Button
+          variant="link"
+          className="w-full text-xs"
+          onClick={() => setIsSignUp(!isSignUp)}
+          disabled={isSubmitting}
+        >
+          {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Button onClick={signInWithGoogle} variant="outline" className="w-full font-bold border-2">
+    <div className="space-y-2">
+      <Button onClick={signInWithGoogle} variant="outline" className="w-full font-bold border-2">
         <GoogleIcon />
         <span className="ml-2">Sign in with Google</span>
-    </Button>
+      </Button>
+      <Button
+        onClick={() => setShowEmailForm(true)}
+        variant="outline"
+        className="w-full font-bold border-2"
+      >
+        <Mail className="h-5 w-5" />
+        <span className="ml-2">Sign in with Email</span>
+      </Button>
+    </div>
   );
 };
 
