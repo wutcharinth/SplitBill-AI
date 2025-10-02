@@ -72,88 +72,148 @@ const fireConfetti = () => {
 const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
     const images = Array.from(element.querySelectorAll<HTMLImageElement>('img[data-summary-image="true"]'));
     if (images.length === 0) {
+        console.log('No images to wait for');
         return Promise.resolve();
     }
 
-    console.log('Waiting for images to load:', images.length);
+    console.log('Waiting for', images.length, 'images to load and decode');
 
-    const promises = images.map(img => {
-        return new Promise<void>((resolve) => {
-            if (img.complete && img.naturalHeight !== 0) {
-                // Image is already loaded, but wait for decode and paint
-                console.log('Image already loaded:', img.src.substring(0, 50));
-                img.decode()
-                    .then(() => {
-                        // Wait extra time for mobile browsers to paint
-                        setTimeout(() => resolve(), 200);
-                    })
-                    .catch(() => {
-                        console.error("Image failed to decode:", img.src.substring(0, 50));
-                        setTimeout(() => resolve(), 200);
-                    });
-            } else {
-                // Image not yet loaded, wait for load event
-                console.log('Waiting for image to load:', img.src.substring(0, 50));
+    const promises = images.map((img, index) => {
+        return new Promise<void>(async (resolve) => {
+            try {
+                const src = img.src;
+                console.log(`Image ${index + 1}: Starting load check (src length: ${src.length} chars)`);
 
-                const timeoutId = setTimeout(() => {
-                    console.error("Image load timeout:", img.src.substring(0, 50));
-                    resolve();
-                }, 10000); // 10 second timeout
+                // For base64 images, use createImageBitmap for reliable decode detection
+                if (src.startsWith('data:image')) {
+                    // Fetch as blob first
+                    const response = await fetch(src);
+                    const blob = await response.blob();
+                    console.log(`Image ${index + 1}: Blob created (${blob.size} bytes)`);
 
-                img.onload = () => {
-                    clearTimeout(timeoutId);
-                    console.log('Image loaded:', img.src.substring(0, 50));
-                    img.decode()
-                        .then(() => {
-                            setTimeout(() => resolve(), 200);
-                        })
-                        .catch(() => {
-                            console.error("Image decode failed:", img.src.substring(0, 50));
-                            setTimeout(() => resolve(), 200);
+                    // Use createImageBitmap for guaranteed decode
+                    try {
+                        const bitmap = await createImageBitmap(blob);
+                        console.log(`Image ${index + 1}: ImageBitmap created (${bitmap.width}x${bitmap.height})`);
+                        bitmap.close(); // Free memory
+                    } catch (e) {
+                        console.warn(`Image ${index + 1}: createImageBitmap failed, using fallback`, e);
+
+                        // Fallback: traditional decode
+                        const tempImg = new Image();
+                        tempImg.src = src;
+                        await new Promise<void>((resolveLoad) => {
+                            const timeout = setTimeout(() => {
+                                console.warn(`Image ${index + 1}: Load timeout`);
+                                resolveLoad();
+                            }, 10000);
+
+                            tempImg.onload = () => {
+                                clearTimeout(timeout);
+                                tempImg.decode()
+                                    .then(() => resolveLoad())
+                                    .catch(() => resolveLoad());
+                            };
+                            tempImg.onerror = () => {
+                                clearTimeout(timeout);
+                                resolveLoad();
+                            };
                         });
-                };
+                    }
 
-                img.onerror = () => {
-                    clearTimeout(timeoutId);
-                    console.error("Image failed to load:", img.src.substring(0, 50));
-                    resolve();
-                };
+                    // Wait for multiple paint frames (critical for mobile rendering)
+                    console.log(`Image ${index + 1}: Waiting for paint frames...`);
+                    await new Promise(r => requestAnimationFrame(() =>
+                        requestAnimationFrame(() =>
+                            requestAnimationFrame(() =>
+                                requestAnimationFrame(r)
+                            )
+                        )
+                    ));
+                }
+
+                console.log(`Image ${index + 1}: ✓ Ready for capture`);
+                resolve();
+
+            } catch (error) {
+                console.error(`Image ${index + 1}: Error during load/decode:`, error);
+                resolve(); // Continue anyway
             }
         });
     });
 
-    // Wait for all images to have been loaded and decoded
     return Promise.all(promises).then(() => {
-        console.log('All images loaded, waiting for paint...');
-        // Wait for browser to paint the images
-        return new Promise<void>(resolve => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    // Add extra delay for mobile browsers
-                    setTimeout(() => {
-                        console.log('Images ready for capture');
-                        resolve();
-                    }, 300);
-                });
-            });
-        });
+        console.log('✓ All images ready for capture');
     });
 };
+
+// Helper to convert base64 to blob URL (Safari handles these better)
+function base64ToObjectURL(base64: string): string {
+    try {
+        const parts = base64.split(',');
+        const contentType = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
+        const b64Data = parts[1] || base64;
+        const byteCharacters = atob(b64Data);
+        const byteArrays = [];
+
+        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+            byteArrays.push(new Uint8Array(byteNumbers));
+        }
+
+        const blob = new Blob(byteArrays, { type: contentType });
+        return URL.createObjectURL(blob);
+    } catch (e) {
+        console.error('Failed to convert base64 to blob URL:', e);
+        return base64; // Fallback to original
+    }
+}
 
 async function generateImage(element: HTMLElement, filename: string, toast: (options: any) => void): Promise<boolean> {
     if (!element) {
         console.error('Element for image generation not found');
         return false;
     }
-    
+
     element.classList.add('capturing');
 
     try {
-        await waitForImagesToLoad(element);
+        console.log('Starting image generation...');
 
-        const dataUrl = await toPng(element, {
+        // Wait for images to load and decode
+        await waitForImagesToLoad(element);
+        console.log('✓ Images ready');
+
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+        // Safari-specific fix: Convert base64 images to blob URLs
+        const blobUrls: string[] = [];
+        if (isMobile && isSafari) {
+            console.log('Safari detected - converting base64 images to blob URLs...');
+            const images = Array.from(element.querySelectorAll<HTMLImageElement>('img[data-summary-image="true"]'));
+
+            for (const img of images) {
+                if (img.src.startsWith('data:')) {
+                    const originalSrc = img.src;
+                    const blobUrl = base64ToObjectURL(img.src);
+                    img.src = blobUrl;
+                    blobUrls.push(blobUrl);
+                    console.log('Converted image to blob URL');
+                }
+            }
+
+            // Wait for blob URLs to load
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        const toPngOptions = {
             quality: 0.95,
-            pixelRatio: 1.5,
+            pixelRatio: 2,
             style: {
                 fontFamily: "'Inter', sans-serif",
             },
@@ -165,13 +225,25 @@ async function generateImage(element: HTMLElement, filename: string, toast: (opt
                 return !isToggleButton;
             },
             cacheBust: true,
-        });
+        };
+
+        console.log('Capturing image with toPng...');
+        const dataUrl = await toPng(element, toPngOptions);
+        console.log('✓ Image capture complete');
 
         const link = document.createElement('a');
         link.download = filename;
         link.href = dataUrl;
         link.click();
-        
+
+        console.log('✓ Image download initiated');
+
+        // Clean up blob URLs if any were created
+        if (blobUrls.length > 0) {
+            console.log('Cleaning up blob URLs...');
+            blobUrls.forEach(url => URL.revokeObjectURL(url));
+        }
+
         return true;
 
     } catch (err) {
@@ -997,7 +1069,6 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                         )}
                     </Button>
 
-                     {/* UPDATED LOGIC: Button is disabled while downloading OR while receipt is loading */}
                      <Button onClick={handleShareSummary} variant="outline" className="w-full font-bold" disabled={isDownloading || isReceiptLoading}>
                         {isDownloading ? (
                             <>
