@@ -394,6 +394,7 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
         splitMode, peopleCountEvenly, baseCurrency, displayCurrency,
         restaurantName, billDate, qrCodeImage, notes,
         includeReceiptInSummary, uploadedReceipt,
+        receipts = [],
         ui: { summaryViewMode, showTranslatedNames }
     } = state;
 
@@ -976,10 +977,29 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                                 Attach receipt image to summary
                             </span>
                         </label>
-                        {includeReceiptInSummary && uploadedReceipt && (
-                            <div className="mt-2">
-                                <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">Attached Receipt</h4>
-                                <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" data-summary-image="true" />
+                        {includeReceiptInSummary && (uploadedReceipt || receipts.length > 0) && (
+                            <div className="mt-2 space-y-2">
+                                <h4 className="text-xs font-semibold text-muted-foreground text-center mb-2">
+                                    {receipts.length > 0 ? `Attached Receipts (${receipts.length})` : 'Attached Receipt'}
+                                </h4>
+                                {uploadedReceipt && (
+                                    <img src={`data:image/png;base64,${uploadedReceipt}`} alt="Receipt" className="w-full rounded-lg shadow-sm" data-summary-image="true" />
+                                )}
+                                {receipts.map((receipt, index) => (
+                                    receipt.imageUrl && (
+                                        <div key={receipt.id} className="space-y-1">
+                                            <div className="text-[10px] text-muted-foreground text-center">
+                                                {receipt.restaurantName} - ${receipt.total.toFixed(2)}
+                                            </div>
+                                            <img
+                                                src={receipt.imageUrl}
+                                                alt={`Receipt ${index + 1}`}
+                                                className="w-full rounded-lg shadow-sm"
+                                                data-summary-image="true"
+                                            />
+                                        </div>
+                                    )
+                                ))}
                             </div>
                         )}
                     </div>
