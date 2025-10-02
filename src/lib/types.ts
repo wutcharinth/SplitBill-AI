@@ -13,6 +13,7 @@ export interface BillItem {
   price: number;
   translatedName: string | null;
   shares: number[];
+  receiptIndex?: number; // Which receipt this item came from (for multi-receipt bills)
 }
 
 export interface Fee {
@@ -36,6 +37,14 @@ export interface Payment {
     paidBy: string | null; // Person ID
 }
 
+export interface Receipt {
+  id: string;
+  imageUrl?: string | null; // Storage URL
+  restaurantName: string;
+  total: number;
+  date: string;
+}
+
 export interface BillData {
   items: BillItem[];
   people: Person[];
@@ -50,6 +59,7 @@ export interface BillData {
   restaurantName: string;
   billDate: string;
   qrCodeImageUrl?: string | null;  // Storage URL, not base64
-  uploadedReceiptUrl?: string | null;  // Storage URL, not base64
+  uploadedReceiptUrl?: string | null;  // Storage URL, not base64 (legacy, kept for backward compatibility)
+  receipts?: Receipt[]; // Multiple receipts support
   notes?: string;
 }

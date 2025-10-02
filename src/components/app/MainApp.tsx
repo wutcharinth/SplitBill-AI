@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useReducer, useEffect } from 'react';
-import { BillData, BillItem, Person, Fee, Discount, SplitMode, Payment } from '@/lib/types';
+import { BillData, BillItem, Person, Fee, Discount, SplitMode, Payment, Receipt } from '@/lib/types';
 import { CURRENCIES } from '../constants';
 import Summary from './Summary';
 import { RotateCw, ArrowRight } from 'lucide-react';
@@ -59,6 +59,7 @@ interface AppState {
   isFxLoading: boolean;
   includeReceiptInSummary: boolean;
   uploadedReceipt: string | null;
+  receipts: Receipt[];
   ui: {
     summaryViewMode: 'detailed' | 'compact',
     showTranslatedNames: boolean,
@@ -100,6 +101,9 @@ type Action =
   | { type: 'SET_QR_CODE_IMAGE'; payload: string | null }
   | { type: 'SET_NOTES'; payload: string }
   | { type: 'TOGGLE_INCLUDE_RECEIPT' }
+  | { type: 'SET_UPLOADED_RECEIPT', payload: string | null }
+  | { type: 'ADD_RECEIPT'; payload: Receipt }
+  | { type: 'REMOVE_RECEIPT'; payload: { receiptId: string } }
   | { type: 'SET_UI_STATE', payload: Partial<AppState['ui']>}
   | { type: 'RESET'; payload: BillData | null };
 
@@ -126,6 +130,7 @@ const createInitialState = (billData: BillData, uploadedReceipt: string | null):
     isFxLoading: false,
     includeReceiptInSummary: !!(uploadedReceipt || billData.uploadedReceiptUrl),
     uploadedReceipt: uploadedReceipt || null,  // Will be loaded async from uploadedReceiptUrl
+    receipts: billData.receipts || [],
     ui: {
         summaryViewMode: 'detailed',
         showTranslatedNames: true,
@@ -385,6 +390,13 @@ const reducer = (state: AppState, action: Action): AppState => {
         }
         return { ...state, qrCodeImage: action.payload };
     
+    case 'SET_UPLOADED_RECEIPT':
+        return {
+            ...state,
+            uploadedReceipt: action.payload,
+            includeReceiptInSummary: action.payload ? true : state.includeReceiptInSummary
+        };
+
     case 'SET_NOTES':
         return { ...state, notes: action.payload };
     
@@ -394,12 +406,23 @@ const reducer = (state: AppState, action: Action): AppState => {
     case 'SET_UI_STATE':
         return { ...state, ui: { ...state.ui, ...action.payload } };
 
+    case 'ADD_RECEIPT':
+        return { ...state, receipts: [...state.receipts, action.payload] };
+
+    case 'REMOVE_RECEIPT':
+        return {
+            ...state,
+            receipts: state.receipts.filter(r => r.id !== action.payload.receiptId),
+            items: state.items.filter(item => item.receiptIndex === undefined ||
+                state.receipts.findIndex(r => r.id === action.payload.receiptId) !== item.receiptIndex)
+        };
+
     case 'RESET':
         if(action.payload) {
              return { ...createInitialState(action.payload, null) };
         }
         return { ...state }; // No real reset if payload is null
-        
+
     default:
       return state;
   }
@@ -418,6 +441,14 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
   const [state, dispatch] = useReducer(reducer, createInitialState(initialBillData, uploadedReceipt));
   const [activePage, setActivePage] = useState<'setup' | 'summary'>(initialPage);
   const { baseCurrency, displayCurrency } = state;
+
+  // Load QR code from localStorage on mount
+  useEffect(() => {
+    const storedQr = getStoredQrCode();
+    if (storedQr && !state.qrCodeImage && !initialBillData.qrCodeImageUrl) {
+      dispatch({ type: 'SET_QR_CODE_IMAGE', payload: storedQr });
+    }
+  }, []); // Only run once on mount
 
   useEffect(() => {
     const fetchRate = async () => {
@@ -446,9 +477,18 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
         // Load receipt from URL
         if (initialBillData.uploadedReceiptUrl && !uploadedReceipt && !state.uploadedReceipt) {
             try {
-                console.log('Loading receipt from Storage URL:', initialBillData.uploadedReceiptUrl);
-                const response = await fetch(initialBillData.uploadedReceiptUrl);
+                console.log('🖼️ Loading receipt from Storage URL (first attempt)');
+                const response = await fetch(initialBillData.uploadedReceiptUrl, {
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const blob = await response.blob();
+                console.log('📦 Receipt blob received:', blob.size, 'bytes');
 
                 if (!isMounted) return;
 
@@ -456,26 +496,38 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 reader.onloadend = () => {
                     if (!isMounted) return;
                     const base64 = reader.result as string;
-                    // Extract just the base64 part (remove data:image/png;base64, prefix)
                     const base64Data = base64.split(',')[1];
                     dispatch({ type: 'SET_UPLOADED_RECEIPT', payload: base64Data });
-                    console.log('✓ Receipt loaded successfully from Storage');
+                    console.log('✅ Receipt loaded successfully from Storage');
                 };
-                reader.onerror = () => {
-                    console.error('Failed to read receipt blob');
+                reader.onerror = (error) => {
+                    console.error('❌ Failed to read receipt blob:', error);
                 };
                 reader.readAsDataURL(blob);
             } catch (error) {
-                console.error('Failed to load receipt from URL:', error);
+                console.error('❌ Failed to load receipt from URL:', error);
             }
+        } else if (state.uploadedReceipt) {
+            // This is to address the re-render, we don't need to log anything here
+        } else {
+            console.log('⏭️ Skipping receipt load (no URL or already loaded)');
         }
 
         // Load QR code from URL
         if (initialBillData.qrCodeImageUrl && !state.qrCodeImage) {
             try {
-                console.log('Loading QR code from Storage URL:', initialBillData.qrCodeImageUrl);
-                const response = await fetch(initialBillData.qrCodeImageUrl);
+                console.log('🖼️ Loading QR code from Storage URL:', initialBillData.qrCodeImageUrl);
+                const response = await fetch(initialBillData.qrCodeImageUrl, {
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const blob = await response.blob();
+                console.log('📦 QR code blob received:', blob.size, 'bytes');
 
                 if (!isMounted) return;
 
@@ -483,15 +535,19 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
                 reader.onloadend = () => {
                     if (!isMounted) return;
                     dispatch({ type: 'SET_QR_CODE_IMAGE', payload: reader.result as string });
-                    console.log('✓ QR code loaded successfully from Storage');
+                    console.log('✅ QR code loaded successfully from Storage (', blob.size, 'bytes)');
                 };
-                reader.onerror = () => {
-                    console.error('Failed to read QR code blob');
+                reader.onerror = (error) => {
+                    console.error('❌ Failed to read QR code blob:', error);
                 };
                 reader.readAsDataURL(blob);
             } catch (error) {
-                console.error('Failed to load QR code from URL:', error);
+                console.error('❌ Failed to load QR code from URL:', error);
             }
+        } else if (state.qrCodeImage) {
+            // Do nothing if QR is already loaded
+        } else {
+            console.log('⏭️ Skipping QR code load (no URL or already loaded)');
         }
     };
 
@@ -500,7 +556,7 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
     return () => {
         isMounted = false;
     };
-  }, [initialBillData.uploadedReceiptUrl, initialBillData.qrCodeImageUrl, uploadedReceipt, state.uploadedReceipt, state.qrCodeImage]);
+  }, [initialBillData.uploadedReceiptUrl, initialBillData.qrCodeImageUrl, uploadedReceipt]);
 
  useEffect(() => {
     // Preload critical images to improve summary generation reliability
