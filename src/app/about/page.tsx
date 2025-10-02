@@ -68,7 +68,7 @@ export default function AboutPage() {
             </div>
 
             <div className="my-16 bg-muted p-8 rounded-xl border border-border">
-                <h2 className="text-2xl font-bold text-center font-headline mb-8 text-foreground">Why You&apos;ll Love SplitBill AI</h2>
+                <h2 className="text-2xl font-bold text-center font-headline mb-8 text-foreground">Why You'll Love SplitBill AI</h2>
                 <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 max-w-4xl mx-auto">
                     <WhyCard 
                         icon={<Zap size={24} />}
@@ -99,7 +99,7 @@ export default function AboutPage() {
                     <FeatureCard 
                         icon={<Camera size={28} />}
                         title="Smart OCR & AI"
-                        description="At the core of SplitBill AI is a powerful vision model that doesn&apos;t just read text; it understands the structure of a receipt. It identifies line items, distinguishes them from taxes or totals, and processes them into an editable format, saving you from tedious manual data entry."
+                        description="At the core of SplitBill AI is a powerful vision model that doesn't just read text; it understands the structure of a receipt. It identifies line items, distinguishes them from taxes or totals, and processes them into an editable format, saving you from tedious manual data entry."
                     />
                      <FeatureCard 
                         icon={<Edit size={28} />}

@@ -10,15 +10,11 @@ import ReconciliationDetails from './ReconciliationDetails';
 import { SplitMode } from '../types';
 import DraggableReconciliation from './DraggableReconciliation';
 import { Button } from '../ui/button';
-import { Wand2, Info, CheckCircle2, AlertCircle, PartyPopper, Receipt as ReceiptIcon } from 'lucide-react';
+import { Wand2, Info, CheckCircle2, AlertCircle, PartyPopper, Receipt } from 'lucide-react';
 import SettleUp from './SettleUp';
 import ReceiptViewer from './ReceiptViewer';
-import ReceiptManager from './ReceiptManager';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
-import imageCompression from 'browser-image-compression';
-import { parseReceipt } from '@/components/services/geminiService';
-import type { Receipt } from '@/lib/types';
 
 interface SetupPageProps {
   state: any;
@@ -32,9 +28,8 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
   const [isGuideVisible, setIsGuideVisible] = useState(false);
   const [isReceiptVisible, setIsReceiptVisible] = useState(false);
   const [settleMode, setSettleMode] = useState<'single' | 'multiple'>('single');
-  const [isProcessingReceipt, setIsProcessingReceipt] = useState(false);
-
-  const { items, billTotal, splitMode, discounts, fees, uploadedReceipt, receipts = [] } = state;
+  
+  const { items, billTotal, splitMode, discounts, fees, uploadedReceipt } = state;
 
   const { totalShares, adjustment, absAdjustment, unassignedItemsCount, matchPercentage } = useMemo(() => {
     let sharesTotal = 0;
@@ -121,73 +116,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
   };
 
   const { buttonClass, balloonWrapperClass, text, Icon } = getDynamicContent();
-
-  const handleAddReceipt = async (file: File) => {
-    setIsProcessingReceipt(true);
-    try {
-      // Compress image
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-      };
-      const compressedFile = await imageCompression(file, options);
-
-      // Convert to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(compressedFile);
-      const base64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result);
-        };
-        reader.onerror = reject;
-      });
-
-      // Parse receipt with AI
-      const mimeType = compressedFile.type || 'image/jpeg';
-      const base64Data = base64.split(',')[1];
-      const data = await parseReceipt(base64Data, mimeType);
-
-      // Create receipt object
-      const newReceipt: Receipt = {
-        id: `receipt-${Date.now()}`,
-        imageUrl: base64,
-        restaurantName: data?.restaurantName || `Receipt ${receipts.length + 1}`,
-        total: data?.total || 0,
-        date: data?.date || new Date().toISOString().split('T')[0]
-      };
-
-      // Add receipt to state
-      dispatch({ type: 'ADD_RECEIPT', payload: newReceipt });
-
-      // Add items from this receipt
-      if (data?.items && Array.isArray(data.items)) {
-        const receiptIndex = receipts.length;
-        data.items.forEach((item: any) => {
-          if (item && item.name) {
-            dispatch({
-              type: 'ADD_ITEM',
-              payload: {
-                ...item,
-                translatedName: item.translatedName || null,
-                receiptIndex
-              }
-            });
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Failed to process receipt:', error);
-    } finally {
-      setIsProcessingReceipt(false);
-    }
-  };
-
-  const handleRemoveReceipt = (receiptId: string) => {
-    dispatch({ type: 'REMOVE_RECEIPT', payload: { receiptId } });
-  };
-
+  
   return (
     <div>
        <DraggableReconciliation 
@@ -220,7 +149,7 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
                     className="rounded-full shadow-lg bg-accent text-accent-foreground hover:bg-accent/90"
                     size="lg"
                 >
-                    <ReceiptIcon className="mr-2 h-5 w-5" />
+                    <Receipt className="mr-2 h-5 w-5" />
                     View Receipt
                 </Button>
             )}
@@ -271,21 +200,6 @@ const SetupPage: React.FC<SetupPageProps> = ({ state, dispatch, currencySymbol, 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5" id="adjustments-section">
           <h2 className="text-base font-bold mb-4 text-primary font-headline">{state.splitMode === 'item' ? '4' : '3'}. Review & Adjust</h2>
           <Adjustments state={state} dispatch={dispatch} currencySymbol={currencySymbol} fxRate={state.fxRate} formatNumber={formatNumber} />
-        </div>
-
-        <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
-          <h2 className="text-base font-bold mb-4 text-primary font-headline">Receipts</h2>
-          <ReceiptManager
-            receipts={receipts}
-            onAddReceipt={handleAddReceipt}
-            onRemoveReceipt={handleRemoveReceipt}
-            disabled={isProcessingReceipt}
-          />
-          {isProcessingReceipt && (
-            <div className="mt-3 text-sm text-muted-foreground text-center">
-              Processing receipt...
-            </div>
-          )}
         </div>
 
         <div className="bg-card rounded-xl shadow-card p-4 sm:p-5">
