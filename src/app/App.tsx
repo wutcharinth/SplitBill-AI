@@ -19,7 +19,7 @@ import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import AuthForm from '@/components/app/AuthForm';
 
 const ActionButton = ({ id, onClick, disabled, icon, text, type = 'primary', as: Component = 'button', className = '' }: { id?: string, onClick?: (e?: any) => void, disabled: boolean, icon: React.ReactNode, text: string, type?: 'primary' | 'secondary' | 'ghost', as?: React.ElementType, className?: string }) => {
-    const baseClasses = "group flex items-center justify-center space-x-3 w-full font-bold py-3 px-6 rounded-lg transition-all transform";
+    const baseClasses = "group flex items-center justify-center space-x-2 w-full font-medium py-2 px-4 rounded-lg transition-all transform";
     const typeClasses = {
         primary: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:scale-105',
         secondary: 'bg-card text-card-foreground border border-border hover:bg-muted hover:shadow-lg hover:scale-105',
@@ -190,7 +190,7 @@ function AppContent({ modelName }: { modelName: string }) {
                             
                             {!user && !loading && (
                                 <p className="text-muted-foreground mb-6 max-w-xs mx-auto text-sm">
-                                    The smartest way to split a bill. It's fast, powerful, and free. Sign in to get started.
+                                    The smartest way to split a bill. It&apos;s fast, powerful, and free. Sign in to get started.
                                 </p>
                             )}
 
@@ -200,22 +200,24 @@ function AppContent({ modelName }: { modelName: string }) {
                                 {user && !loading && (
                                     <>
                                         <ActionButton
-                                            onClick={() => cameraInputRef.current?.click()}
-                                            disabled={!consentGiven}
-                                            icon={<Camera size={20} />}
-                                            text="Take a Picture"
-                                        />
-                                        <ActionButton
                                             onClick={() => fileInputRef.current?.click()}
                                             disabled={!consentGiven}
-                                            icon={<Upload size={20} />}
+                                            icon={<Upload size={24} />}
                                             text="Upload from Library"
+                                            type="primary"
+                                            className="text-lg font-bold py-3"
+                                        />
+                                        <ActionButton
+                                            onClick={() => cameraInputRef.current?.click()}
+                                            disabled={!consentGiven}
+                                            icon={<Camera size={18} />}
+                                            text="Take a Picture"
                                             type="secondary"
                                         />
                                         <ActionButton
                                             onClick={handleStartManual}
                                             disabled={!consentGiven}
-                                            icon={<PlusCircle size={20} />}
+                                            icon={<PlusCircle size={18} />}
                                             text="Start without Receipt"
                                             type="ghost"
                                         />
@@ -223,7 +225,7 @@ function AppContent({ modelName }: { modelName: string }) {
                                             <ActionButton
                                                 as="div"
                                                 disabled={false}
-                                                icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>}
+                                                icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>}
                                                 text="View History"
                                                 type="ghost"
                                                 className="border-2 border-border"
