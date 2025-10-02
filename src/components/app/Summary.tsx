@@ -383,12 +383,14 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
             // Generate temporary bill ID if new
             const tempBillId = savedBillId || `bill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-            // Upload receipt and QR code images to Storage (not base64 to Firestore)
+            // Upload receipt and QR code images to Storage (with 15s timeout)
+            // Continue even if uploads fail - we'll still have base64 in local state
             let uploadedReceiptUrl: string | null = null;
             let qrCodeImageUrl: string | null = null;
 
             if (uploadedReceipt) {
                 try {
+                    console.log('Uploading receipt to Storage...');
                     // Convert base64 to blob
                     const base64Data = uploadedReceipt.replace(/^data:image\/\w+;base64,/, '');
                     const binaryData = atob(base64Data);
@@ -398,15 +400,18 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                         uint8Array[i] = binaryData.charCodeAt(i);
                     }
                     const receiptBlob = new Blob([uint8Array], { type: 'image/png' });
-                    uploadedReceiptUrl = await uploadImage(receiptBlob, `bills/${tempBillId}/receipt.png`);
-                    console.log('Receipt uploaded to Storage:', uploadedReceiptUrl);
+                    // 15 second timeout for mobile
+                    uploadedReceiptUrl = await uploadImage(receiptBlob, `bills/${tempBillId}/receipt.png`, 15000);
+                    console.log('Receipt uploaded successfully:', uploadedReceiptUrl);
                 } catch (error) {
-                    console.error('Failed to upload receipt:', error);
+                    console.error('Failed to upload receipt (continuing anyway):', error);
+                    // Continue without URL - receipt will still display from base64
                 }
             }
 
             if (qrCodeImage) {
                 try {
+                    console.log('Uploading QR code to Storage...');
                     // Convert base64 to blob
                     const base64Data = qrCodeImage.replace(/^data:image\/\w+;base64,/, '');
                     const binaryData = atob(base64Data);
@@ -416,10 +421,12 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                         uint8Array[i] = binaryData.charCodeAt(i);
                     }
                     const qrBlob = new Blob([uint8Array], { type: 'image/png' });
-                    qrCodeImageUrl = await uploadImage(qrBlob, `bills/${tempBillId}/qr-code.png`);
-                    console.log('QR code uploaded to Storage:', qrCodeImageUrl);
+                    // 15 second timeout for mobile
+                    qrCodeImageUrl = await uploadImage(qrBlob, `bills/${tempBillId}/qr-code.png`, 15000);
+                    console.log('QR code uploaded successfully:', qrCodeImageUrl);
                 } catch (error) {
-                    console.error('Failed to upload QR code:', error);
+                    console.error('Failed to upload QR code (continuing anyway):', error);
+                    // Continue without URL - QR will still display from base64
                 }
             }
 
@@ -450,8 +457,8 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                 await waitForImagesToLoad(summaryRef.current);
                 console.log('Images loaded, waiting additional time for mobile...');
 
-                // Extra delay for mobile browsers - images from Storage URLs need more time
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Extra delay for mobile browsers - need time to decode/render base64 images
+                await new Promise(resolve => setTimeout(resolve, 2500));
                 console.log('Ready to capture');
 
                 // Hide toggles temporarily

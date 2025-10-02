@@ -440,19 +440,29 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
 
   // Load images from URLs if they exist in billData
   useEffect(() => {
+    let isMounted = true;
+
     const loadImagesFromUrls = async () => {
         // Load receipt from URL
-        if (initialBillData.uploadedReceiptUrl && !uploadedReceipt) {
+        if (initialBillData.uploadedReceiptUrl && !uploadedReceipt && !state.uploadedReceipt) {
             try {
+                console.log('Loading receipt from Storage URL:', initialBillData.uploadedReceiptUrl);
                 const response = await fetch(initialBillData.uploadedReceiptUrl);
                 const blob = await response.blob();
+
+                if (!isMounted) return;
+
                 const reader = new FileReader();
                 reader.onloadend = () => {
+                    if (!isMounted) return;
                     const base64 = reader.result as string;
                     // Extract just the base64 part (remove data:image/png;base64, prefix)
                     const base64Data = base64.split(',')[1];
                     dispatch({ type: 'SET_UPLOADED_RECEIPT', payload: base64Data });
-                    console.log('Receipt loaded from Storage URL');
+                    console.log('✓ Receipt loaded successfully from Storage');
+                };
+                reader.onerror = () => {
+                    console.error('Failed to read receipt blob');
                 };
                 reader.readAsDataURL(blob);
             } catch (error) {
@@ -463,12 +473,20 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
         // Load QR code from URL
         if (initialBillData.qrCodeImageUrl && !state.qrCodeImage) {
             try {
+                console.log('Loading QR code from Storage URL:', initialBillData.qrCodeImageUrl);
                 const response = await fetch(initialBillData.qrCodeImageUrl);
                 const blob = await response.blob();
+
+                if (!isMounted) return;
+
                 const reader = new FileReader();
                 reader.onloadend = () => {
+                    if (!isMounted) return;
                     dispatch({ type: 'SET_QR_CODE_IMAGE', payload: reader.result as string });
-                    console.log('QR code loaded from Storage URL');
+                    console.log('✓ QR code loaded successfully from Storage');
+                };
+                reader.onerror = () => {
+                    console.error('Failed to read QR code blob');
                 };
                 reader.readAsDataURL(blob);
             } catch (error) {
@@ -476,8 +494,13 @@ const MainApp: React.FC<MainAppProps> = ({ initialBillData, onReset, uploadedRec
             }
         }
     };
+
     loadImagesFromUrls();
-  }, [initialBillData.uploadedReceiptUrl, initialBillData.qrCodeImageUrl]);
+
+    return () => {
+        isMounted = false;
+    };
+  }, [initialBillData.uploadedReceiptUrl, initialBillData.qrCodeImageUrl, uploadedReceipt, state.uploadedReceipt, state.qrCodeImage]);
 
  useEffect(() => {
     // Preload critical images to improve summary generation reliability
