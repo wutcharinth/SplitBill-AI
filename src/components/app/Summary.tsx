@@ -394,6 +394,9 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                 baseCurrency: state.baseCurrency,
                 restaurantName: state.restaurantName,
                 billDate: state.billDate,
+                qrCodeImage: qrCodeImage,
+                uploadedReceipt: uploadedReceipt,
+                notes: notes,
             };
 
             // Generate temporary bill ID if new
@@ -403,22 +406,30 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
             let summaryImageUrl: string | undefined;
             if (summaryRef.current) {
                 // Wait for images to load
+                console.log('Starting image load wait...');
                 await waitForImagesToLoad(summaryRef.current);
+                console.log('Images loaded, waiting additional time for mobile...');
+
+                // Extra delay for mobile browsers to ensure images are fully rendered
+                await new Promise(resolve => setTimeout(resolve, 800));
+                console.log('Ready to capture');
 
                 // Hide toggles temporarily
                 const toggles = summaryRef.current.querySelectorAll('[data-summary-toggle="true"]');
                 toggles.forEach((el) => (el as HTMLElement).style.display = 'none');
 
                 // Capture as canvas
+                console.log('Capturing canvas...');
                 const canvas = await html2canvas(summaryRef.current, {
                     backgroundColor: '#ffffff',
-                    logging: false,
+                    logging: true,
                     useCORS: true,
-                    allowTaint: false,
+                    allowTaint: true,
                     scale: 2,
                     imageTimeout: 15000,
                     removeContainer: true,
                 } as any);
+                console.log('Canvas captured successfully');
 
                 // Show toggles again
                 toggles.forEach((el) => (el as HTMLElement).style.display = '');

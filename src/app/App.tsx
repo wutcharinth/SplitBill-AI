@@ -11,7 +11,7 @@ import MainApp from '@/components/app/MainApp';
 import Loader from '@/components/app/Loader';
 import ErrorMessage from '@/components/app/ErrorMessage';
 import imageCompression from 'browser-image-compression';
-import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types';
+import type { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types';
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
 import { Button } from '@/components/ui/button';
@@ -129,15 +129,15 @@ function AppContent({ modelName }: { modelName: string }) {
             paidBy: person.id,
         }));
         
-        const fees: Fee[] = Array.isArray(data?.fees) ? data.fees.filter(fee => fee && fee.name).map(fee => ({
+        const fees: Fee[] = Array.isArray(data?.fees) ? data.fees.filter((fee): fee is NonNullable<typeof fee> => !!(fee && fee.name)).map((fee) => ({
             id: fee.id || `fee-${Date.now()}`,
             name: fee.translatedName || fee.name,
-            translatedName: fee.name,
+            translatedName: fee.name || null,
             amount: fee.amount,
             isEnabled: true
         })) : [];
 
-        const discounts: Discount[] = Array.isArray(data?.discounts) ? data.discounts.filter(discount => discount && discount.name).map(discount => ({
+        const discounts: Discount[] = Array.isArray(data?.discounts) ? data.discounts.filter((discount): discount is NonNullable<typeof discount> => !!(discount && discount.name)).map((discount) => ({
             id: discount.id || `discount-${Date.now()}`,
             name: discount.translatedName || discount.name,
             amount: discount.amount,
@@ -146,7 +146,7 @@ function AppContent({ modelName }: { modelName: string }) {
 
 
         const newBillData: BillData = {
-            items: Array.isArray(data?.items) ? data.items.filter(item => item && item.name).map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) : [],
+            items: Array.isArray(data?.items) ? data.items.filter((item): item is NonNullable<typeof item> => !!(item && item.name)).map((item) => ({ ...item, translatedName: item.translatedName || null, shares: Array(initialPeople.length).fill(0) })) : [],
             people: initialPeople,
             fees,
             discounts,
@@ -219,6 +219,16 @@ function AppContent({ modelName }: { modelName: string }) {
                                             text="Start without Receipt"
                                             type="ghost"
                                         />
+                                        <Link href="/history" className="w-full">
+                                            <ActionButton
+                                                as="div"
+                                                disabled={false}
+                                                icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>}
+                                                text="View History"
+                                                type="ghost"
+                                                className="border-2 border-border"
+                                            />
+                                        </Link>
                                     </>
                                 )}
                             </div>

@@ -1,0 +1,19 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Bills collection
+    match /bills/{billId} {
+      // Allow authenticated users to create/update their own bills
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+
+      // Allow anyone to read public bills
+      allow read: if resource.data.isPublic == true;
+
+      // Allow users to read their own bills (even if not public)
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}

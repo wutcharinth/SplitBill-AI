@@ -49,4 +49,7 @@ export interface BillData {
   baseCurrency: string;
   restaurantName: string;
   billDate: string;
+  qrCodeImage?: string | null;
+  uploadedReceipt?: string | null;
+  notes?: string;
 }

@@ -10,7 +10,7 @@ import MainApp from './MainApp';
 import Loader from './Loader';
 import ErrorMessage from './ErrorMessage';
 import imageCompression from 'browser-image-compression';
-import { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data';
+import type { ExtractReceiptDataOutput } from '@/ai/flows/extract-receipt-data.types';
 import Link from 'next/link';
 import { useUsage, UsageProvider } from '@/hooks/useUsageTracker';
 import { Button } from '@/components/ui/button';
@@ -125,15 +125,15 @@ function AppContent({ modelName }: { modelName: string }) {
             paidBy: person.id,
         }));
         
-        const fees: Fee[] = data?.fees?.map(fee => ({
+        const fees: Fee[] = data?.fees?.filter((fee): fee is NonNullable<typeof fee> => !!(fee && fee.name)).map((fee) => ({
             id: fee.id || `fee-${Date.now()}`,
             name: fee.translatedName || fee.name,
-            translatedName: fee.name,
+            translatedName: fee.name || null,
             amount: fee.amount,
             isEnabled: true
         })) || [];
 
-        const discounts: Discount[] = data?.discounts?.map(discount => ({
+        const discounts: Discount[] = data?.discounts?.filter((discount): discount is NonNullable<typeof discount> => !!(discount && discount.name)).map((discount) => ({
             id: discount.id || `discount-${Date.now()}`,
             name: discount.translatedName || discount.name,
             amount: discount.amount,
@@ -142,7 +142,7 @@ function AppContent({ modelName }: { modelName: string }) {
 
 
         const newBillData: BillData = {
-            items: data?.items.map(item => ({ ...item, shares: Array(initialPeople.length).fill(0) })) || [],
+            items: data?.items?.filter((item): item is NonNullable<typeof item> => !!(item && item.name)).map((item) => ({ ...item, translatedName: item.translatedName || null, shares: Array(initialPeople.length).fill(0) })) || [],
             people: initialPeople,
             fees,
             discounts,
