@@ -380,7 +380,50 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
         setIsSaving(true);
 
         try {
-            // Extract BillData from state
+            // Generate temporary bill ID if new
+            const tempBillId = savedBillId || `bill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Upload receipt and QR code images to Storage (not base64 to Firestore)
+            let uploadedReceiptUrl: string | null = null;
+            let qrCodeImageUrl: string | null = null;
+
+            if (uploadedReceipt) {
+                try {
+                    // Convert base64 to blob
+                    const base64Data = uploadedReceipt.replace(/^data:image\/\w+;base64,/, '');
+                    const binaryData = atob(base64Data);
+                    const arrayBuffer = new ArrayBuffer(binaryData.length);
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    for (let i = 0; i < binaryData.length; i++) {
+                        uint8Array[i] = binaryData.charCodeAt(i);
+                    }
+                    const receiptBlob = new Blob([uint8Array], { type: 'image/png' });
+                    uploadedReceiptUrl = await uploadImage(receiptBlob, `bills/${tempBillId}/receipt.png`);
+                    console.log('Receipt uploaded to Storage:', uploadedReceiptUrl);
+                } catch (error) {
+                    console.error('Failed to upload receipt:', error);
+                }
+            }
+
+            if (qrCodeImage) {
+                try {
+                    // Convert base64 to blob
+                    const base64Data = qrCodeImage.replace(/^data:image\/\w+;base64,/, '');
+                    const binaryData = atob(base64Data);
+                    const arrayBuffer = new ArrayBuffer(binaryData.length);
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    for (let i = 0; i < binaryData.length; i++) {
+                        uint8Array[i] = binaryData.charCodeAt(i);
+                    }
+                    const qrBlob = new Blob([uint8Array], { type: 'image/png' });
+                    qrCodeImageUrl = await uploadImage(qrBlob, `bills/${tempBillId}/qr-code.png`);
+                    console.log('QR code uploaded to Storage:', qrCodeImageUrl);
+                } catch (error) {
+                    console.error('Failed to upload QR code:', error);
+                }
+            }
+
+            // Extract BillData from state (with URLs, not base64)
             const billData: BillData = {
                 items: state.items,
                 people: state.people,
@@ -394,13 +437,10 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                 baseCurrency: state.baseCurrency,
                 restaurantName: state.restaurantName,
                 billDate: state.billDate,
-                qrCodeImage: qrCodeImage,
-                uploadedReceipt: uploadedReceipt,
+                qrCodeImageUrl: qrCodeImageUrl,
+                uploadedReceiptUrl: uploadedReceiptUrl,
                 notes: notes,
             };
-
-            // Generate temporary bill ID if new
-            const tempBillId = savedBillId || `bill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             // Capture and upload summary image
             let summaryImageUrl: string | undefined;
@@ -410,8 +450,8 @@ const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, f
                 await waitForImagesToLoad(summaryRef.current);
                 console.log('Images loaded, waiting additional time for mobile...');
 
-                // Extra delay for mobile browsers to ensure images are fully rendered
-                await new Promise(resolve => setTimeout(resolve, 800));
+                // Extra delay for mobile browsers - images from Storage URLs need more time
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 console.log('Ready to capture');
 
                 // Hide toggles temporarily
