@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Download, X, QrCode, Share2, CheckCircle2, Mail, Loader2, Languages } from 'lucide-react';
+import { Download, X, QrCode, Share2, CheckCircle2, Mail, Loader2, Languages, Save, Link as LinkIcon, Copy } from 'lucide-react';
 import { CURRENCIES, PERSON_COLORS } from '../constants';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti'
@@ -10,7 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Payment } from '@/lib/types';
+import { Payment, BillData } from '@/lib/types';
+import { saveBill } from '@/lib/firebase/billService';
+import { useAuth } from '@/hooks/useAuth';
+import { uploadImage, canvasToBlob } from '@/lib/firebase/storageService';
+import html2canvas from 'html2canvas';
 
 
 const fireConfetti = () => {
@@ -71,23 +75,47 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
         return Promise.resolve();
     }
 
+    console.log('Waiting for images to load:', images.length);
+
     const promises = images.map(img => {
         return new Promise<void>((resolve) => {
             if (img.complete && img.naturalHeight !== 0) {
-                // If image is already loaded and decoded, resolve immediately
-                 img.decode().then(() => resolve()).catch(() => resolve());
-            } else {
-                img.onload = () => {
-                    // Once loaded, decode it
-                    img.decode().then(() => resolve()).catch(() => {
-                        // Even if decode fails, resolve to not block the process
-                        console.error("Image failed to decode, but download will continue:", img.src);
-                        resolve();
+                // Image is already loaded, but wait for decode and paint
+                console.log('Image already loaded:', img.src.substring(0, 50));
+                img.decode()
+                    .then(() => {
+                        // Wait extra time for mobile browsers to paint
+                        setTimeout(() => resolve(), 200);
+                    })
+                    .catch(() => {
+                        console.error("Image failed to decode:", img.src.substring(0, 50));
+                        setTimeout(() => resolve(), 200);
                     });
+            } else {
+                // Image not yet loaded, wait for load event
+                console.log('Waiting for image to load:', img.src.substring(0, 50));
+
+                const timeoutId = setTimeout(() => {
+                    console.error("Image load timeout:", img.src.substring(0, 50));
+                    resolve();
+                }, 10000); // 10 second timeout
+
+                img.onload = () => {
+                    clearTimeout(timeoutId);
+                    console.log('Image loaded:', img.src.substring(0, 50));
+                    img.decode()
+                        .then(() => {
+                            setTimeout(() => resolve(), 200);
+                        })
+                        .catch(() => {
+                            console.error("Image decode failed:", img.src.substring(0, 50));
+                            setTimeout(() => resolve(), 200);
+                        });
                 };
+
                 img.onerror = () => {
-                    // If image fails to load, resolve to not block the process
-                    console.error("Image failed to load, but download will continue:", img.src);
+                    clearTimeout(timeoutId);
+                    console.error("Image failed to load:", img.src.substring(0, 50));
                     resolve();
                 };
             }
@@ -96,13 +124,17 @@ const waitForImagesToLoad = (element: HTMLElement): Promise<void> => {
 
     // Wait for all images to have been loaded and decoded
     return Promise.all(promises).then(() => {
-        // All images are decoded. Now, we wait for the browser to actually paint them.
-        // A double requestAnimationFrame is much more reliable than a fixed setTimeout for this.
+        console.log('All images loaded, waiting for paint...');
+        // Wait for browser to paint the images
         return new Promise<void>(resolve => {
-            // Wait for the next available frame.
             requestAnimationFrame(() => {
-                // Wait for the paint of that frame to complete.
-                requestAnimationFrame(resolve);
+                requestAnimationFrame(() => {
+                    // Add extra delay for mobile browsers
+                    setTimeout(() => {
+                        console.log('Images ready for capture');
+                        resolve();
+                    }, 300);
+                });
             });
         });
     });
@@ -270,10 +302,18 @@ const SummaryToggles = ({ state, dispatch }: { state: any, dispatch: any }) => {
 };
 
 
-const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string }> = ({ state, dispatch, currencySymbol, fxRate, formatNumber }) => {
+interface SummaryComponent extends React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySymbol: string, fxRate: number, formatNumber: (num: number) => string, billId?: string, onBillSaved?: (billId: string) => void }> {
+    Toggles: typeof SummaryToggles;
+}
+
+const Summary: SummaryComponent = (({ state, dispatch, currencySymbol, fxRate, formatNumber, billId: initialBillId, onBillSaved }) => {
     const summaryRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    const { user } = useAuth();
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [savedBillId, setSavedBillId] = useState<string | null>(initialBillId || null);
+    const [shareLink, setShareLink] = useState<string | null>(null);
     // NEW STATE: Track if the receipt image is loaded and ready.
     const [isReceiptImageLoaded, setIsReceiptImageLoaded] = useState(true);
     
@@ -312,7 +352,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         const timePart = now.toTimeString().slice(0, 8).replace(/:/g, '-');
         const restaurantPart = restaurantName.replace(/[^a-zA-Z0-9]/g, ' ').trim().replace(/\s+/g, '-');
         const filename = `SplitBill-AI-${datePart}${restaurantPart ? `-${restaurantPart}` : ''}-${timePart}.png`;
-        
+
         if (summaryRef.current) {
             const success = await generateImage(summaryRef.current, filename, toast);
             if (success) {
@@ -325,6 +365,110 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
             }
         }
         setIsDownloading(false);
+    };
+
+    const handleSaveAndShare = async () => {
+        if (!user) {
+            toast({
+                variant: 'destructive',
+                title: 'Sign in required',
+                description: 'Please sign in to save and share bills.',
+            });
+            return;
+        }
+
+        setIsSaving(true);
+
+        try {
+            // Extract BillData from state
+            const billData: BillData = {
+                items: state.items,
+                people: state.people,
+                fees: state.fees,
+                discounts: state.discounts,
+                tip: state.tip,
+                tipSplitMode: state.tipSplitMode,
+                payments: state.payments,
+                deposits: state.deposits || [],
+                billTotal: state.billTotal,
+                baseCurrency: state.baseCurrency,
+                restaurantName: state.restaurantName,
+                billDate: state.billDate,
+            };
+
+            // Generate temporary bill ID if new
+            const tempBillId = savedBillId || `bill_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Capture and upload summary image
+            let summaryImageUrl: string | undefined;
+            if (summaryRef.current) {
+                // Wait for images to load
+                await waitForImagesToLoad(summaryRef.current);
+
+                // Hide toggles temporarily
+                const toggles = summaryRef.current.querySelectorAll('[data-summary-toggle="true"]');
+                toggles.forEach((el) => (el as HTMLElement).style.display = 'none');
+
+                // Capture as canvas
+                const canvas = await html2canvas(summaryRef.current, {
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: false,
+                    scale: 2,
+                    imageTimeout: 15000,
+                    removeContainer: true,
+                } as any);
+
+                // Show toggles again
+                toggles.forEach((el) => (el as HTMLElement).style.display = '');
+
+                // Convert to blob and upload
+                const blob = await canvasToBlob(canvas);
+                const storagePath = `bills/${tempBillId}/summary.png`;
+                summaryImageUrl = await uploadImage(blob, storagePath);
+            }
+
+            // Save bill to Firestore with image URL
+            const billId = await saveBill(user.uid, billData, summaryImageUrl, savedBillId || undefined);
+            setSavedBillId(billId);
+
+            // Generate shareable link
+            const link = typeof window !== 'undefined' ? `${window.location.origin}/bill/${billId}` : `/bill/${billId}`;
+            setShareLink(link);
+
+            fireConfetti();
+
+            // Notify parent component if callback provided
+            if (onBillSaved) {
+                onBillSaved(billId);
+            }
+
+            toast({
+                variant: 'success',
+                title: savedBillId ? "Bill Updated!" : "Bill Saved!",
+                description: "Your bill has been saved. Share the link with your friends!",
+            });
+        } catch (error) {
+            console.error('Error saving bill:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: error instanceof Error ? error.message : 'Failed to save bill.',
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCopyLink = () => {
+        if (shareLink) {
+            navigator.clipboard.writeText(shareLink);
+            toast({
+                title: 'Link copied!',
+                description: 'Share this link with your friends.',
+            });
+        }
     };
     
     const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -410,7 +554,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                 }
             });
 
-            const totalItemShares = personSubtotals.reduce((sum, p) => sum + p.subtotal, 0);
+            const totalItemShares = personSubtotals.reduce((sum: number, p: any) => sum + p.subtotal, 0);
 
             perPersonData = people.map((person: any, index: number) => {
                 const personSub = personSubtotals[index].subtotal;
@@ -475,7 +619,7 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
         return perPersonData;
     }, [calculations, items, people, discounts, fees, tip, tipSplitMode, splitMode, peopleCountEvenly, payments, showTranslatedNames]);
     
-    const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum, p) => sum + p.finalTotal, 0), [perPersonResults]);
+    const totalFromIndividuals = useMemo(() => perPersonResults.reduce((sum: number, p: any) => sum + p.finalTotal, 0), [perPersonResults]);
 
     const hasQrCode = !!qrCodeImage;
     const hasNotes = notes && notes.trim().length > 0;
@@ -764,30 +908,61 @@ const Summary: React.FC<{ state: any; dispatch: React.Dispatch<any>, currencySym
                  <p className="text-center text-xs text-muted-foreground">Download the summary and share it with your friends to settle up!</p>
             </div>
             
-             <div className="mt-4 grid grid-cols-1 gap-3">
-                 {/* UPDATED LOGIC: Button is disabled while downloading OR while receipt is loading */}
-                 <Button onClick={handleShareSummary} className="w-full font-bold" disabled={isDownloading || isReceiptLoading}>
-                    {isDownloading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            <span>Creating your masterpiece...</span>
-                        </>
-                    ) : isReceiptLoading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            <span>Loading receipt image...</span>
-                        </>
-                    ) : (
-                        <>
-                            <Download size={18} />
-                            <span>Download as PNG</span>
-                        </>
-                    )}
-                </Button>
+             <div className="mt-4 space-y-3">
+                 {shareLink && (
+                     <div className="bg-muted border border-border rounded-lg p-3 space-y-2">
+                         <div className="flex items-center justify-between gap-2">
+                             <div className="flex-1 min-w-0">
+                                 <p className="text-xs font-semibold text-foreground mb-1">Shareable Link (View Only)</p>
+                                 <p className="text-xs text-muted-foreground truncate">{shareLink}</p>
+                             </div>
+                             <Button onClick={handleCopyLink} variant="outline" size="sm">
+                                 <Copy size={14} className="mr-1" />
+                                 Copy
+                             </Button>
+                         </div>
+                     </div>
+                 )}
+
+                 <div className="grid grid-cols-1 gap-3">
+                     <Button onClick={handleSaveAndShare} className="w-full font-bold" disabled={isSaving || isReceiptLoading || !user}>
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <span>Saving...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save size={18} className="mr-2" />
+                                <span>{savedBillId ? 'Update & Share' : 'Save & Share'}</span>
+                            </>
+                        )}
+                    </Button>
+
+                     {/* UPDATED LOGIC: Button is disabled while downloading OR while receipt is loading */}
+                     <Button onClick={handleShareSummary} variant="outline" className="w-full font-bold" disabled={isDownloading || isReceiptLoading}>
+                        {isDownloading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <span>Creating your masterpiece...</span>
+                            </>
+                        ) : isReceiptLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <span>Loading receipt image...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Download size={18} className="mr-2" />
+                                <span>Download Only</span>
+                            </>
+                        )}
+                    </Button>
+                </div>
             </div>
         </div>
     );
-};
+}) as SummaryComponent;
 
 Summary.Toggles = SummaryToggles;
 
